@@ -365,3 +365,17 @@ if __name__ == "__main__":
     sanitize_connectors()
     sanitize_roles()
     print("All sanitization completed successfully.")
+
+def sanitize_readme():
+    path = os.path.join(ROOT, "README.md")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            c = f.read()
+        banner_old = '<p align="center">\\n  <strong>A smarter, self-hosted AI assistant — multi-user, multi-agent.</strong>\\n</p>'
+        banner_new = '<p align="center">\\n  <strong>A smarter, self-hosted AI assistant — 100% English & Privacy-Focused Fork</strong><br />\\n  <em>Cleaned of region-locked Chinese services (WeChat, WeCom, QQ, Feishu, DingTalk) with pure English defaults.</em>\\n</p>'
+        c = c.replace(banner_old, banner_new)
+        c = c.replace("Feishu, DingTalk, QQ, WeChat, Telegram, Discord, WeCom", "Telegram, Discord, MQTT")
+        c = c.replace("Tencent suite (Docs, Meeting, News, …); OAuth and MCP gateway extend resource boundaries", "Notion, OpenAlex, Dify, and standard MCP gateway endpoints")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(c)
+        print("Sanitized README.md")

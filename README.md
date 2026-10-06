@@ -3,8 +3,10 @@
 </p>
 
 <p align="center">
-  <strong>A smarter, self-hosted AI assistant — multi-user, multi-agent.</strong>
+  <strong>A smarter, self-hosted AI assistant — 100% English & Privacy-Focused Fork</strong><br />
+  <em>Cleaned of region-locked Chinese services (WeChat, WeCom, QQ, Feishu, DingTalk) with pure English defaults.</em>
 </p>
+
 
 <p align="center">
   <a href="https://trendshift.io/repositories/95504?utm_source=repository-badge&utm_medium=badge&utm_campaign=badge-repository-95504" target="_blank" rel="noopener noreferrer">
@@ -39,9 +41,13 @@
 
 ---
 
+> [!NOTE]
+> **About this fork (`onlinegill/Octop`):**
+> This fork is maintained for international and English-speaking users. It cleans out region-locked Chinese services and trackers (WeChat, QQ, Feishu, DingTalk, etc.), sets English as the default locale across all dashboards and subagents, and continuously syncs upstream enhancements from `TencentCloud/Octop`.
+
 **Octop** is an open-source, self-hosted AI assistant. It's not just a tool — it's a digital life form that can operate in parallel. Through its multi-agent architecture, it builds an intelligent environment that is both independent and collaborative for teams, families, and individuals. Best of all, it runs entirely on your machine — the fully self-hosted design means privacy is never a compromise, while single-process startup makes the powerful web console, CLI, and IM integrations readily accessible.
 
-Chat through the Web Dashboard, Feishu, DingTalk, QQ, WeChat, Telegram, Discord, WeCom, or programmatic HTTP/SSE/WebSocket. Extend capabilities with the **expert library**, **Connectors** (OAuth + MCP), and **ACP** integration for IDE workflows.
+Chat through the Web Dashboard, Telegram, Discord, MQTT, or programmatic HTTP/SSE/WebSocket. Extend capabilities with the **expert library**, **Connectors** (OAuth + MCP), and **ACP** integration for IDE workflows.
 
 ## ✨ Highlights
 
@@ -52,7 +58,7 @@ Chat through the Web Dashboard, Feishu, DingTalk, QQ, WeChat, Telegram, Discord,
 | 🎭 | **MBTI personas** | 16 personality templates plus an interactive quiz — give each agent a distinct character |
 | 🎯 | **AgentTeams** *(Beta)* | A coordinator schedules multiple experts on multi-step work; [details](docs/expert-teams.md) |
 | 🔒 | **Security built-in** | JWT multi-user isolation, tool approval, shell command guardrails, and PII redaction — data stays local |
-| 🔌 | **Connector ecosystem** | Tencent suite (Docs, Meeting, News, …); OAuth and MCP gateway extend resource boundaries |
+| 🔌 | **Connector ecosystem** | Notion, OpenAlex, Dify, and standard MCP gateway endpoints |
 | 💾 | **Pluggable workspace backends** | Local disk, Docker sandbox, PostgreSQL, or COS/S3 for agent files — separate from the control-plane DB |
 | 🧠 | **Portable memory** | Powered by [Octop Memory](https://github.com/TencentCloud/octop-memory); memory migrates with the workspace |
 | 📚 | **Knowledge base** | RAG over your documents; share corpora within a deployment and ground answers in your private data |

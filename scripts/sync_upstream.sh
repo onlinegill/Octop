@@ -12,6 +12,7 @@ echo "=== Merging upstream main ==="
 git checkout main
 git merge upstream/main -m "chore(sync): merge upstream TencentCloud/Octop updates" --allow-unrelated-histories || {
   echo "Conflict occurred during merge. Auto-resolving in favor of sanitization..."
+  git checkout --ours README.md 2>/dev/null || true
   git checkout --ours dashboard/src/utils/localePrefs.ts 2>/dev/null || true
   git checkout --ours dashboard/src/pages/Agent/Channels/components/constants.ts 2>/dev/null || true
   git checkout --ours src/octop/infra/connectors/catalog.py 2>/dev/null || true
