@@ -1,4 +1,52 @@
-"""Static connector catalog — bundled presets for HTTP MCP services."""
+#!/usr/bin/env python3
+"""Sanitize script to ensure Octop remains 100% English-default and free of China-hosted connectors."""
+
+import os
+import re
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def sanitize_locale_prefs():
+    path = os.path.join(ROOT, "dashboard/src/utils/localePrefs.ts")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        content = re.sub(
+            r'export function normalizeUiLocale\(raw: string \| null \| undefined\): UiLocale \{\s*if \(!raw\) return "zh";',
+            'export function normalizeUiLocale(raw: string | null | undefined): UiLocale {\n  if (!raw) return "en";',
+            content,
+        )
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("Sanitized localePrefs.ts")
+
+
+def sanitize_channels():
+    path = os.path.join(ROOT, "dashboard/src/pages/Agent/Channels/components/constants.ts")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        content = re.sub(
+            r'export const CHANNEL_KEYS: ChannelKey\[\] = \[[^\]]+\];',
+            'export const CHANNEL_KEYS: ChannelKey[] = [\n  "telegram",\n  "discord",\n  "mqtt",\n];',
+            content,
+        )
+        content = re.sub(
+            r'const COLLAPSED_CHANNEL_KEYS = new Set<ChannelKey>\(\[[^\]]*\]\);',
+            'const COLLAPSED_CHANNEL_KEYS = new Set<ChannelKey>([]);',
+            content,
+        )
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("Sanitized channel constants.ts")
+
+
+def sanitize_connectors():
+    catalog_path = os.path.join(ROOT, "src/octop/infra/connectors/catalog.py")
+    if os.path.exists(catalog_path):
+        # We ensure catalog only exposes Notion, OpenAlex, Dify
+        catalog_code = '''"""Static connector catalog — bundled presets for HTTP MCP services."""
 
 from __future__ import annotations
 
@@ -217,3 +265,88 @@ def catalog_entry_to_dict(
         ],
         "supports_quick_auth": entry.phase == "available" and entry.auth_kind != "api_credentials",
     }
+'''
+        with open(catalog_path, "w", encoding="utf-8") as f:
+            f.write(catalog_code)
+        print("Sanitized catalog.py")
+
+    registry_path = os.path.join(ROOT, "src/octop/infra/connectors/gateway/registry.py")
+    if os.path.exists(registry_path):
+        registry_code = '''"""Gateway adapter registry — kind -> list_tools / call_tool / probe."""
+
+from __future__ import annotations
+
+from typing import Any, Protocol
+
+
+class GatewayAdapter(Protocol):
+    def list_tools(self) -> list[dict[str, Any]]: ...
+
+    def call_tool(self, creds: dict[str, Any], name: str, args: dict[str, Any]) -> str: ...
+
+    def probe_credentials(self, creds: dict[str, Any]) -> None: ...
+
+
+_ADAPTERS: dict[str, GatewayAdapter] = {}
+
+
+def get_gateway_adapter(kind: str) -> GatewayAdapter | None:
+    return _ADAPTERS.get(kind)
+
+
+def mcp_tools_for_kind(kind: str) -> list[dict[str, Any]]:
+    adapter = get_gateway_adapter(kind)
+    if adapter is None:
+        return []
+    return adapter.list_tools()
+
+
+def call_gateway_tool(
+    kind: str,
+    creds: dict[str, Any],
+    name: str,
+    args: dict[str, Any],
+) -> str:
+    adapter = get_gateway_adapter(kind)
+    if adapter is None:
+        raise ValueError(f"unknown tool: {name}")
+    return adapter.call_tool(creds, name, args)
+
+
+def probe_gateway_credentials(kind: str, creds: dict[str, Any]) -> None:
+    adapter = get_gateway_adapter(kind)
+    if adapter is None:
+        raise ValueError(f"unknown gateway connector kind: {kind}")
+    adapter.probe_credentials(creds)
+'''
+        with open(registry_path, "w", encoding="utf-8") as f:
+            f.write(registry_code)
+        print("Sanitized registry.py")
+
+
+def sanitize_roles():
+    migrate_path = os.path.join(ROOT, "src/octop/infra/db/migrate.py")
+    if os.path.exists(migrate_path):
+        with open(migrate_path, "r", encoding="utf-8") as f:
+            c = f.read()
+        c = c.replace('("管理员", ts, ts)', '("Admin", ts, ts)')
+        c = c.replace('("用户", ts, ts)', '("User", ts, ts)')
+        with open(migrate_path, "w", encoding="utf-8") as f:
+            f.write(c)
+
+    setup_path = os.path.join(ROOT, "src/octop/api/routers/setup.py")
+    if os.path.exists(setup_path):
+        with open(setup_path, "r", encoding="utf-8") as f:
+            c = f.read()
+        c = c.replace('"管理员"', '"Admin"')
+        with open(setup_path, "w", encoding="utf-8") as f:
+            f.write(c)
+    print("Sanitized role names in DB seeds")
+
+
+if __name__ == "__main__":
+    sanitize_locale_prefs()
+    sanitize_channels()
+    sanitize_connectors()
+    sanitize_roles()
+    print("All sanitization completed successfully.")

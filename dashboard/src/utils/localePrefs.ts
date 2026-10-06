@@ -25,7 +25,7 @@ export function detectBrowserLocale(): UiLocale {
 }
 
 export function normalizeUiLocale(raw: string | null | undefined): UiLocale {
-  if (!raw) return "zh";
+  if (!raw) return "en";
   return raw.toLowerCase().startsWith("zh") ? "zh" : "en";
 }
 

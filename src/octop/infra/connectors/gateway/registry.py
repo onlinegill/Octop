@@ -1,25 +1,8 @@
-"""Gateway adapter registry — kind → list_tools / call_tool / probe."""
+"""Gateway adapter registry — kind -> list_tools / call_tool / probe."""
 
 from __future__ import annotations
 
 from typing import Any, Protocol
-
-from octop.infra.connectors.gateway.adapters import (
-    agently_cli,
-    baidu_map,
-    ctrip_wendao,
-    feishu_cli,
-    fliggy,
-    meituan_travel,
-    qq_mail,
-    qq_music,
-    tencent_ima,
-    tencent_news,
-    wechat_reading,
-    wecom_cli,
-    weknora,
-    yuandian,
-)
 
 
 class GatewayAdapter(Protocol):
@@ -30,22 +13,7 @@ class GatewayAdapter(Protocol):
     def probe_credentials(self, creds: dict[str, Any]) -> None: ...
 
 
-_ADAPTERS: dict[str, GatewayAdapter] = {
-    "agently-cli": agently_cli,
-    "qq-mail": qq_mail,
-    "qq-music": qq_music,
-    "fliggy": fliggy,
-    "baidu-map": baidu_map,
-    "ctrip-wendao": ctrip_wendao,
-    "meituan-travel": meituan_travel,
-    "yuandian": yuandian,
-    "tencent-ima": tencent_ima,
-    "tencent-news": tencent_news,
-    "wechat-reading": wechat_reading,
-    "feishu-cli": feishu_cli,
-    "wecom-cli": wecom_cli,
-    "weknora": weknora,
-}
+_ADAPTERS: dict[str, GatewayAdapter] = {}
 
 
 def get_gateway_adapter(kind: str) -> GatewayAdapter | None:
@@ -72,7 +40,6 @@ def call_gateway_tool(
 
 
 def probe_gateway_credentials(kind: str, creds: dict[str, Any]) -> None:
-    """Validate credentials against the upstream API (raises on failure)."""
     adapter = get_gateway_adapter(kind)
     if adapter is None:
         raise ValueError(f"unknown gateway connector kind: {kind}")

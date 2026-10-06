@@ -36,20 +36,13 @@ export type ChannelKey =
  * ``dashboard`` / ``agentchat`` are intentionally omitted until implemented.
  */
 export const CHANNEL_KEYS: ChannelKey[] = [
-  "weixin",
-  "qq",
-  "wecom",
-  "feishu",
-  "yuanbao",
-  "dingtalk",
   "telegram",
   "discord",
-  "xiaoyi",
   "mqtt",
 ];
 
 /** Overseas / less-common kinds hidden behind "更多通道" until expanded. */
-const COLLAPSED_CHANNEL_KEYS = new Set<ChannelKey>(["telegram", "discord"]);
+const COLLAPSED_CHANNEL_KEYS = new Set<ChannelKey>([]);
 
 export function isCollapsedChannelKey(key: ChannelKey): boolean {
   return COLLAPSED_CHANNEL_KEYS.has(key);
