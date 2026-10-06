@@ -3,7 +3,6 @@ import { initReactI18next } from "react-i18next";
 import { getApiUrl } from "./api/config";
 import { i18nApi } from "./api/modules/i18n";
 import {
-  resolveInitialLocale,
   syncDocumentLang,
   type UiLocale,
 } from "./utils/localePrefs";
