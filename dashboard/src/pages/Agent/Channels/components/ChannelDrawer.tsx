@@ -84,14 +84,7 @@ export interface ChannelFormValues {
 }
 
 // Channels that support QR quick-config
-const QUICK_CONFIG_CHANNELS: ChannelKey[] = [
-  "qq",
-  "wecom",
-  "weixin",
-  "dingtalk",
-  "feishu",
-  "yuanbao",
-];
+const QUICK_CONFIG_CHANNELS: ChannelKey[] = [];
 
 const YUANBAO_DEFAULT_API_DOMAIN = "https://bot.yuanbao.tencent.com";
 const YUANBAO_DEFAULT_WS_URL =

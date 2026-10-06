@@ -42,6 +42,20 @@ def sanitize_channels():
         print("Sanitized channel constants.ts")
 
 
+def sanitize_channel_drawer():
+    path = os.path.join(ROOT, "dashboard/src/pages/Agent/Channels/components/ChannelDrawer.tsx")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        content = re.sub(
+            r'const QUICK_CONFIG_CHANNELS: ChannelKey\[\] = \[[^\]]+\];',
+            'const QUICK_CONFIG_CHANNELS: ChannelKey[] = [];',
+            content,
+        )
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("Sanitized ChannelDrawer.tsx")
+
 def sanitize_connectors():
     catalog_path = os.path.join(ROOT, "src/octop/infra/connectors/catalog.py")
     if os.path.exists(catalog_path):
@@ -347,6 +361,7 @@ def sanitize_roles():
 if __name__ == "__main__":
     sanitize_locale_prefs()
     sanitize_channels()
+    sanitize_channel_drawer()
     sanitize_connectors()
     sanitize_roles()
     print("All sanitization completed successfully.")
