@@ -4,24 +4,24 @@
 
 <p align="center">
   <strong>A smarter, self-hosted AI assistant — 100% English & Privacy-Focused Fork</strong><br />
-  <em>Cleaned of region-locked Chinese services (WeChat, WeCom, QQ, Feishu, DingTalk) with pure English defaults.</em>
+  <em>Fully self-hosted, privacy-first, with pure English defaults and global integrations.</em>
 </p>
 
 
 <p align="center">
   <a href="https://trendshift.io/repositories/95504?utm_source=repository-badge&utm_medium=badge&utm_campaign=badge-repository-95504" target="_blank" rel="noopener noreferrer">
-    <img src="https://trendshift.io/api/badge/repositories/95504" alt="TencentCloud/Octop | Trendshift" width="250" height="55" />
+    <img src="https://trendshift.io/api/badge/repositories/95504" alt="onlinegill/Octop | Trendshift" width="250" height="55" />
   </a>
 </p>
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img alt="Python 3.12+" src="https://img.shields.io/badge/python-3.12%2B-blue?logo=python&logoColor=white" /></a>
-  <a href="https://github.com/TencentCloud/Octop/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green" /></a>
-  <a href="https://github.com/TencentCloud/Octop/releases"><img alt="Version" src="https://img.shields.io/badge/version-1.0.2b6-orange" /></a>
+  <a href="https://github.com/onlinegill/Octop/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green" /></a>
+  <a href="https://github.com/onlinegill/Octop/releases"><img alt="Version" src="https://img.shields.io/badge/version-1.0.2b6-orange" /></a>
   <a href="https://pypi.org/project/octop/"><img src="https://img.shields.io/pypi/v/octop" alt="PyPI" /></a>
   <a href="https://github.com/astral-sh/ruff"><img alt="Code Style: Ruff" src="https://img.shields.io/badge/code%20style-ruff-000000?logo=ruff&logoColor=white" /></a>
-  <a href="https://github.com/TencentCloud/Octop"><img alt="GitHub stars" src="https://img.shields.io/github/stars/TencentCloud/Octop?style=social" /></a>
-  <a href="https://github.com/TencentCloud/Octop/fork"><img alt="GitHub forks" src="https://img.shields.io/github/forks/TencentCloud/Octop?style=social" /></a>
+  <a href="https://github.com/onlinegill/Octop"><img alt="GitHub stars" src="https://img.shields.io/github/stars/onlinegill/Octop?style=social" /></a>
+  <a href="https://github.com/onlinegill/Octop/fork"><img alt="GitHub forks" src="https://img.shields.io/github/forks/onlinegill/Octop?style=social" /></a>
 </p>
 
 <p align="center">
@@ -34,15 +34,11 @@
   <a href="#-contents">Contents</a>
 </p>
 
-<p align="center">
-  <b>English</b> · <a href="README_CN.md">中文</a>
-</p>
-
 ---
 
 > [!NOTE]
 > **About this fork (`onlinegill/Octop`):**
-> This fork is maintained for international and English-speaking users. It cleans out region-locked Chinese services and trackers (WeChat, QQ, Feishu, DingTalk, etc.), sets English as the default locale across all dashboards and subagents, and continuously syncs upstream enhancements from `TencentCloud/Octop`.
+> This fork is maintained for international and English-speaking users. It cleans out region-locked services, telemetry, and non-English presets, defaults to 100% English across all dashboards and subagents, and continuously syncs upstream core improvements.
 
 **Octop** is an open-source, self-hosted AI assistant. It's not just a tool — it's a digital life form that can operate in parallel. Through its multi-agent architecture, it builds an intelligent environment that is both independent and collaborative for teams, families, and individuals. Best of all, it runs entirely on your machine — the fully self-hosted design means privacy is never a compromise, while single-process startup makes the powerful web console, CLI, and IM integrations readily accessible.
 
@@ -194,19 +190,19 @@ This roadmap may shift as the community grows; treat it as indicative only.
 **macOS / Linux** — one-line installer (recommended):
 
 ```bash
-curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/onlinegill/Octop/main/scripts/install.sh | bash
 ```
 
 **Windows (PowerShell)**:
 
 ```powershell
-irm https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.ps1 | iex
+irm https://raw.githubusercontent.com/onlinegill/Octop/main/scripts/install.ps1 | iex
 ```
 
 **Windows (cmd)** — download and run, or from a cloned repo:
 
 ```bat
-curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.bat -o install.bat
+curl -fsSL https://raw.githubusercontent.com/onlinegill/Octop/main/scripts/install.bat -o install.bat
 install.bat
 ```
 
@@ -222,12 +218,12 @@ The installer places `octop` on your PATH via `~/.octop/bin`. Optional extras:
 
 ```bash
 # Download Playwright Chromium for browser automation (skipped if a system Chrome/Chromium is already present)
-curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash -s -- --extras browser
+curl -fsSL https://raw.githubusercontent.com/onlinegill/Octop/main/scripts/install.sh | bash -s -- --extras browser
 ```
 
 See [scripts/README.md](scripts/README.md) for all install options (`--version`, `--from-source`, `--mirror`, Windows flags).
 
-**Desktop app** (GUI, no terminal) — grab the artifact for your platform from [GitHub Releases](https://github.com/TencentCloud/Octop/releases/latest):
+**Desktop app** (GUI, no terminal) — grab the artifact for your platform from [GitHub Releases](https://github.com/onlinegill/Octop/releases):
 
 | Platform | Artifact |
 |----------|----------|
@@ -381,7 +377,7 @@ octop user list
 
 ### Supported LLM providers
 
-OpenAI-compatible APIs, DashScope (Qwen), Ollama, and other presets — configure per agent in the dashboard or via `octop provider`.
+OpenAI-compatible APIs, Anthropic, Ollama, and other presets — configure per agent in the dashboard or via `octop provider`.
 
 ### Supported channels
 
@@ -560,6 +556,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 Thanks to all contributors:
 
-<a href="https://github.com/tencentcloud/octop/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=tencentcloud/octop" />
+<a href="https://github.com/onlinegill/Octop/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=onlinegill/Octop" />
 </a>
