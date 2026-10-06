@@ -389,6 +389,21 @@ def sanitize_tls_preflight():
         print("Sanitized TLS preflight IP discovery")
 
 
+def sanitize_manager_language():
+    path = os.path.join(ROOT, "src/octop/infra/agents/manager.py")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            c = f.read()
+        c = re.sub(
+            r'harness_cfg = HarnessAgentConfig\(\s*name=_memory_namespace\(row\.agent_id\),\s*workspace_dir=harness_workspace,',
+            'harness_cfg = HarnessAgentConfig(\n            name=_memory_namespace(row.agent_id),\n            language=cfg.get("language") or "en",\n            workspace_dir=harness_workspace,',
+            c,
+        )
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(c)
+        print("Sanitized manager.py language default")
+
+
 if __name__ == "__main__":
     sanitize_locale_prefs()
     sanitize_channels()
@@ -397,6 +412,7 @@ if __name__ == "__main__":
     sanitize_roles()
     sanitize_subagents()
     sanitize_tls_preflight()
+    sanitize_manager_language()
     print("All sanitization completed successfully.")
 
 def sanitize_readme():
