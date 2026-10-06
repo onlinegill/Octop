@@ -295,20 +295,6 @@
         <div id="octop-boot-text">Loading…</div>
       </div>
     </div>
-    <script>
-      (function () {
-        var el = document.getElementById("octop-boot-text");
-        if (!el) return;
-        try {
-          var lang = (
-            navigator.language ||
-            navigator.userLanguage ||
-            ""
-          ).toLowerCase();
-          if (lang.indexOf("zh") === 0) el.textContent = "加载中…";
-        } catch (e) {}
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
