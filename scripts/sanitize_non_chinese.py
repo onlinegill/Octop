@@ -358,12 +358,45 @@ def sanitize_roles():
     print("Sanitized role names in DB seeds")
 
 
+def sanitize_subagents():
+    import shutil
+    en_dir = os.path.join(ROOT, "src/octop/infra/agents/subagents/library/en")
+    zh_dir = os.path.join(ROOT, "src/octop/infra/agents/subagents/library/zh")
+    if os.path.exists(en_dir):
+        if os.path.exists(zh_dir):
+            shutil.rmtree(zh_dir)
+        shutil.copytree(en_dir, zh_dir)
+        print("Sanitized subagents library (zh replaced with en)")
+
+
+def sanitize_tls_preflight():
+    path = os.path.join(ROOT, "src/octop/infra/setup/tls/preflight.py")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            c = f.read()
+        c = re.sub(
+            r'_METADATA_PUBLIC_IP_URLS: tuple\[str, \.\.\.\] = \([^)]+\)',
+            '_METADATA_PUBLIC_IP_URLS: tuple[str, ...] = (\n    "http://169.254.169.254/latest/meta-data/public-ipv4",\n)',
+            c,
+        )
+        c = re.sub(
+            r'_PUBLIC_IP_HTTPS_URLS: tuple\[str, \.\.\.\] = \([^)]+\)',
+            '_PUBLIC_IP_HTTPS_URLS: tuple[str, ...] = (\n    "https://api.ipify.org?format=text",\n    "https://icanhazip.com",\n    "https://ifconfig.me/ip",\n    "https://api.ip.sb/ip",\n)',
+            c,
+        )
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(c)
+        print("Sanitized TLS preflight IP discovery")
+
+
 if __name__ == "__main__":
     sanitize_locale_prefs()
     sanitize_channels()
     sanitize_channel_drawer()
     sanitize_connectors()
     sanitize_roles()
+    sanitize_subagents()
+    sanitize_tls_preflight()
     print("All sanitization completed successfully.")
 
 def sanitize_readme():
