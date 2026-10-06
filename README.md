@@ -22,7 +22,6 @@
   <a href="https://github.com/astral-sh/ruff"><img alt="Code Style: Ruff" src="https://img.shields.io/badge/code%20style-ruff-000000?logo=ruff&logoColor=white" /></a>
   <a href="https://github.com/TencentCloud/Octop"><img alt="GitHub stars" src="https://img.shields.io/github/stars/TencentCloud/Octop?style=social" /></a>
   <a href="https://github.com/TencentCloud/Octop/fork"><img alt="GitHub forks" src="https://img.shields.io/github/forks/TencentCloud/Octop?style=social" /></a>
-  <a href="https://discord.gg/QnWdhJxq9h"><img alt="Discord" src="https://img.shields.io/badge/Discord-Join%20Us-5865F2?logo=discord&logoColor=white" /></a>
 </p>
 
 <p align="center">
@@ -72,7 +71,7 @@ Chat through the Web Dashboard, Telegram, Discord, MQTT, or programmatic HTTP/SS
 
 ## 📌 Overview
 
-Octop is a self-hosted AI assistant platform for households and small teams. It runs a single process that serves a web dashboard, a CLI, IM channels (Feishu, DingTalk, QQ, WeChat, Telegram, Discord, WeCom, and more), and cron automation — all sharing one control-plane database under `~/.octop/` (SQLite by default; PostgreSQL optional).
+Octop is a self-hosted AI assistant platform for households and small teams. It runs a single process that serves a web dashboard, a CLI, IM channels (Telegram, Discord, and MQTT), and cron automation — all sharing one control-plane database under `~/.octop/` (SQLite by default; PostgreSQL optional).
 
 > Octop's design goal: keep every conversation, workspace, and credential on your own machine, while giving each user a personal team of specialized agents they can switch between per task.
 
@@ -81,7 +80,7 @@ Octop is a self-hosted AI assistant platform for households and small teams. It 
 
 - **Personal assistant** — let a dedicated agent write weekly reports, organize notes, and manage your schedule; memory persists with the workspace.
 - **Family sharing** — one admin account, the whole household; assign different agents and experts per member; share experts and knowledge bases when useful.
-- **Team helper** — AgentTeams or parallel agents, bridging Feishu / DingTalk / WeCom / WeChat to route tasks into group chats.
+- **Team helper** — AgentTeams or parallel agents, bridging Telegram / Discord to route tasks into group chats.
 - **Developer boost** — delegate coding tasks to OpenCode / Claude Code via ACP, or troubleshoot from the terminal with AI assistance.
 - **Web automation** — use Browser AI+ and remote desktop for forms, screenshots, and GUI apps.
 - **Scheduled tasks** — configure cron in natural language so the agent pushes or runs jobs on time every day.
@@ -126,7 +125,7 @@ Instead of an external queue or message broker, Octop routes every surface — W
 - Workspace backends (expert files): local disk, Docker sandbox, PostgreSQL, COS/S3, and other remote stores — distinct from the control-plane database
 
 ### Channels & automation
-- IM channels: Feishu, DingTalk, QQ, WeChat, Telegram, Discord, WeCom, and more
+- IM channels: Telegram, Discord, and MQTT
 - Proactive cron jobs with natural-language and slash-command triggers
 - Unified message processing across Web UI, IM, and cron surfaces
 
@@ -388,16 +387,10 @@ OpenAI-compatible APIs, DashScope (Qwen), Ollama, and other presets — configur
 
 | Channel | Credentials |
 |---------|-------------|
-| **Feishu** | App ID, App Secret |
-| **DingTalk** | App Key, App Secret |
-| **QQ** | Bot AppID, Token |
-| **WeChat** | QR bind / account credentials; [CLI](docs/cli.md) |
 | **Telegram** | Bot Token |
 | **Discord** | Bot Token; all accessible channels allowed by default, optional channel/DM allowlists; [setup and testing](docs/discord-channel.md) |
-| **WeCom** | Corp ID, Agent Secret |
+| **MQTT** | Broker URL, Topic |
 | **Web Dashboard** | Enabled by default |
-
-Other kinds (e.g. Yuanbao, Xiaoyi, MQTT) are available via the gateway — see channel setup in the dashboard or CLI.
 
 ## 📖 CLI reference
 
@@ -558,19 +551,6 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 | [Octop Memory](https://github.com/TencentCloud/octop-memory) | Hierarchical recall and FTS search |
 | [Octop Browser](https://github.com/TencentCloud/octop-browser) | CDP browser automation with persistent profiles |
 
-## 💬 Community
-
-- **Discord** — join the English-speaking community: [discord.gg/jPas5J8Ua](https://discord.gg/jPas5J8Ua)
-
-### WeCom Customer Group (CN)
-
-For the customer WeCom support group, scan:
-
-<p align="center">
-  <img src="docs/assets/qrcode.png" alt="WeCom customer group QR code" width="220" />
-</p>
-
-> Please scan the QR code to join the group. For any questions or assistance, please contact the group admin directly.
 
 ## 📄 License
 

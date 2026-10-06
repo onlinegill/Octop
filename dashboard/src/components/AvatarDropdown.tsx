@@ -56,9 +56,9 @@ import {
 } from "../pages/Admin/Users/ProfileAvatar";
 import styles from "./AvatarDropdown.module.less";
 
-const GITHUB_URL = "https://github.com/TencentCloud/Octop";
-const HELP_FEEDBACK_URL = "https://octop.cloud";
-const APP_OAUTH_KINDS = new Set(["feishu", "dingtalk", "wecom"]);
+const GITHUB_URL = "https://github.com/onlinegill/Octop";
+const HELP_FEEDBACK_URL = "https://github.com/onlinegill/Octop/issues";
+const APP_OAUTH_KINDS = new Set<string>();
 
 const PASSWORD_FIELD_ICON_PROPS = {
   size: 14 as const,
