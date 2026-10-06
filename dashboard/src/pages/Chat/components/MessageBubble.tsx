@@ -327,9 +327,9 @@ function CopyButton({ text }: { text: string }) {
     <button
       className={styles.msgCopyBtn}
       onClick={handleCopy}
-      title={t("common.copy", "复制")}
+      title={t("common.copy", "Copy")}
       type="button"
-      aria-label={t("common.copy", "复制")}
+      aria-label={t("common.copy", "Copy")}
     >
       {copied ? <Check size={14} /> : <Copy size={14} />}
     </button>
@@ -802,14 +802,14 @@ function MessageBubble({
                       onClick={handleEditSubmit}
                       type="button"
                     >
-                      {t("common.save", "保存并重新发送")}
+                      {t("common.save", "Save")}
                     </button>
                     <button
                       className={styles.editCancelBtn}
                       onClick={handleEditCancel}
                       type="button"
                     >
-                      {t("common.cancel", "取消")}
+                      {t("common.cancel", "Cancel")}
                     </button>
                   </div>
                 </div>
@@ -866,7 +866,7 @@ function MessageBubble({
                 <div className={styles.errorMessageHeader}>
                   <span className={styles.errorMessageIcon}>⚠</span>
                   <span className={styles.errorMessageTitle}>
-                    {t("chat.errorOccurred", "出现错误")}
+                    {t("chat.errorOccurred", "An error occurred")}
                   </span>
                 </div>
                 {errorBodyText && (
@@ -900,7 +900,7 @@ function MessageBubble({
                         type="button"
                       >
                         <RotateCcw size={13} />
-                        {t("chat.retry", "重试")}
+                        {t("chat.retry", "Retry")}
                       </button>
                     )}
                   </div>
@@ -1016,7 +1016,7 @@ function MessageBubble({
                           e.stopPropagation();
                           speak(message.id, textContent);
                         }}
-                        title={t("voice.readAloud", "朗读")}
+                        title={t("voice.readAloud", "Read aloud")}
                         type="button"
                       >
                         <Volume2 size={13} />
@@ -1027,7 +1027,7 @@ function MessageBubble({
                     <button
                       className={styles.msgActionBtn}
                       onClick={() => onRegenerate(message.id)}
-                      title={t("chat.regenerate", "重新生成")}
+                      title={t("chat.regenerate", "Regenerate")}
                       type="button"
                     >
                       <RotateCcw size={13} />

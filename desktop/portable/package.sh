@@ -229,6 +229,22 @@ assemble_one() {
     exit "$status"
   fi
 
+  # Ensure octop_harness in portable packages defaults to English and has English templates
+  local harness_cfg="${staging}/packages/octop_harness/config/__init__.py"
+  if [[ -f "$harness_cfg" ]]; then
+    echo "[package] patching octop_harness config default language to en"
+    sed -i.bak 's/language: Literal\["en", "zh"\] = "zh"/language: Literal\["en", "zh"\] = "en"/g' "$harness_cfg" 2>/dev/null || \
+    sed -i '' 's/language: Literal\["en", "zh"\] = "zh"/language: Literal\["en", "zh"\] = "en"/g' "$harness_cfg" 2>/dev/null || true
+    rm -f "${harness_cfg}.bak"
+  fi
+  local zh_templates="${staging}/packages/octop_harness/builtin/md_files/zh"
+  local en_templates="${staging}/packages/octop_harness/builtin/md_files/en"
+  if [[ -d "$zh_templates" && -d "$en_templates" ]]; then
+    echo "[package] replacing octop_harness zh templates with en templates"
+    rm -rf "$zh_templates"
+    cp -R "$en_templates" "$zh_templates"
+  fi
+
   cp "${TEMPLATES}/start.sh" "${staging}/start.sh"
   cp "${TEMPLATES}/start.bat" "${staging}/start.bat"
   cp "${TEMPLATES}/launch.py" "${staging}/launch.py"

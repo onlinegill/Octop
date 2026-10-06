@@ -108,7 +108,7 @@ export default function FilePanelContent({
       }
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.readFailed", "读取失败"),
+          t("workspace.readFailed", "Read failed"),
       );
     };
 
@@ -168,12 +168,12 @@ export default function FilePanelContent({
         )}`,
         { method: "PUT", body: JSON.stringify({ content }) },
       );
-      message.success(t("workspace.saved", "已保存"));
+      message.success(t("workspace.saved", "Saved"));
       setEditMode(false);
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.saveFailed", "保存失败"),
+          t("workspace.saveFailed", "Save failed"),
       );
     } finally {
       setSaving(false);
@@ -206,7 +206,7 @@ export default function FilePanelContent({
       }
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.downloadFailed", "下载失败"),
+          t("workspace.downloadFailed", "Download failed"),
       );
     }
   }, [agentId, apiFilePath, resolvedPath, t]);
@@ -225,7 +225,7 @@ export default function FilePanelContent({
         {showPreviewToggle && (
           <Tooltip
             title={
-              previewMode ? t("workspace.source", "源码") : t("common.preview")
+              previewMode ? t("workspace.source", "Source") : t("common.preview")
             }
           >
             <button
@@ -236,7 +236,7 @@ export default function FilePanelContent({
               onClick={() => setPreviewMode((v) => !v)}
               aria-label={
                 previewMode
-                  ? t("workspace.source", "源码")
+                  ? t("workspace.source", "Source")
                   : t("common.preview")
               }
             >

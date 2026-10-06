@@ -33,7 +33,7 @@ function AgentUnreadBadge({ count }: { count: number }) {
   return (
     <span
       className={styles.agentUnreadBadge}
-      aria-label={t("chat.unreadMessages", "未读消息")}
+      aria-label={t("chat.unreadMessages", "Unread messages")}
     >
       {count > 99 ? "99+" : count}
     </span>
@@ -98,8 +98,8 @@ const SessionItem = memo(function SessionItem({
     {
       key: "pin",
       label: session.pinned
-        ? t("chat.unpin", "取消置顶")
-        : t("chat.pin", "置顶"),
+        ? t("chat.unpin", "Unpin")
+        : t("chat.pin", "Pin"),
       icon: session.pinned ? <PinOff size={14} /> : <Pin size={14} />,
       onClick: ({ domEvent }) => {
         domEvent.stopPropagation();
@@ -108,7 +108,7 @@ const SessionItem = memo(function SessionItem({
     },
     {
       key: "fork",
-      label: t("chat.fork", "分叉"),
+      label: t("chat.fork", "Fork"),
       icon: <GitFork size={14} />,
       disabled: itemForkDisabled,
       title: itemForkDisabled && itemForkHint ? itemForkHint : undefined,
@@ -338,7 +338,7 @@ function ActiveAgentCard({
             <div className={styles.agentCardDesc}>{agent.description}</div>
           ) : (
             <div className={styles.agentCardDescMuted}>
-              {t("chat.agentNoDescription", "暂无描述")}
+              {t("chat.agentNoDescription", "No description")}
             </div>
           )}
         </div>
@@ -351,11 +351,11 @@ function ActiveAgentCard({
           </div>
         ) : sessions.length === 0 ? (
           <div className={styles.agentCardSessionsEmpty}>
-            {t("chat.noSessionsYet", "直接发消息即可开始对话")}
+            {t("chat.noSessionsYet", "Send a message to start chatting")}
           </div>
         ) : filteredSessions.length === 0 ? (
           <div className={styles.agentCardSessionsEmpty}>
-            {t("chat.noSearchResults", "没有匹配的会话")}
+            {t("chat.noSearchResults", "No matching conversations")}
           </div>
         ) : (
           <>
@@ -386,7 +386,7 @@ function ActiveAgentCard({
               >
                 {loadingMore
                   ? t("common.loading")
-                  : t("chat.expandMore", "展开更多")}
+                  : t("chat.expandMore", "Show more")}
               </button>
             ) : null}
           </>
@@ -578,8 +578,8 @@ export default function SessionList({
             className={styles.sessionSearchInput}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t("chat.searchSessions", "搜索会话")}
-            aria-label={t("chat.searchSessions", "搜索会话")}
+            placeholder={t("chat.searchSessions", "Search conversations")}
+            aria-label={t("chat.searchSessions", "Search conversations")}
           />
         </div>
       ) : null}

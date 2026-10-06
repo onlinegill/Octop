@@ -263,9 +263,9 @@ function openAuthorizeLabel(
   t: (key: string, fallback: string) => string,
 ): string {
   if (kind === "tencent-ima") {
-    return t("connectors.openAuthorizePage", "打开授权页");
+    return t("connectors.openAuthorizePage", "Open authorization page");
   }
-  return t("connectors.openTokenPage", "打开授权页");
+  return t("connectors.openTokenPage", "Open auth page");
 }
 
 function authCodeGuideLabel(
@@ -273,9 +273,9 @@ function authCodeGuideLabel(
   t: (key: string, fallback: string) => string,
 ): string {
   if (kind === "tencent-news") {
-    return t("connectors.newsAuthGuide", "如何获取腾讯新闻 API Key");
+    return t("connectors.newsAuthGuide", "How to get a Tencent News API Key");
   }
-  return t("connectors.authCodeDoc", "查看如何获取授权码");
+  return t("connectors.authCodeDoc", "See how to get an authorization code");
 }
 
 function secretFieldRules(required: boolean) {
@@ -297,7 +297,7 @@ function configuredExtra(
   t: (key: string, fallback: string) => string,
 ) {
   if (!preview?.[key]) return undefined;
-  return t("connectors.secretConfigured", "已配置，留空表示不修改");
+  return t("connectors.secretConfigured", "Configured — leave blank to keep current value");
 }
 
 function isHostCliConnector(kind: string): boolean {
@@ -494,14 +494,14 @@ function ConnectorConfigDrawer({
     try {
       const { authorize_url } = await connectorsApi.authorizeUrl(entry.kind);
       if (!authorize_url) {
-        message.error(t("connectors.authUrlMissing", "无法获取授权页地址"));
+        message.error(t("connectors.authUrlMissing", "Authorization page URL unavailable"));
         return;
       }
       openUrl(authorize_url);
     } catch (e) {
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.authUrlFailed", "打开授权页失败"), t),
+        apiErrorMessage(e, t("connectors.authUrlFailed", "Failed to open the authorization page"), t),
       );
     } finally {
       setOpeningAuthorize(false);
@@ -515,10 +515,10 @@ function ConnectorConfigDrawer({
   const handleCopyInstallCommand = async (command: string) => {
     const ok = await copyText(command);
     if (ok) {
-      message.success(t("connectors.cliInstallCopied", "安装命令已复制"));
+      message.success(t("connectors.cliInstallCopied", "Install command copied"));
     } else {
       message.error(
-        t("connectors.clipboardDenied", "无法读取剪贴板，请手动粘贴"),
+        t("connectors.clipboardDenied", "Cannot read clipboard — paste manually"),
       );
     }
   };
@@ -541,7 +541,7 @@ function ConnectorConfigDrawer({
       message.error(
         apiErrorMessage(
           e,
-          t("connectors.cliInstallFailed", "主机 CLI 安装失败"),
+          t("connectors.cliInstallFailed", "Host CLI install failed"),
           t,
         ),
       );
@@ -572,7 +572,7 @@ function ConnectorConfigDrawer({
         );
       } else {
         message.error(
-          result.error ?? t("connectors.cliInstallFailed", "主机 CLI 安装失败"),
+          result.error ?? t("connectors.cliInstallFailed", "Host CLI install failed"),
         );
       }
     } catch (e) {
@@ -580,7 +580,7 @@ function ConnectorConfigDrawer({
       message.error(
         apiErrorMessage(
           e,
-          t("connectors.cliInstallFailed", "主机 CLI 安装失败"),
+          t("connectors.cliInstallFailed", "Host CLI install failed"),
           t,
         ),
       );
@@ -646,7 +646,7 @@ function ConnectorConfigDrawer({
       popup?.close();
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.feishuUserAuthFailed", "授权失败"), t),
+        apiErrorMessage(e, t("connectors.feishuUserAuthFailed", "Authorization failed"), t),
       );
     } finally {
       setFeishuUserAuthBusy(false);
@@ -708,14 +708,14 @@ function ConnectorConfigDrawer({
       } else {
         message.success(
           persisted
-            ? t("connectors.feishuUserAuthSuccessSaved", "授权完成")
-            : t("connectors.feishuUserAuthSuccess", "授权完成，请保存连接器"),
+            ? t("connectors.feishuUserAuthSuccessSaved", "Authorized")
+            : t("connectors.feishuUserAuthSuccess", "Authorized — save the connector"),
         );
       }
     } catch (e) {
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.feishuUserAuthFailed", "授权失败"), t),
+        apiErrorMessage(e, t("connectors.feishuUserAuthFailed", "Authorization failed"), t),
       );
     } finally {
       setFeishuUserAuthBusy(false);
@@ -753,7 +753,7 @@ function ConnectorConfigDrawer({
     try {
       const text = (await navigator.clipboard.readText()).trim();
       if (!text) {
-        message.warning(t("connectors.clipboardEmpty", "剪贴板为空"));
+        message.warning(t("connectors.clipboardEmpty", "Clipboard is empty"));
         return;
       }
       if (entry?.auth_kind === "personal_token") {
@@ -763,10 +763,10 @@ function ConnectorConfigDrawer({
       } else if (entry?.auth_kind === "api_key") {
         form.setFieldValue("api_key", text);
       }
-      message.success(t("connectors.pasteSuccess", "已粘贴"));
+      message.success(t("connectors.pasteSuccess", "Pasted"));
     } catch {
       message.error(
-        t("connectors.clipboardDenied", "无法读取剪贴板，请手动粘贴"),
+        t("connectors.clipboardDenied", "Cannot read clipboard — paste manually"),
       );
     }
   };
@@ -776,14 +776,14 @@ function ConnectorConfigDrawer({
     try {
       const text = (await navigator.clipboard.readText()).trim();
       if (!text) {
-        message.warning(t("connectors.clipboardEmpty", "剪贴板为空"));
+        message.warning(t("connectors.clipboardEmpty", "Clipboard is empty"));
         return;
       }
       const pastedUrl = extractHttpUrl(text);
       if (entry.kind === "dify") {
         if (!pastedUrl) {
           message.warning(
-            t("connectors.difyPasteUrlRequired", "剪贴板中没有 MCP URL"),
+            t("connectors.difyPasteUrlRequired", "No MCP URL found in the clipboard"),
           );
           return;
         }
@@ -798,7 +798,7 @@ function ConnectorConfigDrawer({
         draftScope,
         form.getFieldsValue() as Record<string, unknown>,
       );
-      message.success(t("connectors.pasteSuccess", "已粘贴"));
+      message.success(t("connectors.pasteSuccess", "Pasted"));
     } catch (error) {
       if (error && typeof error === "object" && "errorFields" in error) {
         message.warning(
@@ -810,7 +810,7 @@ function ConnectorConfigDrawer({
         return;
       }
       message.error(
-        t("connectors.clipboardDenied", "无法读取剪贴板，请手动粘贴"),
+        t("connectors.clipboardDenied", "Cannot read clipboard — paste manually"),
       );
     }
   };
@@ -835,14 +835,14 @@ function ConnectorConfigDrawer({
         form.getFieldsValue() as Record<string, unknown>,
       );
       message.success(
-        t("connectors.weknoraFound", "已检测到本机 WeKnora 并填入地址"),
+        t("connectors.weknoraFound", "Detected local WeKnora and filled in the URL"),
       );
     } catch (error) {
       console.error(error);
       message.error(
         apiErrorMessage(
           error,
-          t("connectors.weknoraDetectFailed", "检测本机 WeKnora 失败"),
+          t("connectors.weknoraDetectFailed", "Failed to detect local WeKnora"),
           t,
         ),
       );
@@ -899,7 +899,7 @@ function ConnectorConfigDrawer({
         if (tokens.openid) credentials.openid = tokens.openid;
 
         if (!credentials.access_token) {
-          message.error(t("connectors.oauthFailed", "获取授权结果失败"));
+          message.error(t("connectors.oauthFailed", "Failed to fetch OAuth result"));
           return;
         }
 
@@ -922,7 +922,7 @@ function ConnectorConfigDrawer({
           });
         }
         clearFormDraft(draftScope);
-        message.success(t("connectors.createSuccess", "连接器已创建"));
+        message.success(t("connectors.createSuccess", "Connector created"));
         onSaved();
         onClose();
       } catch (e) {
@@ -938,7 +938,7 @@ function ConnectorConfigDrawer({
           openid: tokens.openid,
         });
         message.error(
-          apiErrorMessage(e, t("connectors.createFailed", "创建失败"), t),
+          apiErrorMessage(e, t("connectors.createFailed", "Failed to create"), t),
         );
       } finally {
         setAuthorizing(false);
@@ -986,7 +986,7 @@ function ConnectorConfigDrawer({
           }
           setAuthorizing(false);
           message.error(
-            t("connectors.oauthTimedOut", "授权超时，请重试一键授权"),
+            t("connectors.oauthTimedOut", "Authorization timed out; try one-click auth again"),
           );
         },
         5 * 60 * 1000,
@@ -1001,7 +1001,7 @@ function ConnectorConfigDrawer({
       }
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.oauthStartFailed", "无法启动 OAuth")),
+        apiErrorMessage(e, t("connectors.oauthStartFailed", "Could not start OAuth")),
       );
       setAuthorizing(false);
     }
@@ -1064,7 +1064,7 @@ function ConnectorConfigDrawer({
         await form.validateFields();
       } catch {
         message.warning(
-          t("connectors.probeNeedConfig", "请先填写连接配置后再探测"),
+          t("connectors.probeNeedConfig", "Fill in connection settings before probing"),
         );
         return;
       }
@@ -1092,12 +1092,12 @@ function ConnectorConfigDrawer({
         }
       } else {
         setProbeResult(null);
-        message.error(r.error ?? t("connectors.probeFailed", "探测失败"));
+        message.error(r.error ?? t("connectors.probeFailed", "Probe failed"));
       }
     } catch (e) {
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.probeFailed", "探测失败"), t),
+        apiErrorMessage(e, t("connectors.probeFailed", "Probe failed"), t),
       );
     } finally {
       setProbing(false);
@@ -1123,7 +1123,7 @@ function ConnectorConfigDrawer({
                 "connectors.qccNeedAuthOrKey",
                 "请先完成一键授权，或填写 API Key",
               )
-            : t("connectors.oauthNeedToken", "请先完成授权或手动填写 Token"),
+            : t("connectors.oauthNeedToken", "Complete authorization or paste a token first"),
         );
         return;
       }
@@ -1150,15 +1150,15 @@ function ConnectorConfigDrawer({
         });
         if (entry.kind === "agently-cli") {
           clearFormDraft(draftScope);
-          message.success(t("connectors.createSuccess", "连接器已创建"));
+          message.success(t("connectors.createSuccess", "Connector created"));
           onSaved(created);
           return;
         }
       }
       message.success(
         instance
-          ? t("connectors.saveSuccess", "连接器已保存")
-          : t("connectors.createSuccess", "连接器已创建"),
+          ? t("connectors.saveSuccess", "Connector saved")
+          : t("connectors.createSuccess", "Connector created"),
       );
       clearFormDraft(draftScope);
       onSaved();
@@ -1166,7 +1166,7 @@ function ConnectorConfigDrawer({
     } catch (e) {
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.createFailed", "创建失败"), t),
+        apiErrorMessage(e, t("connectors.createFailed", "Failed to create"), t),
       );
     } finally {
       setSaving(false);
@@ -1231,7 +1231,7 @@ function ConnectorConfigDrawer({
             disabled={entry.kind === "agently-cli" && !hasStoredCredentials}
             onClick={() => void handleProbe()}
           >
-            {t("connectors.probe", "探测")}
+            {t("connectors.probe", "Probe")}
           </Button>
           <Button
             type="primary"
@@ -1280,12 +1280,12 @@ function ConnectorConfigDrawer({
         {guidedKind && (
           <div className={styles.guidedSetup}>
             <div className={styles.guidedSetupTitle}>
-              {t("connectors.guidedSetup", "快速接入")}
+              {t("connectors.guidedSetup", "Quick setup")}
             </div>
             {guidedKind === "weknora" ? (
               <ol>
                 <li>
-                  {t("connectors.weknoraStep1", "打开 WeKnora 并创建 API Key")}
+                  {t("connectors.weknoraStep1", "Open WeKnora and create an API Key")}
                 </li>
                 <li>
                   {t(
@@ -1294,13 +1294,13 @@ function ConnectorConfigDrawer({
                   )}
                 </li>
                 <li>
-                  {t("connectors.guidedStepProbe", "粘贴凭证后探测并保存")}
+                  {t("connectors.guidedStepProbe", "Probe and save after pasting credentials")}
                 </li>
               </ol>
             ) : (
               <ol>
                 <li>
-                  {t("connectors.difyStep1", "在 Dify 中发布应用或工作流")}
+                  {t("connectors.difyStep1", "Publish the app or workflow in Dify")}
                 </li>
                 <li>
                   {t(
@@ -1309,7 +1309,7 @@ function ConnectorConfigDrawer({
                   )}
                 </li>
                 <li>
-                  {t("connectors.guidedStepProbe", "粘贴凭证后探测并保存")}
+                  {t("connectors.guidedStepProbe", "Probe and save after pasting credentials")}
                 </li>
               </ol>
             )}
@@ -1319,7 +1319,7 @@ function ConnectorConfigDrawer({
         {guideUrl && !hideGuideLink && (
           <div className={styles.guideLinks}>
             <a href={guideUrl} target="_blank" rel="noreferrer">
-              {t("connectors.viewGuide", "查看获取说明")}
+              {t("connectors.viewGuide", "View guide")}
             </a>
           </div>
         )}
@@ -1333,7 +1333,7 @@ function ConnectorConfigDrawer({
                   loading={detectingLocalWeKnora}
                   onClick={() => void handleDetectLocalWeKnora()}
                 >
-                  {t("connectors.detectLocal", "检测本机服务")}
+                  {t("connectors.detectLocal", "Detect local service")}
                 </Button>
               )}
               <Button
@@ -1341,8 +1341,8 @@ function ConnectorConfigDrawer({
                 onClick={() => void handleGuidedPaste()}
               >
                 {guidedKind === "dify"
-                  ? t("connectors.pasteMcpUrl", "粘贴 MCP 地址")
-                  : t("connectors.smartPaste", "智能粘贴")}
+                  ? t("connectors.pasteMcpUrl", "Paste MCP URL")
+                  : t("connectors.smartPaste", "Smart paste")}
               </Button>
             </>
           )}
@@ -1362,8 +1362,8 @@ function ConnectorConfigDrawer({
                   onClick={() => void handleInstallCli()}
                 >
                   {cliInfo?.installed
-                    ? t("connectors.cliReady", "CLI 已就绪")
-                    : t("connectors.installCli", "安装 CLI")}
+                    ? t("connectors.cliReady", "CLI ready")
+                    : t("connectors.installCli", "Install CLI")}
                 </Button>
               )}
               {!canInstallCli && cliInfo?.installed && (
@@ -1372,7 +1372,7 @@ function ConnectorConfigDrawer({
                   icon={<CheckCircle2 size={14} />}
                   disabled
                 >
-                  {t("connectors.cliReady", "CLI 已就绪")}
+                  {t("connectors.cliReady", "CLI ready")}
                 </Button>
               )}
               {!canInstallCli && !cliInfo?.installed && (
@@ -1397,7 +1397,7 @@ function ConnectorConfigDrawer({
                     )
                   }
                 >
-                  {t("connectors.copyInstallCommand", "复制安装命令")}
+                  {t("connectors.copyInstallCommand", "Copy install command")}
                 </Button>
               )}
               {(cliInfo?.guide_url ||
@@ -1415,7 +1415,7 @@ function ConnectorConfigDrawer({
                     )
                   }
                 >
-                  {t("connectors.openCliDocs", "安装文档")}
+                  {t("connectors.openCliDocs", "Install docs")}
                 </Button>
               )}
             </>
@@ -1427,7 +1427,7 @@ function ConnectorConfigDrawer({
               loading={authorizing}
               onClick={() => void handleOAuth()}
             >
-              {t("connectors.oneClickOAuth", "一键授权")}
+              {t("connectors.oneClickOAuth", "Authorize")}
             </Button>
           )}
           {hasAuthorizeUrl && !hideTopAuth && !hasOAuthPopup && (
@@ -1438,8 +1438,8 @@ function ConnectorConfigDrawer({
               onClick={() => void handleOpenAuthorize()}
             >
               {entry.kind === "qcc"
-                ? t("connectors.qccOpenKeyPage", "打开授权页")
-                : t("connectors.openAuthorizePage", "打开授权页")}
+                ? t("connectors.qccOpenKeyPage", "Open auth page")
+                : t("connectors.openAuthorizePage", "Open authorization page")}
             </Button>
           )}
           {hasOAuthPopup && entry.kind === "qcc" && hasAuthorizeUrl && (
@@ -1448,12 +1448,12 @@ function ConnectorConfigDrawer({
               loading={openingAuthorize}
               onClick={() => void handleOpenAuthorize()}
             >
-              {t("connectors.qccOpenKeyPage", "打开授权页")}
+              {t("connectors.qccOpenKeyPage", "Open auth page")}
             </Button>
           )}
           {hasLoginUrl && !hideTopAuth && (
             <Button icon={<ExternalLink size={14} />} onClick={handleOpenLogin}>
-              {t("connectors.openLoginPage", "打开登录页")}
+              {t("connectors.openLoginPage", "Open login page")}
             </Button>
           )}
           {!hideTopAuth &&
@@ -1479,7 +1479,7 @@ function ConnectorConfigDrawer({
               icon={<ClipboardPaste size={14} />}
               onClick={() => void handlePasteToken()}
             >
-              {t("connectors.pasteFromClipboard", "从剪贴板粘贴")}
+              {t("connectors.pasteFromClipboard", "Paste from clipboard")}
             </Button>
           )}
         </div>
@@ -1525,7 +1525,7 @@ function ConnectorConfigDrawer({
                     target="_blank"
                     rel="noreferrer"
                   >
-                    {t("connectors.openCliDocs", "安装文档")}
+                    {t("connectors.openCliDocs", "Install docs")}
                   </a>
                 )}
                 {(cliInfo.doc_url || entry.doc_url) && (
@@ -1534,7 +1534,7 @@ function ConnectorConfigDrawer({
                     target="_blank"
                     rel="noreferrer"
                   >
-                    {t("connectors.openCliRepo", "项目主页")}
+                    {t("connectors.openCliRepo", "Project page")}
                   </a>
                 )}
               </div>
@@ -1576,18 +1576,18 @@ function ConnectorConfigDrawer({
           }}
         >
           <div className={styles.configSectionTitle}>
-            {t("connectors.configSection", "连接配置")}
+            {t("connectors.configSection", "Connection settings")}
           </div>
           <Form.Item
             name="display_name"
-            label={t("connectors.displayName", "显示名称")}
+            label={t("connectors.displayName", "Display name")}
             rules={[{ required: true }]}
           >
             <Input placeholder={entry.name} />
           </Form.Item>
           <Form.Item
             name="description"
-            label={t("connectors.description", "描述")}
+            label={t("connectors.description", "Description")}
             rules={[{ required: true }]}
           >
             <Input.TextArea
@@ -1605,7 +1605,7 @@ function ConnectorConfigDrawer({
                 <Input.Password
                   placeholder={
                     hasStoredCredentials && field.secret
-                      ? t("connectors.secretPlaceholder", "留空表示不修改")
+                      ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
                       : field.placeholder ?? undefined
                   }
                 />
@@ -1652,17 +1652,17 @@ function ConnectorConfigDrawer({
           {entry.auth_kind === "personal_token" && (
             <Form.Item
               name="token"
-              label={t("connectors.token", "访问 Token")}
+              label={t("connectors.token", "Access token")}
               rules={secretFieldRules(secretRequired)}
               extra={
                 configuredExtra(preview, "token_configured", t) ??
                 (!hideFieldGuide && manualUrl ? (
                   <a href={manualUrl} target="_blank" rel="noreferrer">
-                    {t("connectors.getTokenAt", "前往获取 Token")}
+                    {t("connectors.getTokenAt", "Get a Token")}
                   </a>
                 ) : !hideFieldGuide ? (
                   <a href={entry.doc_url} target="_blank" rel="noreferrer">
-                    {t("connectors.getToken", "获取 Token")}
+                    {t("connectors.getToken", "Get token")}
                   </a>
                 ) : undefined)
               }
@@ -1677,7 +1677,7 @@ function ConnectorConfigDrawer({
             <>
               <Form.Item
                 name="auth_code"
-                label={t("connectors.authCode", "授权码")}
+                label={t("connectors.authCode", "Authorization code")}
                 rules={secretFieldRules(secretRequired)}
                 extra={
                   configuredExtra(preview, "auth_configured", t) ??
@@ -1695,8 +1695,8 @@ function ConnectorConfigDrawer({
                 <Input.Password
                   placeholder={
                     hasStoredCredentials
-                      ? t("connectors.secretPlaceholder", "留空表示不修改")
-                      : t("connectors.authCodePlaceholder", "粘贴授权码")
+                      ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
+                      : t("connectors.authCodePlaceholder", "Paste authorization code")
                   }
                 />
               </Form.Item>
@@ -1742,7 +1742,7 @@ function ConnectorConfigDrawer({
                 <Input.Password
                   placeholder={
                     hasStoredCredentials
-                      ? t("connectors.secretPlaceholder", "留空表示不修改")
+                      ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
                       : t(
                           "connectors.feishuAppSecretPlaceholder",
                           "飞书应用 App Secret",
@@ -1752,7 +1752,7 @@ function ConnectorConfigDrawer({
               </Form.Item>
               <div className={styles.feishuUserAuthBox}>
                 <div className={styles.feishuUserAuthTitle}>
-                  {t("connectors.feishuUserAuthTitle", "飞书账号授权")}
+                  {t("connectors.feishuUserAuthTitle", "Feishu account authorization")}
                 </div>
                 <p className={styles.feishuUserAuthWhy}>
                   {t(
@@ -1801,8 +1801,8 @@ function ConnectorConfigDrawer({
                     onClick={() => void handleFeishuUserAuthStart()}
                   >
                     {feishuUserReady || feishuAuthNeedsReauth
-                      ? t("connectors.feishuUserAuthAgain", "重新授权")
-                      : t("connectors.feishuUserAuthStart", "登录授权")}
+                      ? t("connectors.feishuUserAuthAgain", "Re-authorize")
+                      : t("connectors.feishuUserAuthStart", "Authorize")}
                   </Button>
                   {feishuUserAuth && (
                     <Button
@@ -1810,7 +1810,7 @@ function ConnectorConfigDrawer({
                       loading={feishuUserAuthBusy}
                       onClick={() => void handleFeishuUserAuthComplete()}
                     >
-                      {t("connectors.feishuUserAuthConfirm", "我已授权")}
+                      {t("connectors.feishuUserAuthConfirm", "I have authorized")}
                     </Button>
                   )}
                 </div>
@@ -1820,7 +1820,7 @@ function ConnectorConfigDrawer({
                     className={styles.feishuUserAuthReopen}
                     onClick={() => openUrl(feishuUserAuth.verification_url)}
                   >
-                    {t("connectors.feishuUserAuthReopen", "未弹出？再打开一次")}
+                    {t("connectors.feishuUserAuthReopen", "Popup blocked? Open again")}
                   </button>
                 )}
               </div>
@@ -1860,7 +1860,7 @@ function ConnectorConfigDrawer({
                 <Input.Password
                   placeholder={
                     hasStoredCredentials
-                      ? t("connectors.secretPlaceholder", "留空表示不修改")
+                      ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
                       : t(
                           "connectors.wecomBotSecretPlaceholder",
                           "企业微信机器人 Secret",
@@ -1883,7 +1883,7 @@ function ConnectorConfigDrawer({
                     configuredExtra(preview, "api_key_configured", t) ??
                     (!hideFieldGuide && manualUrl ? (
                       <a href={manualUrl} target="_blank" rel="noreferrer">
-                        {t("connectors.apiKeyDoc", "查看如何获取 API Key")}
+                        {t("connectors.apiKeyDoc", "See how to get an API Key")}
                       </a>
                     ) : undefined)
                   }
@@ -1891,13 +1891,13 @@ function ConnectorConfigDrawer({
                   <Input.Password
                     placeholder={
                       hasStoredCredentials
-                        ? t("connectors.secretPlaceholder", "留空表示不修改")
+                        ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
                         : entry.kind === "tencent-ima"
                         ? t(
                             "connectors.imaApiKeyPlaceholder",
                             "从 IMA 配置页复制（仅展示一次）",
                           )
-                        : t("connectors.apiKeyPlaceholder", "粘贴 API Key")
+                        : t("connectors.apiKeyPlaceholder", "Paste API Key")
                     }
                   />
                 </Form.Item>
@@ -1957,7 +1957,7 @@ function ConnectorConfigDrawer({
               </Form.Item>
               {preview?.oauth_configured && !showManual && (
                 <div className={styles.configuredBadge}>
-                  {t("connectors.oauthConfigured", "已授权，可直接探测或保存")}
+                  {t("connectors.oauthConfigured", "Authorized — probe or save now")}
                 </div>
               )}
               {entry.kind === "qcc" &&
@@ -2001,7 +2001,7 @@ function ConnectorConfigDrawer({
                   <Input.Password
                     placeholder={
                       preview?.api_key_configured
-                        ? t("connectors.secretPlaceholder", "留空表示不修改")
+                        ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
                         : t(
                             "connectors.qccApiKeyPlaceholder",
                             "粘贴企查查 API Key",
@@ -2018,8 +2018,8 @@ function ConnectorConfigDrawer({
                     tabIndex={0}
                   >
                     {showManual
-                      ? t("connectors.hideManual", "收起手动输入")
-                      : t("connectors.showManual", "手动粘贴 Token")}
+                      ? t("connectors.hideManual", "Hide manual input")
+                      : t("connectors.showManual", "Paste token manually")}
                   </div>
                   {showManual && (
                     <Form.Item
@@ -2052,7 +2052,7 @@ function ConnectorConfigDrawer({
             <>
               <Form.Item
                 name="mail_provider"
-                label={t("connectors.mailProvider", "邮箱服务商")}
+                label={t("connectors.mailProvider", "Mail provider")}
                 initialValue="qq"
               >
                 <Select
@@ -2064,14 +2064,14 @@ function ConnectorConfigDrawer({
               </Form.Item>
               <Form.Item
                 name="email"
-                label={t("connectors.email", "邮箱地址")}
+                label={t("connectors.email", "Email address")}
                 rules={[{ required: true }]}
               >
                 <Input placeholder={selectedMailProvider.emailPlaceholder} />
               </Form.Item>
               <Form.Item
                 name="password"
-                label={t("connectors.authCode", "授权码")}
+                label={t("connectors.authCode", "Authorization code")}
                 rules={secretFieldRules(secretRequired)}
                 extra={
                   configuredExtra(preview, "password_configured", t) ??
@@ -2092,7 +2092,7 @@ function ConnectorConfigDrawer({
                 <Input.Password
                   placeholder={
                     hasStoredCredentials
-                      ? t("connectors.secretPlaceholder", "留空表示不修改")
+                      ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
                       : undefined
                   }
                 />
@@ -2101,14 +2101,14 @@ function ConnectorConfigDrawer({
                 <>
                   <Form.Item
                     name="imap_host"
-                    label={t("connectors.imapHost", "IMAP 服务器")}
+                    label={t("connectors.imapHost", "IMAP server")}
                     rules={[{ required: true }]}
                   >
                     <Input placeholder="imap.example.com" />
                   </Form.Item>
                   <Form.Item
                     name="smtp_host"
-                    label={t("connectors.smtpHost", "SMTP 服务器")}
+                    label={t("connectors.smtpHost", "SMTP server")}
                     rules={[{ required: true }]}
                   >
                     <Input placeholder="smtp.example.com" />
@@ -2143,7 +2143,7 @@ function ConnectorConfigDrawer({
                 <Input.Password
                   placeholder={
                     hasStoredCredentials
-                      ? t("connectors.secretPlaceholder", "留空表示不修改")
+                      ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
                       : undefined
                   }
                 />
@@ -2153,7 +2153,7 @@ function ConnectorConfigDrawer({
 
           <Form.Item
             name="shared"
-            label={t("connectors.shared", "是否共享")}
+            label={t("connectors.shared", "Share with others")}
             valuePropName="checked"
             extra={t(
               "connectors.sharedHint",
@@ -2165,7 +2165,7 @@ function ConnectorConfigDrawer({
 
           <Form.Item
             name="default_open"
-            label={t("connectors.defaultEnabled", "是否默认开启")}
+            label={t("connectors.defaultEnabled", "Enable by default")}
             valuePropName="checked"
             extra={
               defaultOpen
@@ -2201,7 +2201,7 @@ function ConnectorConfigDrawer({
               />
               <div className={styles.probeResultMeta}>
                 <div className={styles.probeResultTitle}>
-                  {t("connectors.probeToolsTitle", "探测成功")}
+                  {t("connectors.probeToolsTitle", "Probe succeeded")}
                 </div>
                 <div className={styles.probeResultSubtitle}>
                   {probeResult.length > 0
@@ -2276,7 +2276,7 @@ export default function ConnectorsPage() {
         const entry = catalog.find((c) => c.kind === kind);
         const tokens = pending.tokens ?? {};
         if (!entry || !tokens.access_token) {
-          message.error(t("connectors.oauthFailed", "获取授权结果失败"));
+          message.error(t("connectors.oauthFailed", "Failed to fetch OAuth result"));
           return;
         }
         const credentials: Record<string, unknown> = {
@@ -2300,9 +2300,9 @@ export default function ConnectorsPage() {
         });
         await refresh();
         notifyConnectorsChanged();
-        message.success(t("connectors.createSuccess", "连接器已创建"));
+        message.success(t("connectors.createSuccess", "Connector created"));
       } catch {
-        message.error(t("connectors.oauthFailed", "获取授权结果失败"));
+        message.error(t("connectors.oauthFailed", "Failed to fetch OAuth result"));
       }
       searchParams.delete("oauth_state");
       setSearchParams(searchParams, { replace: true });

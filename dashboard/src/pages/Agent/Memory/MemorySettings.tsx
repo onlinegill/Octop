@@ -40,7 +40,7 @@ const MIN_INTERVAL_HOURS = 0.1;
 
 export default function MemorySettings({ agentId }: Props) {
   const { t } = useTranslation();
-  const loadFailedMessage = t("memory.settings.loadFailed", "记忆设置加载失败");
+  const loadFailedMessage = t("memory.settings.loadFailed", "Failed to load memory settings");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [memoryEnabled, setMemoryEnabled] = useState(true);
@@ -120,9 +120,9 @@ export default function MemorySettings({ agentId }: Props) {
         aux_model: defaultModelFromForm(auxModel) ?? "",
       });
       applyConfig(cfg);
-      message.success(t("memory.settings.saved", "已保存，agent 将自动重载"));
+      message.success(t("memory.settings.saved", "Saved — the agent will reload automatically"));
     } catch {
-      message.error(t("memory.settings.saveFailed", "保存失败"));
+      message.error(t("memory.settings.saveFailed", "Save failed"));
     } finally {
       setSaving(false);
     }
@@ -143,7 +143,7 @@ export default function MemorySettings({ agentId }: Props) {
           <Brain size={22} />
         </div>
         <div>
-          <h2>{t("memory.settings.title", "记忆设置")}</h2>
+          <h2>{t("memory.settings.title", "Memory settings")}</h2>
           <p>
             {t(
               "memory.settings.description",
@@ -161,7 +161,7 @@ export default function MemorySettings({ agentId }: Props) {
             </span>
             <div>
               <div className={styles.settingTitle}>
-                {t("memory.settings.storageTitle", "存储记忆")}
+                {t("memory.settings.storageTitle", "Store memory")}
               </div>
               <div className={styles.settingDescription}>
                 {t(
@@ -176,8 +176,8 @@ export default function MemorySettings({ agentId }: Props) {
               className={memoryEnabled ? styles.statusOn : styles.statusOff}
             >
               {memoryEnabled
-                ? t("memory.settings.enabled", "已开启")
-                : t("memory.settings.disabled", "已关闭")}
+                ? t("memory.settings.enabled", "On")
+                : t("memory.settings.disabled", "Off")}
             </span>
             <Switch checked={memoryEnabled} onChange={setMemoryEnabled} />
           </div>
@@ -211,7 +211,7 @@ export default function MemorySettings({ agentId }: Props) {
           </span>
           <div>
             <div className={styles.settingTitle}>
-              {t("memory.settings.distillTitle", "记忆提炼时机")}
+              {t("memory.settings.distillTitle", "Distillation timing")}
             </div>
             <div className={styles.settingDescription}>
               {t(
@@ -232,7 +232,7 @@ export default function MemorySettings({ agentId }: Props) {
             <Space direction="vertical" size={14}>
               <Radio value="idle">
                 <span className={styles.radioTitle}>
-                  {t("memory.extractConfig.modeIdle", "对话空闲后提炼")}
+                  {t("memory.extractConfig.modeIdle", "Distill after conversation goes idle")}
                 </span>
                 <Typography.Text type="secondary" className={styles.radioHint}>
                   {t(
@@ -243,7 +243,7 @@ export default function MemorySettings({ agentId }: Props) {
               </Radio>
               <Radio value="interval">
                 <span className={styles.radioTitle}>
-                  {t("memory.extractConfig.modeInterval", "固定间隔提炼")}
+                  {t("memory.extractConfig.modeInterval", "Distill on a fixed interval")}
                 </span>
                 <Typography.Text type="secondary" className={styles.radioHint}>
                   {t(
@@ -258,7 +258,7 @@ export default function MemorySettings({ agentId }: Props) {
           <div className={styles.timeControl}>
             {mode === "idle" ? (
               <>
-                <span>{t("memory.extractConfig.idlePrefix", "对话空闲")}</span>
+                <span>{t("memory.extractConfig.idlePrefix", "After")}</span>
                 <InputNumber
                   min={MIN_IDLE_MINUTES}
                   max={7 * 24 * 60}
@@ -269,11 +269,11 @@ export default function MemorySettings({ agentId }: Props) {
                     )
                   }
                 />
-                <span>{t("memory.extractConfig.minutes", "分钟后提炼")}</span>
+                <span>{t("memory.extractConfig.minutes", "minutes of inactivity")}</span>
               </>
             ) : (
               <>
-                <span>{t("memory.extractConfig.intervalPrefix", "每隔")}</span>
+                <span>{t("memory.extractConfig.intervalPrefix", "Every")}</span>
                 <InputNumber
                   min={MIN_INTERVAL_HOURS}
                   max={7 * 24}
@@ -283,7 +283,7 @@ export default function MemorySettings({ agentId }: Props) {
                     setIntervalHours(value ?? MIN_INTERVAL_HOURS)
                   }
                 />
-                <span>{t("memory.extractConfig.hours", "小时提炼一次")}</span>
+                <span>{t("memory.extractConfig.hours", "hours")}</span>
               </>
             )}
           </div>
@@ -312,7 +312,7 @@ export default function MemorySettings({ agentId }: Props) {
           </span>
           <div>
             <div className={styles.settingTitle}>
-              {t("memory.settings.extractModelTitle", "记忆提取模型")}
+              {t("memory.settings.extractModelTitle", "Extraction model")}
             </div>
             <div className={styles.settingDescription}>
               {t(
@@ -331,7 +331,7 @@ export default function MemorySettings({ agentId }: Props) {
             onChange={setAuxModel}
             options={buildModelSelectOptions(
               models,
-              t("memory.settings.extractModelAuto", "自动（跟随对话模型）"),
+              t("memory.settings.extractModelAuto", "Auto (follow chat model)"),
             )}
             showSearch
             optionFilterProp="label"
@@ -347,7 +347,7 @@ export default function MemorySettings({ agentId }: Props) {
           )}
         </span>
         <Button type="primary" loading={saving} onClick={handleSave}>
-          {t("common.save", "保存设置")}
+          {t("common.save", "Save")}
         </Button>
       </div>
     </div>

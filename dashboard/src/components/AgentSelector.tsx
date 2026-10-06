@@ -173,8 +173,8 @@ export default function AgentSelector({
     () => [...soloSelectable, ...teamSelectable],
     [soloSelectable, teamSelectable],
   );
-  const expertsLabel = t("agentSelector.expertsGroup", "专家");
-  const teamsLabel = t("agentSelector.teamsGroup", "团队");
+  const expertsLabel = t("agentSelector.expertsGroup", "Experts");
+  const teamsLabel = t("agentSelector.teamsGroup", "Teams");
   const expertGroups = useMemo(
     () =>
       labelSelectorGroups(soloSelectable, expertsLabel, (name) =>
@@ -276,10 +276,10 @@ export default function AgentSelector({
         defaultValue: "当前是团队「{{name}}」，此页请选择专家",
       })
     : soloSelectable.length === 0 && allTeams.length > 0
-    ? t("agentSelector.expertsRequired", "此页需要专家")
+    ? t("agentSelector.expertsRequired", "This page needs an expert")
     : null;
-  const heading = t("agentSelector.label", "专家");
-  const moreLabel = t("agentSelector.more", "更多");
+  const heading = t("agentSelector.label", "Expert");
+  const moreLabel = t("agentSelector.more", "More");
   const hidden = new Set(hiddenIds);
   const visibleGroups = labeledGroups
     .map((group) => ({

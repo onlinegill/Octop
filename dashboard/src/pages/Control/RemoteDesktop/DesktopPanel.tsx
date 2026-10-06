@@ -142,9 +142,9 @@ export default function DesktopPanel({
   const envReady = Boolean(setupInstalled && envStatus?.ok);
   const permissionLabels = (envStatus?.permissions_needed ?? []).map((p) =>
     p === "screen_recording"
-      ? t("remoteDesktop.permScreenRecording", "屏幕录制")
+      ? t("remoteDesktop.permScreenRecording", "Screen Recording")
       : p === "accessibility"
-      ? t("remoteDesktop.permAccessibility", "辅助功能")
+      ? t("remoteDesktop.permAccessibility", "Accessibility")
       : p,
   );
   const needsMacPermissions =
@@ -178,7 +178,7 @@ export default function DesktopPanel({
 
   const requireStream = useCallback(() => {
     if (status === "streaming") return true;
-    message.info(t("remoteDesktop.shortcutsNeedConnect", "请先连接远程桌面"));
+    message.info(t("remoteDesktop.shortcutsNeedConnect", "Connect to the remote desktop first"));
     return false;
   }, [status, t]);
 
@@ -191,7 +191,7 @@ export default function DesktopPanel({
     } catch (err) {
       showApiError(
         err,
-        t("remoteDesktop.statusFailed", "获取远程桌面状态失败"),
+        t("remoteDesktop.statusFailed", "Failed to load remote desktop status"),
         t,
       );
       return null;
@@ -230,7 +230,7 @@ export default function DesktopPanel({
       setEnvModalOpen(false);
       void refreshEnv();
       if (prev === "installing") {
-        message.success(t("remoteDesktop.installSuccess", "桌面环境已就绪"));
+        message.success(t("remoteDesktop.installSuccess", "Desktop environment is ready"));
       }
       resetDesktopInstall();
     } else if (installPhase === "install_failed") {
@@ -255,9 +255,9 @@ export default function DesktopPanel({
           "将停止虚拟桌面服务并移除已安装组件，是否继续？",
         );
     modal.confirm({
-      title: t("remoteDesktop.uninstallTitle", "卸载远程桌面"),
+      title: t("remoteDesktop.uninstallTitle", "Uninstall remote desktop"),
       content: confirmText,
-      okText: t("remoteDesktop.uninstall", "卸载"),
+      okText: t("remoteDesktop.uninstall", "Uninstall"),
       okButtonProps: { danger: true },
       cancelText: t("common.cancel"),
       onOk: () =>
@@ -268,7 +268,7 @@ export default function DesktopPanel({
           setUninstalling(true);
           setUninstallLogs([]);
           const hide = message.loading(
-            t("remoteDesktop.uninstalling", "正在卸载…"),
+            t("remoteDesktop.uninstalling", "Uninstalling…"),
             0,
           );
           uninstallAbortRef.current = desktopApi.uninstallDesktop(
@@ -285,12 +285,12 @@ export default function DesktopPanel({
                 if (removed) {
                   setUninstallLogs([]);
                   message.success(
-                    t("remoteDesktop.uninstallSuccess", "远程桌面已卸载"),
+                    t("remoteDesktop.uninstallSuccess", "Remote desktop uninstalled"),
                   );
                   resolve();
                   return;
                 }
-                message.error(t("remoteDesktop.uninstallFailed", "卸载失败"));
+                message.error(t("remoteDesktop.uninstallFailed", "Uninstall failed"));
                 reject(new Error("uninstall failed"));
               });
             },
@@ -348,13 +348,13 @@ export default function DesktopPanel({
         message.error(
           wsStreamErrorMessage(
             err,
-            t("remoteDesktop.streamError", "远程桌面连接失败"),
+            t("remoteDesktop.streamError", "Remote desktop connection failed"),
             t,
           ),
         ),
       onActionResult: ({ ok }: { ok: boolean }) => {
         if (!ok) {
-          message.error(t("remoteDesktop.shortcutFailed", "快捷操作发送失败"));
+          message.error(t("remoteDesktop.shortcutFailed", "Failed to run shortcut"));
         }
       },
     }),
@@ -382,7 +382,7 @@ export default function DesktopPanel({
       } catch (err) {
         showApiError(
           err,
-          t("remoteDesktop.geometryFailed", "切换分辨率失败"),
+          t("remoteDesktop.geometryFailed", "Failed to change resolution"),
           t,
         );
       } finally {
@@ -396,13 +396,13 @@ export default function DesktopPanel({
     (value: DesktopResolution) => {
       if (envStatus?.platform === "linux" && isStreaming) {
         modal.confirm({
-          title: t("remoteDesktop.geometryRestartTitle", "切换分辨率"),
+          title: t("remoteDesktop.geometryRestartTitle", "Change resolution"),
           content: t(
             "remoteDesktop.geometryRestartWarning",
             "将重启虚拟桌面，当前连接会短暂中断。",
           ),
-          okText: t("common.confirm", "确定"),
-          cancelText: t("common.cancel", "取消"),
+          okText: t("common.confirm", "Confirm"),
+          cancelText: t("common.cancel", "Cancel"),
           onOk: () => applyResolution(value),
         });
         return;
@@ -481,20 +481,20 @@ export default function DesktopPanel({
   const handleRefreshStream = useCallback(() => {
     if (!requireStream()) return;
     startStream();
-    message.success(t("remoteDesktop.refreshStreamDone", "画面已刷新"));
+    message.success(t("remoteDesktop.refreshStreamDone", "Stream refreshed"));
   }, [requireStream, startStream, t]);
 
   const handleFullscreen = useLandscapeFullscreen(viewportRef, {
     isMobile,
     onError: () =>
-      message.error(t("remoteDesktop.fullscreenFailed", "无法进入全屏")),
+      message.error(t("remoteDesktop.fullscreenFailed", "Could not enter fullscreen")),
   });
 
   const runShortcut = useCallback(
     (action: Parameters<typeof sendDesktopAction>[1]) => {
       if (!requireStream()) return;
       if (!sendDesktopAction(sendEvent, action)) {
-        message.error(t("remoteDesktop.shortcutFailed", "快捷操作发送失败"));
+        message.error(t("remoteDesktop.shortcutFailed", "Failed to run shortcut"));
       }
     },
     [requireStream, sendEvent, t],
@@ -541,42 +541,42 @@ export default function DesktopPanel({
     () => [
       {
         id: "showDesktop",
-        label: t("remoteDesktop.showDesktop", "进入桌面"),
+        label: t("remoteDesktop.showDesktop", "Show desktop"),
         icon: LayoutGrid,
         tone: "blue" as const,
         onClick: handleShowDesktop,
       },
       {
         id: "openTerminal",
-        label: t("remoteDesktop.openTerminal", "终端"),
+        label: t("remoteDesktop.openTerminal", "Terminal"),
         icon: Terminal,
         tone: "emerald" as const,
         onClick: handleOpenTerminal,
       },
       {
         id: "openMenu",
-        label: t("remoteDesktop.openMenu", "开始菜单"),
+        label: t("remoteDesktop.openMenu", "App menu"),
         icon: Monitor,
         tone: "violet" as const,
         onClick: handleOpenMenu,
       },
       {
         id: "openFiles",
-        label: t("remoteDesktop.openFiles", "文件管理"),
+        label: t("remoteDesktop.openFiles", "Files"),
         icon: FolderOpen,
         tone: "amber" as const,
         onClick: handleOpenFiles,
       },
       {
         id: "closeWindow",
-        label: t("remoteDesktop.closeWindow", "关闭窗口"),
+        label: t("remoteDesktop.closeWindow", "Close window"),
         icon: X,
         tone: "rose" as const,
         onClick: handleCloseWindow,
       },
       {
         id: "refreshStream",
-        label: t("remoteDesktop.refreshStream", "刷新画面"),
+        label: t("remoteDesktop.refreshStream", "Refresh"),
         icon: RefreshCw,
         tone: "orange" as const,
         onClick: handleRefreshStream,
@@ -600,25 +600,25 @@ export default function DesktopPanel({
       <div className={styles.settingsCard}>
         <div className={styles.settingsCardHeader}>
           <span className={styles.settingsCardTitle}>
-            {t("remoteDesktop.streamSettings", "推流设置")}
+            {t("remoteDesktop.streamSettings", "Stream settings")}
           </span>
           {isStreaming ? (
             <Tag color="success" style={{ margin: 0 }}>
               {status === "streaming"
-                ? t("remoteDesktop.streaming", "推流中")
+                ? t("remoteDesktop.streaming", "Streaming")
                 : status === "reconnecting"
-                ? t("remoteDesktop.reconnecting", "重连中")
-                : t("remoteDesktop.connecting", "连接中")}
+                ? t("remoteDesktop.reconnecting", "Reconnecting")
+                : t("remoteDesktop.connecting", "Connecting")}
             </Tag>
           ) : (
-            <Tag style={{ margin: 0 }}>{t("remoteDesktop.idle", "未连接")}</Tag>
+            <Tag style={{ margin: 0 }}>{t("remoteDesktop.idle", "Disconnected")}</Tag>
           )}
         </div>
         <div className={styles.settingsGrid}>
           {envStatus?.platform === "linux" ? (
             <div className={styles.settingItem}>
               <span className={styles.settingLabel}>
-                {t("remoteDesktop.resolution", "分辨率")}
+                {t("remoteDesktop.resolution", "Resolution")}
               </span>
               <Select
                 size="middle"
@@ -635,7 +635,7 @@ export default function DesktopPanel({
           ) : null}
           <div className={styles.settingItem}>
             <span className={styles.settingLabel}>
-              {t("remoteDesktop.streamFps", "帧率")}
+              {t("remoteDesktop.streamFps", "Frame rate")}
             </span>
             <Select
               size="middle"
@@ -660,14 +660,14 @@ export default function DesktopPanel({
             void handleFullscreen();
           }}
         >
-          {t("remoteDesktop.fullscreen", "全屏")}
+          {t("remoteDesktop.fullscreen", "Fullscreen")}
         </Button>
       )}
 
       <div className={styles.shortcutsCard}>
         <div className={styles.shortcutsCardHeader}>
           <span className={styles.shortcutsTitle}>
-            {t("remoteDesktop.shortcuts", "快捷操作")}
+            {t("remoteDesktop.shortcuts", "Shortcuts")}
           </span>
         </div>
         <div className={styles.shortcutsList}>
@@ -714,7 +714,7 @@ export default function DesktopPanel({
   }, [t]);
 
   const handleCopyInstallLog = useCallback(async () => {
-    const title = t("remoteDesktop.installFailed", "安装失败");
+    const title = t("remoteDesktop.installFailed", "Installation failed");
     const hint = t("remoteDesktop.installFailedHint");
     const logBody =
       installLogs.length > 0
@@ -741,7 +741,7 @@ export default function DesktopPanel({
     >
       {installLogs.length === 0 ? (
         <div>
-          {emptyLabel ?? t("remoteDesktop.installing", "正在启动安装...")}
+          {emptyLabel ?? t("remoteDesktop.installing", "Starting installation...")}
         </div>
       ) : (
         installLogs.map((line, i) => <div key={i}>{line}</div>)
@@ -753,11 +753,11 @@ export default function DesktopPanel({
     <div className={styles.installProgress}>
       <RefreshCw size={32} className={styles.streamLoadingIcon} />
       <div className={styles.installProgressTitle}>
-        {t("remoteDesktop.uninstalling", "正在卸载…")}
+        {t("remoteDesktop.uninstalling", "Uninstalling…")}
       </div>
       <div className={styles.installLog}>
         {uninstallLogs.length === 0 ? (
-          <div>{t("remoteDesktop.uninstalling", "正在卸载…")}</div>
+          <div>{t("remoteDesktop.uninstalling", "Uninstalling…")}</div>
         ) : (
           uninstallLogs.map((line, i) => <div key={i}>{line}</div>)
         )}
@@ -769,7 +769,7 @@ export default function DesktopPanel({
     <div className={styles.installProgress}>
       <RefreshCw size={32} className={styles.streamLoadingIcon} />
       <div className={styles.installProgressTitle}>
-        {t("remoteDesktop.installProgress", "正在安装中…")}
+        {t("remoteDesktop.installProgress", "Installing…")}
       </div>
       {renderInstallLog()}
       <div className={styles.installProgressActions}>
@@ -782,7 +782,7 @@ export default function DesktopPanel({
     if (envLoading && installPhase === "idle") {
       return (
         <div style={{ textAlign: "center", padding: 24 }}>
-          {t("remoteDesktop.checking", "正在检测桌面环境...")}
+          {t("remoteDesktop.checking", "Checking desktop environment...")}
         </div>
       );
     }
@@ -793,7 +793,7 @@ export default function DesktopPanel({
           <Alert
             type="warning"
             showIcon
-            message={t("remoteDesktop.resourceWarningTitle", "资源占用提示")}
+            message={t("remoteDesktop.resourceWarningTitle", "Resource usage notice")}
             description={t("remoteDesktop.resourceWarningDesc")}
           />
           {renderInstallLog()}
@@ -807,7 +807,7 @@ export default function DesktopPanel({
           icon={
             <CheckCircle2 size={40} color="var(--fn-color-success,#52c41a)" />
           }
-          title={t("remoteDesktop.installSuccess", "桌面环境已就绪")}
+          title={t("remoteDesktop.installSuccess", "Desktop environment is ready")}
           subTitle={t("remoteDesktop.installSuccessHint")}
           style={{ padding: "8px 0" }}
         />
@@ -819,7 +819,7 @@ export default function DesktopPanel({
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <Result
             icon={<Terminal size={40} color="var(--fn-color-error,#ff4d4f)" />}
-            title={t("remoteDesktop.installFailed", "安装失败")}
+            title={t("remoteDesktop.installFailed", "Installation failed")}
             subTitle={t("remoteDesktop.installFailedHint")}
             style={{ padding: "8px 0" }}
           />
@@ -833,14 +833,14 @@ export default function DesktopPanel({
               }}
             >
               <span style={{ fontSize: 12, color: "var(--fn-text-tertiary)" }}>
-                {t("remoteDesktop.installLog", "安装日志")}
+                {t("remoteDesktop.installLog", "Installation log")}
               </span>
               <Button
                 size="small"
                 icon={<Copy size={14} />}
                 onClick={() => void handleCopyInstallLog()}
               >
-                {t("common.copyErrorForOctop", "复制错误信息")}
+                {t("common.copyErrorForOctop", "Copy error details")}
               </Button>
             </div>
             {renderInstallLog(
@@ -891,7 +891,7 @@ export default function DesktopPanel({
             icon={
               <CheckCircle2 size={40} color="var(--fn-color-success,#52c41a)" />
             }
-            title={t("remoteDesktop.envReady", "桌面环境已就绪")}
+            title={t("remoteDesktop.envReady", "Desktop environment is ready")}
             subTitle={
               envStatus?.display
                 ? t("remoteDesktop.displayReady", {
@@ -905,7 +905,7 @@ export default function DesktopPanel({
             <Alert
               type="info"
               showIcon
-              message={t("remoteDesktop.nativeReadyTitle", "本机桌面已就绪")}
+              message={t("remoteDesktop.nativeReadyTitle", "Host desktop ready")}
               description={t(
                 "remoteDesktop.nativeReadyDesc",
                 "将直接捕获本机屏幕并注入键鼠，无需安装虚拟桌面。",
@@ -915,7 +915,7 @@ export default function DesktopPanel({
             <Alert
               type="info"
               showIcon
-              message={t("remoteDesktop.resourceInfoTitle", "关于资源占用")}
+              message={t("remoteDesktop.resourceInfoTitle", "About resource usage")}
               description={t("remoteDesktop.resourceInfoDesc")}
             />
           )}
@@ -928,7 +928,7 @@ export default function DesktopPanel({
         <Alert
           type="warning"
           showIcon
-          message={t("remoteDesktop.resourceWarningTitle", "资源占用提示")}
+          message={t("remoteDesktop.resourceWarningTitle", "Resource usage notice")}
           description={t("remoteDesktop.resourceWarningDesc")}
         />
       </Space>
@@ -939,7 +939,7 @@ export default function DesktopPanel({
     if (installPhase === "installing") {
       return (
         <Button onClick={closeEnvModal}>
-          {t("remoteDesktop.hideInstall", "隐藏进度")}
+          {t("remoteDesktop.hideInstall", "Hide progress")}
         </Button>
       );
     }
@@ -948,7 +948,7 @@ export default function DesktopPanel({
         <Space>
           <Button onClick={closeEnvModal}>{t("common.close")}</Button>
           <Button type="primary" onClick={startInstall}>
-            {t("remoteDesktop.installRetry", "重新安装")}
+            {t("remoteDesktop.installRetry", "Retry installation")}
           </Button>
         </Space>
       );
@@ -969,7 +969,7 @@ export default function DesktopPanel({
             loading={envLoading}
             onClick={() => void refreshEnv()}
           >
-            {t("remoteDesktop.recheck", "重新检测")}
+            {t("remoteDesktop.recheck", "Recheck")}
           </Button>
         </Space>
       );
@@ -980,8 +980,8 @@ export default function DesktopPanel({
           <Button onClick={closeEnvModal}>{t("common.close")}</Button>
           <Button type="primary" onClick={startInstall}>
             {envStatus?.native_capture
-              ? t("remoteDesktop.installDeps", "安装依赖")
-              : t("remoteDesktop.install", "安装桌面环境")}
+              ? t("remoteDesktop.installDeps", "Install dependencies")
+              : t("remoteDesktop.install", "Install desktop environment")}
           </Button>
         </Space>
       );
@@ -993,7 +993,7 @@ export default function DesktopPanel({
     );
   };
 
-  const pageTitle = t("nav.remoteDesktop", "远程桌面");
+  const pageTitle = t("nav.remoteDesktop", "Remote Desktop");
   const pageSubtitle = t(
     "pageShell.desktop.subtitle",
     "查看并操控 Octop 主机操作系统桌面",
@@ -1022,15 +1022,15 @@ export default function DesktopPanel({
 
   const headerActions = isStreaming ? (
     <Space size={8} wrap>
-      <Tooltip title={t("remoteDesktop.disconnect", "断开")}>
+      <Tooltip title={t("remoteDesktop.disconnect", "Disconnect")}>
         <Button
           size={isMobile ? "small" : "middle"}
           danger
           icon={<Unplug size={14} />}
           onClick={handleDisconnect}
-          aria-label={t("remoteDesktop.disconnect", "断开")}
+          aria-label={t("remoteDesktop.disconnect", "Disconnect")}
         >
-          {!isMobile && t("remoteDesktop.disconnect", "断开")}
+          {!isMobile && t("remoteDesktop.disconnect", "Disconnect")}
         </Button>
       </Tooltip>
     </Space>
@@ -1038,14 +1038,14 @@ export default function DesktopPanel({
 
   const checkGuideAction = needsMacPermissions
     ? {
-        label: t("remoteDesktop.recheck", "重新检测"),
+        label: t("remoteDesktop.recheck", "Recheck"),
         onClick: () => void refreshEnv(),
         icon: <RefreshCw size={14} />,
         loading: envLoading,
         type: "default" as const,
       }
     : {
-        label: t("remoteDesktop.checkInstallShort", "检查"),
+        label: t("remoteDesktop.checkInstallShort", "Check"),
         onClick: openEnvModal,
         icon: <Monitor size={14} />,
         type: "default" as const,
@@ -1053,7 +1053,7 @@ export default function DesktopPanel({
       };
 
   const connectGuideAction = {
-    label: t("remoteDesktop.connect", "连接"),
+    label: t("remoteDesktop.connect", "Connect"),
     onClick: handleConnect,
     icon: <PlugZap size={14} />,
     disabled: !envReady,
@@ -1069,7 +1069,7 @@ export default function DesktopPanel({
 
   const uninstallGuideAction = canUninstall
     ? {
-        label: t("remoteDesktop.uninstall", "卸载"),
+        label: t("remoteDesktop.uninstall", "Uninstall"),
         onClick: handleUninstall,
         icon: <Trash2 size={14} />,
         loading: uninstalling,
@@ -1082,7 +1082,7 @@ export default function DesktopPanel({
   const pageBody = (
     <>
       <Modal
-        title={t("remoteDesktop.checkInstall", "检测桌面")}
+        title={t("remoteDesktop.checkInstall", "Check desktop")}
         open={envModalOpen}
         onCancel={closeEnvModal}
         footer={envModalFooter()}
@@ -1118,7 +1118,7 @@ export default function DesktopPanel({
                 loading={envLoading}
                 onClick={() => void refreshEnv()}
               >
-                {t("remoteDesktop.recheck", "重新检测")}
+                {t("remoteDesktop.recheck", "Recheck")}
               </Button>
             }
           />
@@ -1127,7 +1127,7 @@ export default function DesktopPanel({
           <Alert
             type="success"
             showIcon
-            message={t("remoteDesktop.nativeReadyTitle", "本机桌面已就绪")}
+            message={t("remoteDesktop.nativeReadyTitle", "Host desktop ready")}
             description={t(
               "remoteDesktop.nativeReadyDesc",
               "将直接捕获本机屏幕并注入键鼠，无需安装虚拟桌面。",
@@ -1151,13 +1151,13 @@ export default function DesktopPanel({
                 icon={setupMascot}
                 title={
                   envReady
-                    ? t("remoteDesktop.connectTitle", "连接远程桌面")
+                    ? t("remoteDesktop.connectTitle", "Connect to remote desktop")
                     : needsMacPermissions
                     ? t(
                         "remoteDesktop.macPermissionsTitle",
                         "需要 macOS 系统权限",
                       )
-                    : t("remoteDesktop.subtitle", "控制 Octop 主机操作系统桌面")
+                    : t("remoteDesktop.subtitle", "Control the Octop host operating system desktop")
                 }
                 description={
                   envReady
@@ -1247,10 +1247,10 @@ export default function DesktopPanel({
                   <StreamConnectingIndicator
                     label={
                       status === "connecting"
-                        ? t("remoteDesktop.connecting", "连接中")
+                        ? t("remoteDesktop.connecting", "Connecting")
                         : status === "reconnecting"
-                        ? t("remoteDesktop.reconnecting", "重连中")
-                        : t("remoteDesktop.waitingFrame", "等待画面…")
+                        ? t("remoteDesktop.reconnecting", "Reconnecting")
+                        : t("remoteDesktop.waitingFrame", "Waiting for video…")
                     }
                   />
                 </div>
@@ -1258,15 +1258,15 @@ export default function DesktopPanel({
               <StreamEdgeControls
                 visible={showEdgeControls}
                 isMobile={isMobile}
-                fullscreenLabel={t("remoteDesktop.fullscreen", "全屏")}
+                fullscreenLabel={t("remoteDesktop.fullscreen", "Fullscreen")}
                 controlsLabel={t(
                   "remoteDesktop.openControls",
                   "控制与快捷操作",
                 )}
                 streamingLabel={
                   status === "streaming"
-                    ? t("remoteDesktop.streaming", "推流中")
-                    : t("remoteDesktop.connecting", "连接中")
+                    ? t("remoteDesktop.streaming", "Streaming")
+                    : t("remoteDesktop.connecting", "Connecting")
                 }
                 onFullscreen={() => void handleFullscreen()}
                 onOpenControls={openControlsDrawer}
@@ -1292,7 +1292,7 @@ export default function DesktopPanel({
       </div>
 
       <Drawer
-        title={t("remoteDesktop.controlsTitle", "控制面板")}
+        title={t("remoteDesktop.controlsTitle", "Controls")}
         placement={isMobile ? "bottom" : "right"}
         open={controlsOpen}
         onClose={closeControlsDrawer}

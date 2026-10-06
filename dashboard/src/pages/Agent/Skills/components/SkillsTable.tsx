@@ -55,7 +55,7 @@ export default function SkillsTable({
       ),
     },
     {
-      title: t("skills.table.enabled", "启用"),
+      title: t("skills.table.enabled", "Enabled"),
       dataIndex: "enabled",
       width: "8%",
       align: "center",
@@ -69,7 +69,7 @@ export default function SkillsTable({
       ),
     },
     {
-      title: t("skills.table.actions", "操作"),
+      title: t("skills.table.actions", "Actions"),
       key: "actions",
       width: kind === "custom" ? 88 : 56,
       align: "center",

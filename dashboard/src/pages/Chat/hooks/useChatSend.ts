@@ -108,7 +108,7 @@ export function useChatSend({
     ): boolean => {
       const agent = overrides?.agentId ?? resolvedAgentId;
       if (!agent) {
-        message.warning(t("chat.pickAgent", "请先选择一个 Agent"));
+        message.warning(t("chat.pickAgent", "Select an Agent first"));
         return false;
       }
 
@@ -182,7 +182,7 @@ export function useChatSend({
 
       if (targetThreadId) {
         if (isPendingThread(targetThreadId)) {
-          message.info(t("chat.creatingSession", "正在创建会话，请稍候"));
+          message.info(t("chat.creatingSession", "Creating session…"));
           return false;
         }
         const hadMessages =
@@ -209,7 +209,7 @@ export function useChatSend({
         if (!tid) {
           chatStore.clearMessages(PENDING_THREAD_ID);
           navigate(`/chat/${agent}`, { replace: true });
-          message.error(t("chat.createSessionFailed", "创建会话失败，请重试"));
+          message.error(t("chat.createSessionFailed", "Failed to create a session — please try again"));
           return;
         }
         const currentSnap = chatStore.getSnapshot(PENDING_THREAD_ID);

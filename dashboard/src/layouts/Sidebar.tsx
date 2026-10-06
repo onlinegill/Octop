@@ -202,7 +202,7 @@ function NavItemButton({
           {t(item.labelKey)}
           {item.key === "admin-advanced" && role === "admin" && hasUpdate ? (
             <span className={styles.navUpdateBadge}>
-              {t("nav.newVersionBadge", "有新版本")}
+              {t("nav.newVersionBadge", "New version")}
             </span>
           ) : null}
           {item.badge && (
@@ -235,8 +235,8 @@ function NavItemButton({
             e.stopPropagation();
             onExpandChatRail?.();
           }}
-          aria-label={t("chat.expandHistorySidebar", "展开对话历史")}
-          title={t("chat.expandHistorySidebar", "展开对话历史")}
+          aria-label={t("chat.expandHistorySidebar", "Show conversation history")}
+          title={t("chat.expandHistorySidebar", "Show conversation history")}
         >
           <ArrowRightLeft size={14} strokeWidth={1.8} aria-hidden />
         </button>

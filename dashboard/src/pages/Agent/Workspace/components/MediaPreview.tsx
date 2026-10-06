@@ -127,14 +127,14 @@ function WorkspaceImage({
   if (src === "missing") {
     return (
       <MediaFallback
-        label={t("workspace.fileMaybeDeleted", "文件可能已被删除")}
+        label={t("workspace.fileMaybeDeleted", "File may have been deleted")}
       />
     );
   }
 
   if (src === "error") {
     return (
-      <MediaFallback label={t("workspace.mediaLoadFailed", "无法加载预览")} />
+      <MediaFallback label={t("workspace.mediaLoadFailed", "Could not load preview")} />
     );
   }
 
@@ -185,14 +185,14 @@ function WorkspaceVideo({
   if (src === "missing") {
     return (
       <MediaFallback
-        label={t("workspace.fileMaybeDeleted", "文件可能已被删除")}
+        label={t("workspace.fileMaybeDeleted", "File may have been deleted")}
       />
     );
   }
 
   if (src === "error") {
     return (
-      <MediaFallback label={t("workspace.mediaLoadFailed", "无法加载预览")} />
+      <MediaFallback label={t("workspace.mediaLoadFailed", "Could not load preview")} />
     );
   }
 
@@ -249,14 +249,14 @@ function WorkspaceAudio({
   if (src === "missing") {
     return (
       <MediaFallback
-        label={t("workspace.fileMaybeDeleted", "文件可能已被删除")}
+        label={t("workspace.fileMaybeDeleted", "File may have been deleted")}
       />
     );
   }
 
   if (src === "error") {
     return (
-      <MediaFallback label={t("workspace.mediaLoadFailed", "无法加载预览")} />
+      <MediaFallback label={t("workspace.mediaLoadFailed", "Could not load preview")} />
     );
   }
 

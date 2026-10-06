@@ -274,7 +274,7 @@ export default function ChatDockFileList({
         }
         message.error(
           (err instanceof Error ? err.message : String(err)) ||
-            t("workspace.downloadFailed", "下载失败"),
+            t("workspace.downloadFailed", "Download failed"),
         );
       } finally {
         setDownloading(null);
@@ -317,7 +317,7 @@ export default function ChatDockFileList({
     );
   }
 
-  const downloadLabel = t("common.download", "下载");
+  const downloadLabel = t("common.download", "Download");
 
   return (
     <div className={styles.dockFileList}>

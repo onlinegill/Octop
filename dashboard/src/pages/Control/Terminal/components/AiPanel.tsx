@@ -486,7 +486,7 @@ export default function AiPanel({
                     onClick={isStreaming ? cancelStream : handleSend}
                     title={
                       isStreaming
-                        ? t("chat.stop", "停止")
+                        ? t("chat.stop", "Stop")
                         : t("terminal.ai.send")
                     }
                   >

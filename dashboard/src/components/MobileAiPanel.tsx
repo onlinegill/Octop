@@ -88,9 +88,9 @@ export default function MobileAiPanel({
         <div className={styles.header}>
           <div className={styles.headerTitle}>
             <Bot size={14} />
-            <span>{t("remoteAndroid.ai.title", "AI 助手")}</span>
+            <span>{t("remoteAndroid.ai.title", "AI Assistant")}</span>
           </div>
-          <Tooltip title={t("common.close", "关闭")}>
+          <Tooltip title={t("common.close", "Close")}>
             <Button
               type="text"
               size="small"
@@ -102,7 +102,7 @@ export default function MobileAiPanel({
         <div className={styles.emptyState}>
           <Bot size={30} color="var(--fn-text-quaternary, #9ca3af)" />
           <div className={styles.emptyTitle}>
-            {t("remoteAndroid.ai.noAgentTitle", "请选择一个 Agent")}
+            {t("remoteAndroid.ai.noAgentTitle", "Select an Agent")}
           </div>
           <div className={styles.emptyDesc}>
             {t(
@@ -125,10 +125,10 @@ export default function MobileAiPanel({
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <Bot size={14} />
-          <span>{t("remoteAndroid.ai.title", "AI 助手")}</span>
+          <span>{t("remoteAndroid.ai.title", "AI Assistant")}</span>
         </div>
         <div className={styles.headerActions}>
-          <Tooltip title={t("common.close", "关闭")}>
+          <Tooltip title={t("common.close", "Close")}>
             <Button
               type="text"
               size="small"
@@ -142,13 +142,13 @@ export default function MobileAiPanel({
       <div className={styles.contextSection}>
         <div className={styles.expertSelectRow}>
           <span className={styles.contextLabel}>
-            {t("remoteAndroid.ai.expert", "专家")}
+            {t("remoteAndroid.ai.expert", "Expert")}
           </span>
           <AgentSelector variant="select" showLabel={false} />
         </div>
         <div className={styles.contextGrid}>
           <span className={styles.contextLabel}>
-            {t("remoteAndroid.ai.device", "设备")}
+            {t("remoteAndroid.ai.device", "Device")}
           </span>
           <span
             className={styles.contextValue}
@@ -157,16 +157,16 @@ export default function MobileAiPanel({
             {deviceName || device || none}
           </span>
           <span className={styles.contextLabel}>
-            {t("remoteAndroid.ai.serial", "序列号")}
+            {t("remoteAndroid.ai.serial", "Serial")}
           </span>
           <span className={styles.contextValue}>{device || none}</span>
           <span className={styles.contextLabel}>
-            {t("remoteAndroid.ai.session", "会话")}
+            {t("remoteAndroid.ai.session", "Session")}
           </span>
           <span className={styles.contextValue}>
             {streamActive
-              ? t("remoteAndroid.ai.sessionActive", "已连接（Agent 可用）")
-              : t("remoteAndroid.ai.sessionIdle", "未连接")}
+              ? t("remoteAndroid.ai.sessionActive", "Connected (Agent ready)")
+              : t("remoteAndroid.ai.sessionIdle", "Not connected")}
           </span>
         </div>
       </div>
@@ -215,8 +215,8 @@ export default function MobileAiPanel({
             onClick={isStreaming ? cancelStream : handleSend}
             title={
               isStreaming
-                ? t("chat.stop", "停止")
-                : t("terminal.ai.send", "发送")
+                ? t("chat.stop", "Stop")
+                : t("terminal.ai.send", "Send")
             }
           >
             {isStreaming ? <Square size={16} /> : <Send size={16} />}

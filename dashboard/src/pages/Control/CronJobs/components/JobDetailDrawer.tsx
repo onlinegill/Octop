@@ -87,7 +87,7 @@ export function JobDetailDrawer({
               icon={<MessageSquare size={14} />}
               onClick={handleGoToChat}
             >
-              {t("cronJobs.goToChat", "发送到聊天")}
+              {t("cronJobs.goToChat", "Send to chat")}
             </Button>
           </div>
         ) : null

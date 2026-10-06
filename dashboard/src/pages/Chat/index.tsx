@@ -1296,10 +1296,10 @@ function ChatPageInner() {
                       disabled={!agentChatReady}
                       title={
                         agentChatReady
-                          ? t("chat.openWorkspace", "工作区")
+                          ? t("chat.openWorkspace", "Workspace")
                           : t("workspace.requiresRunning")
                       }
-                      aria-label={t("chat.openWorkspace", "工作区")}
+                      aria-label={t("chat.openWorkspace", "Workspace")}
                     >
                       <FolderOpen size={18} strokeWidth={1.8} />
                     </button>
@@ -1471,7 +1471,7 @@ function ChatPageInner() {
                       <Tooltip
                         title={
                           agentChatReady
-                            ? t("chat.openWorkspace", "工作区")
+                            ? t("chat.openWorkspace", "Workspace")
                             : t("workspace.requiresRunning")
                         }
                         mouseEnterDelay={0.35}
@@ -1483,7 +1483,7 @@ function ChatPageInner() {
                             className={styles.chatFloatBtn}
                             disabled={!agentChatReady}
                             onClick={toggleWorkspacePanel}
-                            aria-label={t("chat.openWorkspace", "工作区")}
+                            aria-label={t("chat.openWorkspace", "Workspace")}
                           >
                             <FolderOpen size={20} strokeWidth={2.1} />
                           </button>
@@ -1524,7 +1524,7 @@ function ChatPageInner() {
                   )}
                   {canTerminal && (
                     <Tooltip
-                      title={t("chat.openTerminal", "打开终端")}
+                      title={t("chat.openTerminal", "Open terminal")}
                       mouseEnterDelay={0.35}
                       placement="left"
                     >
@@ -1533,7 +1533,7 @@ function ChatPageInner() {
                           type="button"
                           className={styles.terminalFloatBtn}
                           onClick={toggleTerminalPanel}
-                          aria-label={t("chat.openTerminal", "打开终端")}
+                          aria-label={t("chat.openTerminal", "Open terminal")}
                         >
                           <Terminal size={20} strokeWidth={2.1} />
                         </button>
@@ -1550,7 +1550,7 @@ function ChatPageInner() {
                               "chat.trajectorySelectSession",
                               "Select a session to view trajectory",
                             )
-                          : t("chat.openTrajectory", "运行轨迹")
+                          : t("chat.openTrajectory", "Trajectory")
                       }
                       mouseEnterDelay={0.35}
                       placement="left"
@@ -1561,7 +1561,7 @@ function ChatPageInner() {
                           className={styles.chatFloatBtn}
                           disabled={!activeThreadId || !agentChatReady}
                           onClick={() => setTrajectoryDrawerOpen(true)}
-                          aria-label={t("chat.openTrajectory", "运行轨迹")}
+                          aria-label={t("chat.openTrajectory", "Trajectory")}
                         >
                           <Activity size={20} strokeWidth={2.1} />
                         </button>

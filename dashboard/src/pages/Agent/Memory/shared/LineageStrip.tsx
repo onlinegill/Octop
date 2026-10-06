@@ -102,17 +102,17 @@ export default function LineageStrip({ agentId, atom }: Props) {
       ? beforeAssertion
       : null;
   const sourceLabel = correction
-    ? t("memory.lineage.originalContext", "原始来源上下文：")
+    ? t("memory.lineage.originalContext", "Original source context:")
     : rawEvent?.event_type === "manual"
-    ? t("memory.lineage.manualEntry", "人工添加的记忆：")
-    : t("memory.lineage.conversationSource", "来源对话片段：");
+    ? t("memory.lineage.manualEntry", "Manually added memory:")
+    : t("memory.lineage.conversationSource", "Source conversation excerpt:");
 
   return (
     <div>
       {correction ? (
         <div style={correctionBox}>
           <Typography.Text strong style={{ fontSize: 12 }}>
-            ✏️ {t("memory.lineage.manualCorrection", "人工修正的记忆")}
+            ✏️ {t("memory.lineage.manualCorrection", "Manually corrected memory")}
           </Typography.Text>
           {correctionText ? (
             <div style={{ marginTop: 4, fontSize: 12, color: "#595959" }}>
@@ -147,7 +147,7 @@ export default function LineageStrip({ agentId, atom }: Props) {
           </div>
         ) : (
           <div style={{ marginTop: 4, fontSize: 12, color: "#8c8c8c" }}>
-            {t("memory.lineage.noOriginalContext", "没有可展示的原始来源")}
+            {t("memory.lineage.noOriginalContext", "No original source is available")}
           </div>
         )}
       </div>

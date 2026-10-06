@@ -651,7 +651,7 @@ export function ModelListEditor({
                             <div style={{ display: "flex", gap: 12 }}>
                               <Form.Item
                                 name="reasoning_toggle"
-                                label={t("models.reasoningToggle", "允许开关")}
+                                label={t("models.reasoningToggle", "Allow toggle")}
                                 valuePropName="checked"
                                 initialValue
                                 style={{ flex: 1, marginBottom: 10 }}
@@ -660,7 +660,7 @@ export function ModelListEditor({
                               </Form.Item>
                               <Form.Item
                                 name="reasoning_default_mode"
-                                label={t("models.reasoningDefault", "默认思考")}
+                                label={t("models.reasoningDefault", "Default thinking")}
                                 initialValue="auto"
                                 style={{ flex: 1, marginBottom: 10 }}
                               >
@@ -668,11 +668,11 @@ export function ModelListEditor({
                                   options={[
                                     {
                                       value: "auto",
-                                      label: t("chat.reasoningAuto", "自动"),
+                                      label: t("chat.reasoningAuto", "Auto"),
                                     },
                                     {
                                       value: "enabled",
-                                      label: t("chat.reasoningEnabled", "开启"),
+                                      label: t("chat.reasoningEnabled", "On"),
                                     },
                                     {
                                       value: "disabled",
@@ -741,7 +741,7 @@ export function ModelListEditor({
                             </div>
                             <Form.Item
                               name="reasoning_adapter"
-                              label={t("models.reasoningAdapter", "推理协议")}
+                              label={t("models.reasoningAdapter", "Reasoning protocol")}
                               initialValue="thinking"
                               style={{ marginBottom: 10 }}
                             >

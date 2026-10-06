@@ -54,7 +54,7 @@ function marketErrorMessage(err: unknown, fallback: string): string {
 }
 
 function sceneLabel(scene: string, t: TFunction): string {
-  if (!scene) return t("experts.sceneAll", "全部");
+  if (!scene) return t("experts.sceneAll", "All");
   return t(`experts.scenes.${scene}`, { defaultValue: scene });
 }
 

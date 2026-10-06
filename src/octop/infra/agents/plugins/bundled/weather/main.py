@@ -101,7 +101,7 @@ def _geocode(city: str) -> dict[str, Any] | None:
     with _client() as client:
         resp = client.get(
             "https://geocoding-api.open-meteo.com/v1/search",
-            params={"name": city, "count": 1, "language": "zh"},
+            params={"name": city, "count": 1, "language": "en"},
         )
         resp.raise_for_status()
         payload = resp.json()

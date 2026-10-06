@@ -74,7 +74,7 @@ export default function MemoryPipelineEmpty({ agentId }: Props) {
   return (
     <Empty
       image={Empty.PRESENTED_IMAGE_SIMPLE}
-      description={t("memory.pipeline.emptyTitle", "记忆还在提炼中")}
+      description={t("memory.pipeline.emptyTitle", "Memories are still being distilled")}
     >
       <div
         style={{

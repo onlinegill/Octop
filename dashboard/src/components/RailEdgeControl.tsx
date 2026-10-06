@@ -61,8 +61,8 @@ export default function RailEdgeControl({
   const ariaLabel =
     label ??
     (expanded
-      ? t("layout.collapsePanel", "收起面板")
-      : t("layout.expandPanel", "展开面板"));
+      ? t("layout.collapsePanel", "Collapse panel")
+      : t("layout.expandPanel", "Expand panel"));
 
   return (
     <div

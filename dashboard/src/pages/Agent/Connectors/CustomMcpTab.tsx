@@ -83,7 +83,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       message.error(
         apiErrorMessage(
           e,
-          t("connectors.customMcp.loadFailed", "加载自定义 MCP 失败"),
+          t("connectors.customMcp.loadFailed", "Failed to load custom MCP"),
           t,
         ),
       );
@@ -135,7 +135,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
     } catch (e) {
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.customMcp.saveFailed", "保存失败"), t),
+        apiErrorMessage(e, t("connectors.customMcp.saveFailed", "Failed to save"), t),
       );
       await load();
     }
@@ -246,11 +246,11 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
         return next;
       });
       notifyConnectorsChanged();
-      message.success(t("connectors.deleteSuccess", "已删除"));
+      message.success(t("connectors.deleteSuccess", "Deleted"));
     } catch (e) {
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.deleteFailed", "删除失败"), t),
+        apiErrorMessage(e, t("connectors.deleteFailed", "Delete failed"), t),
       );
       await load();
     }
@@ -287,10 +287,10 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       if (!fromSave) {
         if (tools.length === 0) {
           message.success(
-            t("connectors.probeToolsEmpty", "连接正常，但未发现可用工具"),
+            t("connectors.probeToolsEmpty", "Connection OK, but no tools were found"),
           );
         } else {
-          message.success(t("connectors.customMcp.probeComplete", "连接正常"));
+          message.success(t("connectors.customMcp.probeComplete", "Connection verified"));
         }
       }
       return;
@@ -323,7 +323,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
     }
     setOauthAvailable((prev) => ({ ...prev, [card.key]: false }));
     if (!fromSave) {
-      message.error(result.error ?? t("connectors.probeFailed", "探测失败"));
+      message.error(result.error ?? t("connectors.probeFailed", "Probe failed"));
     }
   };
 
@@ -348,7 +348,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
     } catch (e) {
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.probeFailed", "探测失败"), t),
+        apiErrorMessage(e, t("connectors.probeFailed", "Probe failed"), t),
       );
     } finally {
       setProbingKey(null);
@@ -365,8 +365,8 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
         setJsonError(null);
         return parsed as CustomMcpServers;
       } catch {
-        setJsonError(t("connectors.customMcp.jsonInvalid", "JSON 格式无效"));
-        message.error(t("connectors.customMcp.jsonInvalid", "JSON 格式无效"));
+        setJsonError(t("connectors.customMcp.jsonInvalid", "Invalid JSON"));
+        message.error(t("connectors.customMcp.jsonInvalid", "Invalid JSON"));
         return null;
       }
     }
@@ -376,17 +376,17 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       const code = e instanceof Error ? e.message : "";
       if (code === "duplicate_name") {
         message.warning(
-          t("connectors.customMcp.duplicateName", "服务器名称不能重复"),
+          t("connectors.customMcp.duplicateName", "Server IDs must be unique"),
         );
       } else if (code === "empty_name") {
         message.warning(
-          t("connectors.customMcp.emptyName", "请填写服务器名称"),
+          t("connectors.customMcp.emptyName", "Server ID is required"),
         );
       } else {
         message.warning(
           apiErrorMessage(
             e,
-            t("connectors.customMcp.visualInvalid", "请检查配置后重试"),
+            t("connectors.customMcp.visualInvalid", "Fix names and required fields before switching"),
             t,
           ),
         );
@@ -404,7 +404,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       const nextCards = applySavedServers(saved.servers, cards);
       notifyConnectorsChanged();
       message.success(
-        t("connectors.customMcp.saveSuccess", "自定义 MCP 已保存"),
+        t("connectors.customMcp.saveSuccess", "Custom MCP saved"),
       );
       if (probeOnSave && showProbeSection) {
         for (const card of nextCards) {
@@ -417,7 +417,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
     } catch (e) {
       console.error(e);
       message.error(
-        apiErrorMessage(e, t("connectors.customMcp.saveFailed", "保存失败"), t),
+        apiErrorMessage(e, t("connectors.customMcp.saveFailed", "Failed to save"), t),
       );
     } finally {
       setSaving(false);
@@ -429,7 +429,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       cardsToServers([card]);
     } catch {
       message.warning(
-        t("connectors.customMcp.probeNeedConfig", "请先填写完整配置再探测"),
+        t("connectors.customMcp.probeNeedConfig", "Fill in the configuration before probing"),
       );
       return;
     }
@@ -439,7 +439,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
   const handleOAuth = async (card: ServerCardState) => {
     const serverName = card.name.trim();
     if (!serverName) {
-      message.warning(t("connectors.customMcp.emptyName", "请填写服务器名称"));
+      message.warning(t("connectors.customMcp.emptyName", "Server ID is required"));
       return;
     }
     const popup = window.open("", "octop-oauth", "width=520,height=720");
@@ -483,14 +483,14 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
           await runProbe(refreshed, { byName: true });
         }
         message.success(
-          t("connectors.oauthConfigured", "已授权，可直接探测或保存"),
+          t("connectors.oauthConfigured", "Authorized — probe or save now"),
         );
       } catch (e) {
         console.error(e);
         message.error(
           apiErrorMessage(
             e,
-            t("connectors.oauthFailed", "获取授权结果失败"),
+            t("connectors.oauthFailed", "Failed to fetch OAuth result"),
             t,
           ),
         );
@@ -545,7 +545,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
         cleanup();
         setAuthorizingKey(null);
         message.error(
-          t("connectors.oauthTimedOut", "授权超时，请重试一键授权"),
+          t("connectors.oauthTimedOut", "Authorization timed out; try one-click auth again"),
         );
       }, 120_000);
       popup.location.replace(authorize_url);
@@ -560,7 +560,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       message.error(
         apiErrorMessage(
           e,
-          t("connectors.oauthStartFailed", "无法启动 OAuth"),
+          t("connectors.oauthStartFailed", "Could not start OAuth"),
           t,
         ),
       );
@@ -610,7 +610,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
             checked={probeOnSave}
             onChange={(e) => setProbeOnSave(e.target.checked)}
           >
-            {t("connectors.customMcp.probeOnSave", "保存后自动探测连接")}
+            {t("connectors.customMcp.probeOnSave", "Probe connection after save")}
           </Checkbox>
           <p className={styles.customMcpFooterHint}>
             {t(
@@ -650,7 +650,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
           options={[
             {
               value: "visual",
-              label: t("connectors.customMcp.modeVisual", "可视化"),
+              label: t("connectors.customMcp.modeVisual", "Visual"),
             },
             {
               value: "json",
@@ -692,7 +692,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
               >
                 <Globe size={18} />
                 <span>
-                  {t("connectors.customMcp.addHttp", "添加 HTTP Server")}
+                  {t("connectors.customMcp.addHttp", "Add HTTP Server")}
                 </span>
                 <Plus size={16} />
               </button>
@@ -703,7 +703,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
               >
                 <Terminal size={18} />
                 <span>
-                  {t("connectors.customMcp.addStdio", "添加 Stdio Server")}
+                  {t("connectors.customMcp.addStdio", "Add Stdio Server")}
                 </span>
                 <Plus size={16} />
               </button>
@@ -711,7 +711,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
 
             <div className={styles.customMcpListSection}>
               <div className={styles.customMcpListTitle}>
-                {t("connectors.customMcp.listTitle", "已添加的服务器")}
+                {t("connectors.customMcp.listTitle", "Configured servers")}
                 {cards.length > 0 ? (
                   <span className={styles.customMcpListCount}>
                     {cards.length}

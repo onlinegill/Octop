@@ -132,7 +132,7 @@ export function useSkillRecordingWorkflow({
       antMessage.error(
         err instanceof Error
           ? err.message
-          : t("skillRecord.stopFailed", "停止录制失败"),
+          : t("skillRecord.stopFailed", "Failed to stop recording"),
       );
     } finally {
       workflowBusyRef.current = false;
@@ -191,7 +191,7 @@ export function useSkillRecordingWorkflow({
       antMessage.error(
         err instanceof Error
           ? err.message
-          : t("skillRecord.applyFailed", "应用技能失败"),
+          : t("skillRecord.applyFailed", "Failed to apply skill"),
       );
     } finally {
       workflowBusyRef.current = false;

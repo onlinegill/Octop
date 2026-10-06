@@ -359,10 +359,10 @@ export default function ChatInputActionsRow({
 
   const reasoningModeLabel = (mode: "auto" | "enabled" | "disabled") =>
     mode === "auto"
-      ? t("chat.reasoningAuto", "自动")
+      ? t("chat.reasoningAuto", "Auto")
       : mode === "enabled"
-      ? t("chat.reasoningEnabled", "开启")
-      : t("chat.reasoningDisabled", "关闭");
+      ? t("chat.reasoningEnabled", "On")
+      : t("chat.reasoningDisabled", "Off");
 
   const selectedModelTriggerLabel = selectedModel
     ? modelOptionLabel(
@@ -377,7 +377,7 @@ export default function ChatInputActionsRow({
     const capability = model.reasoning_config;
     if (!capability) return null;
     if (capability.adapter === "status_only") {
-      return t("chat.reasoningAlways", "始终推理");
+      return t("chat.reasoningAlways", "Always reasoning");
     }
     if (active) {
       return reasoningEffort || reasoningModeLabel(reasoningMode);
@@ -400,7 +400,7 @@ export default function ChatInputActionsRow({
           type="button"
           className={styles.reasoningMenuBack}
           onClick={() => setReasoningModelRef(null)}
-          aria-label={t("common.back", "返回")}
+          aria-label={t("common.back", "Back")}
         >
           <ChevronLeft size={16} />
         </button>
@@ -409,13 +409,13 @@ export default function ChatInputActionsRow({
       {reasoningModelCapability.adapter === "status_only" ? (
         <div className={styles.reasoningStatusRow}>
           <Brain size={16} />
-          <span>{t("chat.reasoningAlways", "始终推理")}</span>
+          <span>{t("chat.reasoningAlways", "Always reasoning")}</span>
           <Check size={16} />
         </div>
       ) : (
         <>
           <div className={styles.reasoningMenuSectionLabel}>
-            {t("chat.reasoningMode", "思考模式")}
+            {t("chat.reasoningMode", "Thinking mode")}
           </div>
           {(reasoningModelCapability.toggle
             ? (["auto", "enabled", "disabled"] as const)
@@ -437,7 +437,7 @@ export default function ChatInputActionsRow({
             <>
               <div className={styles.reasoningMenuDivider} />
               <div className={styles.reasoningMenuSectionLabel}>
-                {t("chat.reasoningEffort", "思考强度")}
+                {t("chat.reasoningEffort", "Thinking effort")}
               </div>
               {reasoningModelCapability.efforts.map((effort) => (
                 <button
@@ -843,7 +843,7 @@ export default function ChatInputActionsRow({
           overflowBadgeCount > 0 ? styles.secondaryBtnActive : ""
         }`}
         type="button"
-        aria-label={t("chat.composerMore", "更多工具")}
+        aria-label={t("chat.composerMore", "More tools")}
         data-testid="composer-plus"
       >
         <Plus size={16} />
@@ -906,7 +906,7 @@ export default function ChatInputActionsRow({
             }}
           >
             <Tooltip
-              title={t("chat.composerMore", "更多工具")}
+              title={t("chat.composerMore", "More tools")}
               mouseEnterDelay={0.4}
             >
               {plusButton}
@@ -928,13 +928,13 @@ export default function ChatInputActionsRow({
           content={shortcutMenu}
         >
           <Tooltip
-            title={t("shortcut.title", "快捷指令")}
+            title={t("shortcut.title", "Shortcuts")}
             mouseEnterDelay={0.4}
           >
             <button
               className={styles.secondaryBtn}
               type="button"
-              aria-label={t("shortcut.title", "快捷指令")}
+              aria-label={t("shortcut.title", "Shortcuts")}
             >
               <Zap size={16} />
             </button>
@@ -1016,12 +1016,12 @@ export default function ChatInputActionsRow({
         <Tooltip
           title={
             !_sttAvailable
-              ? t("voice.sttNotAvailable", "此设备不支持语音输入（需要 HTTPS）")
+              ? t("voice.sttNotAvailable", "Voice input not available on this device (HTTPS required)")
               : recording
-              ? t("voice.stopRecording", "停止录音")
+              ? t("voice.stopRecording", "Stop recording")
               : transcribing
-              ? t("voice.transcribing", "识别中…")
-              : t("voice.startRecording", "语音输入")
+              ? t("voice.transcribing", "Transcribing…")
+              : t("voice.startRecording", "Voice input")
           }
           mouseEnterDelay={0.4}
         >
@@ -1040,8 +1040,8 @@ export default function ChatInputActionsRow({
           <Tooltip
             title={
               browserRecording
-                ? t("browser.recordReplay.stop", "停止浏览器录制")
-                : t("browser.recordReplay.start", "开始浏览器录制")
+                ? t("browser.recordReplay.stop", "Stop browser recording")
+                : t("browser.recordReplay.start", "Start browser recording")
             }
             mouseEnterDelay={0.4}
           >
@@ -1069,7 +1069,7 @@ export default function ChatInputActionsRow({
           <Tooltip
             title={
               browserLastRecordingId
-                ? t("browser.recordReplay.replay", "回放最近一次浏览器录制")
+                ? t("browser.recordReplay.replay", "Replay last browser recording")
                 : t(
                     "browser.recordReplay.noRecording",
                     "请先完成一次浏览器录制",

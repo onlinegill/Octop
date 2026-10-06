@@ -128,7 +128,7 @@ export default function ProfileOverview({
           </div>
           <div className={styles.dossierHeadText}>
             <h2 className={styles.dossierTitle}>
-              {t("memory.overview.heroTitle", "用户画像")}
+              {t("memory.overview.heroTitle", "User profile")}
             </h2>
             <div className={styles.dossierSubtitle}>
               {t(
@@ -140,11 +140,11 @@ export default function ProfileOverview({
           <div className={styles.dossierActions}>
             {onReview && pending > 0 ? (
               <Button size="small" onClick={onReview}>
-                {t("memory.overview.reviewAction", "整理画像")}
+                {t("memory.overview.reviewAction", "Tidy up profile")}
                 <span className={styles.actionBadge}>{pending}</span>
               </Button>
             ) : null}
-            <Tooltip title={t("common.refresh", "刷新")}>
+            <Tooltip title={t("common.refresh", "Refresh")}>
               <Button
                 size="small"
                 icon={
@@ -168,19 +168,19 @@ export default function ProfileOverview({
             <>
               <Stat
                 value={counts.atoms}
-                label={t("memory.overview.memories", "条记忆")}
+                label={t("memory.overview.memories", "memories")}
               />
               <Stat
                 value={counts.episodes}
-                label={t("memory.overview.episodesShort", "段对话片段")}
+                label={t("memory.overview.episodesShort", "conversation episodes")}
               />
               <Stat
                 value={counts.entities}
-                label={t("memory.overview.entitiesShort", "个人物/事物")}
+                label={t("memory.overview.entitiesShort", "people & things")}
               />
               <Stat
                 value={counts.atoms_delta_7d}
-                label={t("memory.overview.atomsDelta7dShort", "条近7天新增")}
+                label={t("memory.overview.atomsDelta7dShort", "added in 7 days")}
               />
             </>
           ) : null}
@@ -191,8 +191,8 @@ export default function ProfileOverview({
       <div className={styles.dossierBody}>
         <ProfileGroup
           icon={<User size={14} />}
-          title={t("memory.terminal.aboutMe", "关于你")}
-          subtitle={t("memory.terminal.aboutMeDesc", "长期稳定的偏好与事实")}
+          title={t("memory.terminal.aboutMe", "About you")}
+          subtitle={t("memory.terminal.aboutMeDesc", "Stable preferences and facts")}
           loading={firstLoading}
           items={state.aboutMe.map((a) => atomToConceptItem(a, t, timeZone))}
           emptyHint={t(
@@ -203,26 +203,26 @@ export default function ProfileOverview({
         />
         <ProfileGroup
           icon={<Crosshair size={14} />}
-          title={t("memory.terminal.currentFocus", "当前重点")}
+          title={t("memory.terminal.currentFocus", "Current focus")}
           subtitle={t(
             "memory.terminal.currentFocusDesc",
             "进行中的任务和最近的决定",
           )}
           loading={firstLoading}
           items={state.focus.map((a) => atomToConceptItem(a, t, timeZone))}
-          emptyHint={t("memory.terminal.emptyFocus", "暂时没有进行中的任务")}
+          emptyHint={t("memory.terminal.emptyFocus", "No tasks in progress")}
           onViewAll={onViewAll}
         />
         <ProfileGroup
           icon={<MessageSquare size={14} />}
-          title={t("memory.terminal.toldMe", "你提到的事实")}
+          title={t("memory.terminal.toldMe", "Facts you mentioned")}
           subtitle={t(
             "memory.terminal.toldMeDesc",
             "最近被 Octop 记下的关键内容",
           )}
           loading={firstLoading}
           items={state.toldMe.map((a) => atomToConceptItem(a, t, timeZone))}
-          emptyHint={t("memory.terminal.emptyToldMe", "还没有记下明确事实")}
+          emptyHint={t("memory.terminal.emptyToldMe", "No explicit facts noted yet")}
           onViewAll={onViewAll}
         />
         <EntityGroup loading={firstLoading} entities={state.entities} t={t} />
@@ -346,7 +346,7 @@ function ProfileGroup({
                           : ""
                       }`}
                     >
-                      {t("memory.overview.rowGoLibrary", "去记忆库 →")}
+                      {t("memory.overview.rowGoLibrary", "Open memory library →")}
                     </span>
                   </span>
                 </button>
@@ -365,7 +365,7 @@ function ProfileGroup({
             className={styles.groupMore}
             onClick={() => onViewAll()}
           >
-            {t("memory.overview.viewAll", "查看全部")}
+            {t("memory.overview.viewAll", "View all")}
             <ChevronRight className={styles.groupMoreIcon} size={14} />
           </button>
         ) : null}
@@ -404,10 +404,10 @@ function EntityGroup({
           <Tags size={16} />
         </span>
         <span className={styles.groupTitle}>
-          {t("memory.terminal.entities", "关键人事物")}
+          {t("memory.terminal.entities", "Key people & things")}
         </span>
         <span className={styles.groupSubtitle}>
-          {t("memory.terminal.entitiesDesc", "记忆中出现最频繁的主题")}
+          {t("memory.terminal.entitiesDesc", "The most frequent topics in your memory")}
         </span>
       </div>
       {loading ? (
@@ -416,7 +416,7 @@ function EntityGroup({
         </div>
       ) : entities.length === 0 ? (
         <div className={styles.groupEmpty}>
-          {t("memory.terminal.emptyEntities", "暂时还没有高频人事物")}
+          {t("memory.terminal.emptyEntities", "No frequent people or things yet")}
         </div>
       ) : (
         <div className={styles.chipWrap}>
@@ -456,15 +456,15 @@ function kindColor(k: string): string {
 function kindLabel(k: string, t: TFn): string {
   switch (k) {
     case "Fact":
-      return t("memory.kind.fact", "事实");
+      return t("memory.kind.fact", "Fact");
     case "Decision":
-      return t("memory.kind.decision", "决定");
+      return t("memory.kind.decision", "Decision");
     case "Task":
-      return t("memory.kind.task", "任务");
+      return t("memory.kind.task", "Task");
     case "Preference":
-      return t("memory.kind.preference", "偏好");
+      return t("memory.kind.preference", "Preference");
     case "ConflictCandidate":
-      return t("memory.kind.conflict", "可能矛盾");
+      return t("memory.kind.conflict", "Possible conflict");
     default:
       return k;
   }
@@ -473,11 +473,11 @@ function kindLabel(k: string, t: TFn): string {
 function confidenceLabel(c: string, t: TFn): string {
   switch (c) {
     case "high":
-      return t("memory.confidence.high", "高置信");
+      return t("memory.confidence.high", "High confidence");
     case "medium":
-      return t("memory.confidence.medium", "中置信");
+      return t("memory.confidence.medium", "Medium confidence");
     default:
-      return t("memory.confidence.low", "低置信");
+      return t("memory.confidence.low", "Low confidence");
   }
 }
 
@@ -492,10 +492,10 @@ function relTime(
   if (Number.isNaN(d.getTime())) return null;
   const diff = calendarDaysAgo(d, timeZone);
   if (Number.isNaN(diff)) return null;
-  if (diff <= 0) return t("memory.time.today", "今天");
-  if (diff === 1) return t("memory.time.yesterday", "昨天");
+  if (diff <= 0) return t("memory.time.today", "Today");
+  if (diff === 1) return t("memory.time.yesterday", "Yesterday");
   if (diff < 7)
-    return t("memory.time.daysAgo", "{{n}} 天前").replace(
+    return t("memory.time.daysAgo", "{{n}} days ago").replace(
       "{{n}}",
       String(diff),
     );
@@ -505,21 +505,21 @@ function relTime(
 function entityTypeLabel(raw: string, t: TFn): string {
   switch ((raw || "").toLowerCase()) {
     case "person":
-      return t("memory.entityType.person", "人物");
+      return t("memory.entityType.person", "Person");
     case "place":
-      return t("memory.entityType.place", "地点");
+      return t("memory.entityType.place", "Place");
     case "project":
-      return t("memory.entityType.project", "项目");
+      return t("memory.entityType.project", "Project");
     case "tool":
-      return t("memory.entityType.tool", "工具");
+      return t("memory.entityType.tool", "Tool");
     case "concept":
-      return t("memory.entityType.concept", "概念");
+      return t("memory.entityType.concept", "Concept");
     case "organization":
-      return t("memory.entityType.organization", "组织");
+      return t("memory.entityType.organization", "Organization");
     case "event":
-      return t("memory.entityType.event", "事件");
+      return t("memory.entityType.event", "Event");
     default:
-      return raw || t("memory.entityType.other", "其它");
+      return raw || t("memory.entityType.other", "Other");
   }
 }
 
@@ -527,13 +527,13 @@ function ImportanceStars({ importance, t }: { importance: string; t: TFn }) {
   const n = importance === "high" ? 3 : importance === "medium" ? 2 : 1;
   const label =
     importance === "high"
-      ? t("memory.importance.high", "非常重要")
+      ? t("memory.importance.high", "Very important")
       : importance === "medium"
-      ? t("memory.importance.medium", "重要")
-      : t("memory.importance.low", "一般");
+      ? t("memory.importance.medium", "Important")
+      : t("memory.importance.low", "Normal");
   return (
     <span
-      title={`${t("memory.importance.title", "重要程度")}：${label}`}
+      title={`${t("memory.importance.title", "Importance")}：${label}`}
       style={{ color: "#faad14", fontSize: 13, letterSpacing: 1 }}
     >
       {"★".repeat(n)}

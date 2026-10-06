@@ -63,7 +63,7 @@ export function MessageFileCard({
     try {
       await downloadAuthFile(url, { filename });
     } catch {
-      antMessage.error(t("chat.downloadFailed", "下载失败，请重试"));
+      antMessage.error(t("chat.downloadFailed", "Download failed, please try again"));
     } finally {
       setLoading(false);
     }

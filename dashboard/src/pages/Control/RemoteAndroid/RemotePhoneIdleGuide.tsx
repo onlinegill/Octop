@@ -52,18 +52,18 @@ export default function RemotePhoneIdleGuide({
       <div className={styles.installProgress}>
         <RefreshCw size={32} className={styles.streamLoadingIcon} />
         <div className={styles.installProgressTitle}>
-          {t("remoteAndroid.installProgress", "正在安装 Android 容器…")}
+          {t("remoteAndroid.installProgress", "Installing Android container…")}
         </div>
         <div ref={installLogRef} className={styles.installLog}>
           {installLogs.length === 0 ? (
-            <div>{t("remoteAndroid.installing", "正在启动安装…")}</div>
+            <div>{t("remoteAndroid.installing", "Starting install…")}</div>
           ) : (
             installLogs.map((line, i) => <div key={i}>{line}</div>)
           )}
         </div>
         <div className={styles.installProgressActions}>
           <Button onClick={onCancelInstall}>
-            {t("common.cancel", "取消")}
+            {t("common.cancel", "Cancel")}
           </Button>
         </div>
       </div>
@@ -184,8 +184,8 @@ export default function RemotePhoneIdleGuide({
           ? {
               label:
                 installPhase === "failed"
-                  ? t("remoteAndroid.installRetry", "重新安装")
-                  : t("remoteAndroid.install", "安装容器"),
+                  ? t("remoteAndroid.installRetry", "Retry install")
+                  : t("remoteAndroid.install", "Install container"),
               onClick: onInstall,
               icon: <Download size={14} />,
             }

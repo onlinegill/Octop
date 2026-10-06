@@ -2675,11 +2675,11 @@ export default function KnowledgeBasesPage() {
                 )}
               </button>
             </Tooltip>
-            <Tooltip title={t("common.close", "关闭")}>
+            <Tooltip title={t("common.close", "Close")}>
               <button
                 type="button"
                 className={styles.previewModalExpandBtn}
-                aria-label={t("common.close", "关闭")}
+                aria-label={t("common.close", "Close")}
                 onClick={requestClosePreview}
               >
                 <X size={14} strokeWidth={2} aria-hidden />

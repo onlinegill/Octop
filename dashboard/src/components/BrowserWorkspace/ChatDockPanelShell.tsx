@@ -463,8 +463,8 @@ const ChatDockPanelShell: React.FC<ChatDockPanelShellProps> = ({
             <Tooltip
               title={
                 popupFullscreen
-                  ? t("browserWorkspace.exitFullscreen", "退出全屏")
-                  : t("browserWorkspace.enterFullscreen", "全屏")
+                  ? t("browserWorkspace.exitFullscreen", "Exit fullscreen")
+                  : t("browserWorkspace.enterFullscreen", "Fullscreen")
               }
             >
               <button
@@ -474,8 +474,8 @@ const ChatDockPanelShell: React.FC<ChatDockPanelShellProps> = ({
                 onPointerDown={(e) => e.stopPropagation()}
                 aria-label={
                   popupFullscreen
-                    ? t("browserWorkspace.exitFullscreen", "退出全屏")
-                    : t("browserWorkspace.enterFullscreen", "全屏")
+                    ? t("browserWorkspace.exitFullscreen", "Exit fullscreen")
+                    : t("browserWorkspace.enterFullscreen", "Fullscreen")
                 }
                 aria-pressed={popupFullscreen}
               >
@@ -508,7 +508,7 @@ const ChatDockPanelShell: React.FC<ChatDockPanelShellProps> = ({
             <button
               type="button"
               className={styles.toolbarIconBtn}
-              aria-label={t("browserWorkspace.panelLayout", "面板布局")}
+              aria-label={t("browserWorkspace.panelLayout", "Panel layout")}
               onPointerDown={(e) => e.stopPropagation()}
             >
               <MoreVertical size={16} strokeWidth={1.8} />
@@ -519,7 +519,7 @@ const ChatDockPanelShell: React.FC<ChatDockPanelShellProps> = ({
             className={styles.toolbarIconBtn}
             onClick={onClose}
             onPointerDown={(e) => e.stopPropagation()}
-            aria-label={t("common.close", "关闭")}
+            aria-label={t("common.close", "Close")}
           >
             <X size={14} strokeWidth={1.8} />
           </button>
@@ -540,7 +540,7 @@ const ChatDockPanelShell: React.FC<ChatDockPanelShellProps> = ({
           onPointerDown={handlePopupResizeStart}
           role="separator"
           aria-orientation="horizontal"
-          aria-label={t("chat.resizePopup", "调整窗口大小")}
+          aria-label={t("chat.resizePopup", "Resize window")}
         />
       )}
     </div>

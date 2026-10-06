@@ -131,7 +131,7 @@ export default function CandidatesReview({ agentId }: Props) {
           ? `需复核 ${r.needs_review} 条`
           : `新增采纳 ${r.promoted} 条`;
       message.success(
-        t("memory.candidates.promoteOk", "已采纳") + ` · ${detail}`,
+        t("memory.candidates.promoteOk", "Adopted") + ` · ${detail}`,
       );
       void load();
     } catch (e) {
@@ -148,7 +148,7 @@ export default function CandidatesReview({ agentId }: Props) {
       await memoryDashboardApi.rejectCandidate(agentId, rejectTarget.id, {
         reason: rejectReason.trim() || undefined,
       });
-      message.success(t("memory.candidates.rejectOk", "已忽略"));
+      message.success(t("memory.candidates.rejectOk", "Discarded"));
       setRejectTarget(null);
       setRejectReason("");
       void load();
@@ -165,7 +165,7 @@ export default function CandidatesReview({ agentId }: Props) {
       <div className={styles.candidatesFilters}>
         <div className={styles.candidatesFilterField}>
           <span className={styles.candidatesFilterLabel}>
-            {t("memory.candidates.statusLabel", "状态")}
+            {t("memory.candidates.statusLabel", "Status")}
           </span>
           <Select
             className={styles.candidatesFilterSelect}
@@ -179,7 +179,7 @@ export default function CandidatesReview({ agentId }: Props) {
         </div>
         <div className={styles.candidatesFilterField}>
           <span className={styles.candidatesFilterLabel}>
-            {t("memory.candidates.kindLabel", "类型")}
+            {t("memory.candidates.kindLabel", "Type")}
           </span>
           <Select
             className={styles.candidatesFilterSelect}
@@ -198,7 +198,7 @@ export default function CandidatesReview({ agentId }: Props) {
       ) : items.length === 0 ? (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={t("memory.candidates.empty", "暂无记忆内容")}
+          description={t("memory.candidates.empty", "No memory content yet")}
         />
       ) : (
         <ul className={styles.candidateList}>
@@ -232,8 +232,8 @@ export default function CandidatesReview({ agentId }: Props) {
                       "memory.candidates.confirmPromote",
                       "采纳这条记忆？",
                     )}
-                    okText={t("common.confirm", "采纳")}
-                    cancelText={t("common.cancel", "取消")}
+                    okText={t("common.confirm", "Confirm")}
+                    cancelText={t("common.cancel", "Cancel")}
                     disabled={decided}
                     onConfirm={() => void handlePromote(c)}
                   >
@@ -243,7 +243,7 @@ export default function CandidatesReview({ agentId }: Props) {
                       loading={busyId === c.id}
                       disabled={decided}
                     >
-                      {t("memory.candidates.promote", "采纳")}
+                      {t("memory.candidates.promote", "Adopt")}
                     </Button>
                   </Popconfirm>
                   <Button
@@ -255,7 +255,7 @@ export default function CandidatesReview({ agentId }: Props) {
                       setRejectReason("");
                     }}
                   >
-                    {t("memory.candidates.reject", "忽略")}
+                    {t("memory.candidates.reject", "Discard")}
                   </Button>
                 </div>
               </li>
@@ -276,7 +276,7 @@ export default function CandidatesReview({ agentId }: Props) {
       </div>
 
       <Drawer
-        title={t("memory.candidates.detail", "记忆草稿详情")}
+        title={t("memory.candidates.detail", "Memory draft detail")}
         open={!!selected}
         onClose={() => setSelected(null)}
         width={isMobile ? "100%" : 560}
@@ -312,11 +312,11 @@ export default function CandidatesReview({ agentId }: Props) {
       </Drawer>
 
       <Modal
-        title={t("memory.candidates.rejectTitle", "忽略这条草稿")}
+        title={t("memory.candidates.rejectTitle", "Discard this draft")}
         open={!!rejectTarget}
         confirmLoading={rejecting}
-        okText={t("memory.candidates.confirmReject", "确认忽略")}
-        cancelText={t("common.cancel", "取消")}
+        okText={t("memory.candidates.confirmReject", "Confirm discard")}
+        cancelText={t("common.cancel", "Cancel")}
         okButtonProps={{ danger: true }}
         onCancel={() => {
           if (rejecting) return;

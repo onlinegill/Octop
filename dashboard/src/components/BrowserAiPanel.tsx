@@ -337,7 +337,7 @@ export default function BrowserAiPanel({
         });
         if (data.status === "passed") {
           antMessage.success(
-            t("browser.recordReplay.replayPassed", "回放完成"),
+            t("browser.recordReplay.replayPassed", "Replay finished"),
           );
           chatStore.appendPushMessage(
             `🎬 Browser-Skill「${skillKeyword}」回放完成！`,
@@ -350,7 +350,7 @@ export default function BrowserAiPanel({
           const detailMsg =
             globalError ||
             (failedSteps.length > 0 ? failedSteps.join("\n") : "") ||
-            t("browser.recordReplay.replayFailed", "回放失败");
+            t("browser.recordReplay.replayFailed", "Replay failed");
           antMessage.error(detailMsg);
           chatStore.appendPushMessage(
             `⚠️ 技能「${skillKeyword}」回放失败：\n${detailMsg}`,
@@ -379,11 +379,11 @@ export default function BrowserAiPanel({
         profile: `${profileId || "default"}-replay`,
       });
       if (data.status === "passed") {
-        antMessage.success(t("browser.recordReplay.replayPassed", "回放完成"));
+        antMessage.success(t("browser.recordReplay.replayPassed", "Replay finished"));
         chatStore.appendPushMessage("🔄 技能回放完成！所有步骤已成功执行。");
       } else {
         antMessage.error(
-          data.error || t("browser.recordReplay.replayFailed", "回放失败"),
+          data.error || t("browser.recordReplay.replayFailed", "Replay failed"),
         );
         chatStore.appendPushMessage(
           `⚠️ 技能回放失败：${data.error || "未知错误"}`,
@@ -545,9 +545,9 @@ export default function BrowserAiPanel({
         <div className={styles.header}>
           <div className={styles.headerTitle}>
             <Bot size={14} />
-            <span>{t("remoteBrowser.ai.title", "AI 助手")}</span>
+            <span>{t("remoteBrowser.ai.title", "AI Assistant")}</span>
           </div>
-          <Tooltip title={t("common.close", "关闭")}>
+          <Tooltip title={t("common.close", "Close")}>
             <Button
               type="text"
               size="small"
@@ -559,7 +559,7 @@ export default function BrowserAiPanel({
         <div className={styles.emptyState}>
           <Bot size={30} color="var(--fn-text-quaternary, #9ca3af)" />
           <div className={styles.emptyTitle}>
-            {t("remoteBrowser.ai.noAgentTitle", "请选择一个 Agent")}
+            {t("remoteBrowser.ai.noAgentTitle", "Please select an Agent")}
           </div>
           <div className={styles.emptyDesc}>
             {t(
@@ -580,7 +580,7 @@ export default function BrowserAiPanel({
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <Bot size={14} />
-          <span>{t("remoteBrowser.ai.title", "AI 助手")}</span>
+          <span>{t("remoteBrowser.ai.title", "AI Assistant")}</span>
           {browserRecording && recordingPhase !== "idle" && (
             <Tag color="red" className={styles.recordingTag}>
               ● REC{" "}
@@ -591,7 +591,7 @@ export default function BrowserAiPanel({
           )}
         </div>
         <div className={styles.headerActions}>
-          <Tooltip title={t("common.close", "关闭")}>
+          <Tooltip title={t("common.close", "Close")}>
             <Button
               type="text"
               size="small"
@@ -605,7 +605,7 @@ export default function BrowserAiPanel({
       <div className={styles.contextSection}>
         <div className={styles.expertSelectRow}>
           <span className={styles.contextLabel}>
-            {t("remoteBrowser.ai.expert", "专家")}
+            {t("remoteBrowser.ai.expert", "Expert")}
           </span>
           <AgentSelector variant="select" showLabel={false} />
         </div>
@@ -615,7 +615,7 @@ export default function BrowserAiPanel({
           </span>
           <span className={styles.contextValue}>{profileId || "default"}</span>
           <span className={styles.contextLabel}>
-            {t("remoteBrowser.ai.currentUrl", "当前网页")}
+            {t("remoteBrowser.ai.currentUrl", "Current page")}
           </span>
           <span
             className={styles.contextValue}
@@ -645,7 +645,7 @@ export default function BrowserAiPanel({
       <div className={styles.sendBar}>
         {/* Recording action buttons before the send row */}
         {browserRecording && recordingPhase === "recording" && (
-          <Tooltip title={t("browser.recordReplay.stop", "停止浏览器录制")}>
+          <Tooltip title={t("browser.recordReplay.stop", "Stop browser recording")}>
             <button
               type="button"
               className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
@@ -657,7 +657,7 @@ export default function BrowserAiPanel({
         )}
         {!browserRecording && browserLastRecordingId && !browserReplayBusy && (
           <Tooltip
-            title={t("browser.recordReplay.replay", "回放最近一次浏览器录制")}
+            title={t("browser.recordReplay.replay", "Replay last browser recording")}
           >
             <button
               type="button"
@@ -698,8 +698,8 @@ export default function BrowserAiPanel({
             onClick={isStreaming ? cancelStream : handleSend}
             title={
               isStreaming
-                ? t("chat.stop", "停止")
-                : t("terminal.ai.send", "发送")
+                ? t("chat.stop", "Stop")
+                : t("terminal.ai.send", "Send")
             }
           >
             {isStreaming ? <Square size={16} /> : <Send size={16} />}

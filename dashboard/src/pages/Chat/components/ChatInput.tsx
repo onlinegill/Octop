@@ -616,8 +616,8 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
           modal.confirm({
             title: t("chat.queue.reclaimOverwriteTitle"),
             content: t("chat.queue.reclaimOverwrite"),
-            okText: t("common.confirm", "确认"),
-            cancelText: t("common.cancel", "取消"),
+            okText: t("common.confirm", "Confirm"),
+            cancelText: t("common.cancel", "Cancel"),
             onOk: apply,
           });
           return;

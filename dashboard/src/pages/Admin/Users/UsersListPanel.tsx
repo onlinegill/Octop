@@ -1869,7 +1869,7 @@ export default function UsersListPanel() {
                   label: (
                     <span className={expertStyles.viewModeLabel}>
                       <LayoutGrid size={14} />
-                      {t("adminUsers.viewCard", "卡片")}
+                      {t("adminUsers.viewCard", "Cards")}
                     </span>
                   ),
                 },
@@ -1878,7 +1878,7 @@ export default function UsersListPanel() {
                   label: (
                     <span className={expertStyles.viewModeLabel}>
                       <List size={14} />
-                      {t("adminUsers.viewTable", "表格")}
+                      {t("adminUsers.viewTable", "Table")}
                     </span>
                   ),
                 },

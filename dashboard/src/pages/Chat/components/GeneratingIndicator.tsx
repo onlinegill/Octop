@@ -57,7 +57,7 @@ export default function GeneratingIndicator({
       defaultValue: "生成中 · {{seconds}}s",
     });
   } else {
-    label = t("chat.generating", "生成中");
+    label = t("chat.generating", "Generating");
   }
 
   return (

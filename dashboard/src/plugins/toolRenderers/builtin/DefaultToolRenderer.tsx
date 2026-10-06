@@ -236,7 +236,7 @@ export function DefaultToolRenderer({
           {acpPermission && onAcpPermissionSelect && !isStreaming && (
             <div className={styles.inlineToolSection}>
               <div className={styles.inlineToolSectionLabel}>
-                {t("acp.chatPermissionTitle", "外部 Agent 需要权限确认")}
+                {t("acp.chatPermissionTitle", "External agent permission required")}
               </div>
               <p className={styles.inlineToolHint}>{acpPermission.title}</p>
               <div className={styles.acpPermissionActions}>

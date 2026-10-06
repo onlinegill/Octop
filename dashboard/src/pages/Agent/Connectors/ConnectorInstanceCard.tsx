@@ -44,7 +44,7 @@ export function ConnectorInstanceCard({
       cancelText: t("common.cancel"),
       onOk: async () => {
         await connectorsApi.deleteInstance(instance.instance_id);
-        message.success(t("connectors.deleteSuccess", "已删除"));
+        message.success(t("connectors.deleteSuccess", "Deleted"));
         await onChanged();
       },
     });
@@ -57,13 +57,13 @@ export function ConnectorInstanceCard({
       });
       message.success(
         enabled
-          ? t("connectors.enableSuccess", "已启用")
-          : t("connectors.disableSuccess", "已停用"),
+          ? t("connectors.enableSuccess", "Enabled")
+          : t("connectors.disableSuccess", "Disabled"),
       );
       await onChanged();
     } catch (error) {
       console.error(error);
-      message.error(t("connectors.toggleFailed", "更新失败"));
+      message.error(t("connectors.toggleFailed", "Update failed"));
     }
   };
 
@@ -95,7 +95,7 @@ export function ConnectorInstanceCard({
             {instance.shared ? (
               <Tag color="blue" className={styles.instanceCardTag}>
                 {isOwner || !ownerLabel
-                  ? t("connectors.sharedBadge", "共享")
+                  ? t("connectors.sharedBadge", "Shared")
                   : t("connectors.sharedFrom", {
                       name: ownerLabel,
                       defaultValue: `来自 ${ownerLabel}`,
@@ -129,10 +129,10 @@ export function ConnectorInstanceCard({
       <div className={styles.typeCardFooter}>
         <div className={styles.typeCardHint}>
           {!instance.has_credentials
-            ? t("connectors.noCredentials", "缺少凭证")
+            ? t("connectors.noCredentials", "Missing credentials")
             : editable
-            ? t("connectors.clickToManage", "点击管理连接")
-            : t("connectors.sharedReadonly", "共享连接器，仅所有者可管理")}
+            ? t("connectors.clickToManage", "Click to manage")
+            : t("connectors.sharedReadonly", "Shared connector — only the owner can manage it")}
         </div>
         {instance.can_manage ? (
           <div

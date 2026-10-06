@@ -224,7 +224,7 @@ export function useVoiceOutput() {
       const gen = playGenerationRef.current;
 
       if (!plain) {
-        antMessage.info(t("voice.nothingToRead", "没有可朗读的正文"));
+        antMessage.info(t("voice.nothingToRead", "No readable prose in this message (code blocks are skipped)"));
         return;
       }
 

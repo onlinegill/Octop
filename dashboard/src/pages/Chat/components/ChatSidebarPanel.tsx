@@ -165,7 +165,7 @@ export default function ChatSidebarPanel({
             onPointerDown={onSidebarResizeStart}
             role="separator"
             aria-orientation="vertical"
-            aria-label={t("chat.resizeSidebar", "调整侧栏宽度")}
+            aria-label={t("chat.resizeSidebar", "Resize sidebar")}
           />
         )}
       </div>

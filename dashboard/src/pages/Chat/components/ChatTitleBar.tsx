@@ -88,14 +88,14 @@ export default function ChatTitleBar({
       {
         key: "pin",
         label: session.pinned
-          ? t("chat.unpin", "取消置顶")
-          : t("chat.pin", "置顶"),
+          ? t("chat.unpin", "Unpin")
+          : t("chat.pin", "Pin"),
         icon: session.pinned ? <PinOff size={14} /> : <Pin size={14} />,
         onClick: () => onPin(session.id, !session.pinned),
       },
       {
         key: "fork",
-        label: t("chat.fork", "分叉"),
+        label: t("chat.fork", "Fork"),
         icon: <GitFork size={14} />,
         disabled: forkDisabled,
         title: forkDisabled && forkDisabledHint ? forkDisabledHint : undefined,
@@ -192,7 +192,7 @@ export default function ChatTitleBar({
                 className={`${styles.chatTitleEditBtn} ${
                   moreOpen ? styles.chatTitleHoverShown : ""
                 }`}
-                aria-label={t("common.more", "更多")}
+                aria-label={t("common.more", "More")}
               >
                 <MoreVertical size={14} strokeWidth={2} aria-hidden />
               </button>

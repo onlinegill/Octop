@@ -297,7 +297,7 @@ export default function WorkspaceDrawer({
     }
   });
 
-  const rootLabel = t("workspace.root", "工作区");
+  const rootLabel = t("workspace.root", "Workspace");
 
   const toggleTreeCollapsed = useCallback(() => {
     setTreeCollapsed((prev) => {
@@ -357,7 +357,7 @@ export default function WorkspaceDrawer({
       } catch (err: unknown) {
         message.error(
           (err instanceof Error ? err.message : String(err)) ||
-            t("workspace.refreshFailed", "刷新失败"),
+            t("workspace.refreshFailed", "Refresh failed"),
         );
       } finally {
         setTreeLoading(false);
@@ -403,7 +403,7 @@ export default function WorkspaceDrawer({
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.loadChildrenFailed", "加载子目录失败"),
+          t("workspace.loadChildrenFailed", "Failed to load folder"),
       );
     }
   };
@@ -437,7 +437,7 @@ export default function WorkspaceDrawer({
       } catch (err: unknown) {
         message.error(
           (err instanceof Error ? err.message : String(err)) ||
-            t("workspace.loadChildrenFailed", "加载子目录失败"),
+            t("workspace.loadChildrenFailed", "Failed to load folder"),
         );
       }
     },
@@ -460,7 +460,7 @@ export default function WorkspaceDrawer({
       } catch (err: unknown) {
         message.error(
           (err instanceof Error ? err.message : String(err)) ||
-            t("workspace.loadChildrenFailed", "加载子目录失败"),
+            t("workspace.loadChildrenFailed", "Failed to load folder"),
         );
         setDirEntries([]);
       } finally {
@@ -775,7 +775,7 @@ export default function WorkspaceDrawer({
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.readFailed", "读取失败"),
+          t("workspace.readFailed", "Read failed"),
       );
     } finally {
       setFileLoading(false);
@@ -802,7 +802,7 @@ export default function WorkspaceDrawer({
     return (
       <nav
         className={styles.pathBreadcrumb}
-        aria-label={t("workspace.pathBreadcrumb", "路径导航")}
+        aria-label={t("workspace.pathBreadcrumb", "Path navigation")}
       >
         {segments.map((seg, index) => {
           const isLast = index === segments.length - 1;
@@ -853,15 +853,15 @@ export default function WorkspaceDrawer({
           className={styles.resizeHandle}
           role="separator"
           aria-orientation="vertical"
-          aria-label={t("workspace.resizeTree", "调整目录宽度")}
+          aria-label={t("workspace.resizeTree", "Resize tree panel")}
           onPointerDown={onResizeStart}
         />
       )}
       <Tooltip
         title={
           treeCollapsed
-            ? t("workspace.showTree", "显示目录树")
-            : t("workspace.hideTree", "收起目录树")
+            ? t("workspace.showTree", "Show folder tree")
+            : t("workspace.hideTree", "Hide folder tree")
         }
       >
         <button
@@ -874,8 +874,8 @@ export default function WorkspaceDrawer({
           onMouseDown={(e) => e.stopPropagation()}
           aria-label={
             treeCollapsed
-              ? t("workspace.showTree", "显示目录树")
-              : t("workspace.hideTree", "收起目录树")
+              ? t("workspace.showTree", "Show folder tree")
+              : t("workspace.hideTree", "Hide folder tree")
           }
         >
           {treeCollapsed ? (
@@ -907,7 +907,7 @@ export default function WorkspaceDrawer({
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.readFailed", "读取失败"),
+          t("workspace.readFailed", "Read failed"),
       );
     } finally {
       setFileLoading(false);
@@ -942,12 +942,12 @@ export default function WorkspaceDrawer({
           },
         );
       }
-      message.success(t("workspace.saved", "已保存"));
+      message.success(t("workspace.saved", "Saved"));
       setEditMode(false);
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.saveFailed", "保存失败"),
+          t("workspace.saveFailed", "Save failed"),
       );
     } finally {
       setSaving(false);
@@ -973,7 +973,7 @@ export default function WorkspaceDrawer({
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.downloadFailed", "下载失败"),
+          t("workspace.downloadFailed", "Download failed"),
       );
     }
   };
@@ -1007,7 +1007,7 @@ export default function WorkspaceDrawer({
       }
     } catch (err: unknown) {
       message.error(
-        apiErrorMessage(err, t("workspace.uploadFailed", "上传失败"), t),
+        apiErrorMessage(err, t("workspace.uploadFailed", "Upload failed"), t),
       );
     }
     return false;
@@ -1291,7 +1291,7 @@ export default function WorkspaceDrawer({
                         type="button"
                         className={styles.mobileBackBtn}
                         onClick={() => setMobilePane("tree")}
-                        aria-label={t("common.back", "返回")}
+                        aria-label={t("common.back", "Back")}
                       >
                         <ChevronLeft size={18} />
                       </button>
@@ -1425,7 +1425,7 @@ export default function WorkspaceDrawer({
                         type="button"
                         className={styles.mobileBackBtn}
                         onClick={() => setMobilePane("tree")}
-                        aria-label={t("common.back", "返回")}
+                        aria-label={t("common.back", "Back")}
                       >
                         <ChevronLeft size={18} />
                       </button>
@@ -1441,7 +1441,7 @@ export default function WorkspaceDrawer({
                           options={[
                             { label: t("common.preview"), value: "preview" },
                             {
-                              label: t("workspace.source", "源码"),
+                              label: t("workspace.source", "Source"),
                               value: "source",
                             },
                           ]}
@@ -1488,7 +1488,7 @@ export default function WorkspaceDrawer({
                           >
                             <Save size={14} />
                             {saving
-                              ? t("workspace.saving", "保存中…")
+                              ? t("workspace.saving", "Saving…")
                               : t("common.save")}
                           </button>
                         ) : (

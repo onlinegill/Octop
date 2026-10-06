@@ -290,7 +290,7 @@ export default function AgentExpertsTable({
 
   const columns: ColumnsType<OctopAgent> = [
     {
-      title: t("experts.table.name", "名称"),
+      title: t("experts.table.name", "Name"),
       dataIndex: "name",
       width: 160,
       fixed: isMobile ? undefined : "left",
@@ -324,7 +324,7 @@ export default function AgentExpertsTable({
       ),
     },
     {
-      title: t("experts.table.agentId", "专家 ID"),
+      title: t("experts.table.agentId", "Expert ID"),
       dataIndex: "agent_id",
       width: 100,
       ellipsis: true,
@@ -342,7 +342,7 @@ export default function AgentExpertsTable({
       ),
     },
     {
-      title: t("experts.table.state", "状态"),
+      title: t("experts.table.state", "State"),
       dataIndex: "state",
       width: 200,
       align: "center",
@@ -397,20 +397,20 @@ export default function AgentExpertsTable({
       },
     },
     {
-      title: t("experts.table.description", "描述"),
+      title: t("experts.table.description", "Description"),
       dataIndex: "description",
       ellipsis: true,
       render: (desc: string | null | undefined) => desc || "—",
     },
     {
-      title: t("experts.table.model", "模型"),
+      title: t("experts.table.model", "Model"),
       dataIndex: "default_model",
       width: 140,
       ellipsis: true,
       render: (model: string | null | undefined) => model || "—",
     },
     {
-      title: t("experts.table.persona", "人格"),
+      title: t("experts.table.persona", "Persona"),
       dataIndex: "persona_mbti",
       width: 120,
       render: (value: string | null, row) => (
@@ -425,7 +425,7 @@ export default function AgentExpertsTable({
       ),
     },
     {
-      title: t("experts.table.actions", "操作"),
+      title: t("experts.table.actions", "Actions"),
       key: "actions",
       width: 280,
       fixed: isMobile ? undefined : "right",
@@ -525,7 +525,7 @@ export default function AgentExpertsTable({
                 onClick={() => handleOpenChat(row.agent_id)}
               >
                 <MessageSquare size={13} />
-                {t("experts.openChat", "对话")}
+                {t("experts.openChat", "Chat")}
                 <ChevronRight size={13} />
               </button>
             ) : isOwner &&
@@ -539,8 +539,8 @@ export default function AgentExpertsTable({
                 onClick={() => void handleToggle(row, true)}
               >
                 {state === "failed"
-                  ? t("experts.retryStart", "重试启动")
-                  : t("experts.startAgent", "启动")}
+                  ? t("experts.retryStart", "Retry start")
+                  : t("experts.startAgent", "Start")}
               </button>
             ) : null}
           </div>

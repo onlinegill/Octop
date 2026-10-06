@@ -175,10 +175,10 @@ export function ActiveModelPool({
     if (!capability) return null;
     if (capability.adapter === "status_only") {
       return (
-        <Tooltip title={t("chat.reasoningAlways", "始终推理")}>
+        <Tooltip title={t("chat.reasoningAlways", "Always reasoning")}>
           <Tag color="purple" style={{ marginInlineEnd: 0 }}>
             <Brain size={12} style={{ marginRight: 4, verticalAlign: -2 }} />
-            {t("chat.reasoningAlways", "始终推理")}
+            {t("chat.reasoningAlways", "Always reasoning")}
           </Tag>
         </Tooltip>
       );
@@ -190,19 +190,19 @@ export function ActiveModelPool({
     const content = (
       <div style={{ width: 250, display: "grid", gap: 10 }}>
         <div style={{ fontWeight: 600 }}>
-          {t("chat.reasoningMode", "思考模式")}
+          {t("chat.reasoningMode", "Thinking mode")}
         </div>
         <Segmented
           block
           value={preference.mode}
           options={[
-            { value: "auto", label: t("chat.reasoningAuto", "自动") },
-            { value: "enabled", label: t("chat.reasoningEnabled", "开启") },
+            { value: "auto", label: t("chat.reasoningAuto", "Auto") },
+            { value: "enabled", label: t("chat.reasoningEnabled", "On") },
             ...(capability.toggle
               ? [
                   {
                     value: "disabled",
-                    label: t("chat.reasoningDisabled", "关闭"),
+                    label: t("chat.reasoningDisabled", "Off"),
                   },
                 ]
               : []),
@@ -217,7 +217,7 @@ export function ActiveModelPool({
           <Select
             value={preference.effort || undefined}
             allowClear
-            placeholder={t("chat.reasoningEffort", "思考强度")}
+            placeholder={t("chat.reasoningEffort", "Thinking effort")}
             options={capability.efforts.map((effort) => ({
               value: effort,
               label: effort,
@@ -235,10 +235,10 @@ export function ActiveModelPool({
           <Brain size={12} style={{ marginRight: 4, verticalAlign: -2 }} />
           {preference.effort ||
             (preference.mode === "enabled"
-              ? t("chat.reasoningEnabled", "开启")
+              ? t("chat.reasoningEnabled", "On")
               : preference.mode === "disabled"
-              ? t("chat.reasoningDisabled", "关闭")
-              : t("chat.reasoningAuto", "自动"))}
+              ? t("chat.reasoningDisabled", "Off")
+              : t("chat.reasoningAuto", "Auto"))}
         </Tag>
       </Popover>
     );

@@ -31,28 +31,28 @@ export default function SkillRecordGuideModal({
 
   const stepItems = [
     {
-      title: t("skillRecordGuide.step1Title", "开始录制"),
+      title: t("skillRecordGuide.step1Title", "Start recording"),
       description: t(
         "skillRecordGuide.step1Desc",
         "点击下方按钮，系统将开始录制所有浏览器操作。",
       ),
     },
     {
-      title: t("skillRecordGuide.step2Title", "输入任务目标"),
+      title: t("skillRecordGuide.step2Title", "Enter the task goal"),
       description: t(
         "skillRecordGuide.step2Desc",
         '录制开始后，AI助手会提示你输入任务目标——这将成为技能的名称和触发关键词（例如"登录OA系统"）。',
       ),
     },
     {
-      title: t("skillRecordGuide.step3Title", "描述操作步骤"),
+      title: t("skillRecordGuide.step3Title", "Describe the steps"),
       description: t(
         "skillRecordGuide.step3Desc",
         "接着描述你想让AI助手在浏览器中执行的操作，助手会自动执行并录制。",
       ),
     },
     {
-      title: t("skillRecordGuide.step4Title", "结束录制并确认"),
+      title: t("skillRecordGuide.step4Title", "Stop and confirm"),
       description: t(
         "skillRecordGuide.step4Desc",
         '操作完成后，输入"结束"停止录制，确认后技能将以任务目标为名保存。之后只需输入任务目标关键词即可触发回放。',
@@ -78,7 +78,7 @@ export default function SkillRecordGuideModal({
             size={18}
             style={{ color: "var(--fn-color-brand, #635bff)" }}
           />
-          <span>{t("skillRecordGuide.title", "技能录制引导")}</span>
+          <span>{t("skillRecordGuide.title", "Skill recording guide")}</span>
         </div>
       }
       open={open}
@@ -86,7 +86,7 @@ export default function SkillRecordGuideModal({
       width={520}
       footer={
         <Space>
-          <Button onClick={handleClose}>{t("common.cancel", "取消")}</Button>
+          <Button onClick={handleClose}>{t("common.cancel", "Cancel")}</Button>
           <Button
             type="primary"
             icon={<ArrowRight size={14} />}
@@ -94,8 +94,8 @@ export default function SkillRecordGuideModal({
             disabled={!envReady}
           >
             {envReady
-              ? t("skillRecordGuide.startRecording", "开始录制")
-              : t("skillRecordGuide.envNotReady", "请先安装浏览器环境")}
+              ? t("skillRecordGuide.startRecording", "Start recording")
+              : t("skillRecordGuide.envNotReady", "Browser environment required first")}
           </Button>
         </Space>
       }
@@ -131,7 +131,7 @@ export default function SkillRecordGuideModal({
           <Alert
             type="warning"
             showIcon
-            message={t("skillRecordGuide.envWarning", "浏览器环境未就绪")}
+            message={t("skillRecordGuide.envWarning", "Browser environment not ready")}
             description={t(
               "skillRecordGuide.envWarningDesc",
               "请先确保浏览器环境可用，然后再开始录制。",

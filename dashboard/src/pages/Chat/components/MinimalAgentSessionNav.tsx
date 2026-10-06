@@ -77,7 +77,7 @@ function AgentUnreadBadge({ count }: { count: number }) {
   return (
     <span
       className={styles.agentUnreadBadge}
-      aria-label={t("chat.unreadMessages", "未读消息")}
+      aria-label={t("chat.unreadMessages", "Unread messages")}
     >
       {count > 99 ? "99+" : count}
     </span>
@@ -142,8 +142,8 @@ const PreviewSessionRow = memo(function PreviewSessionRow({
     {
       key: "pin",
       label: session.pinned
-        ? t("chat.unpin", "取消置顶")
-        : t("chat.pin", "置顶"),
+        ? t("chat.unpin", "Unpin")
+        : t("chat.pin", "Pin"),
       icon: session.pinned ? <PinOff size={14} /> : <Pin size={14} />,
       onClick: ({ domEvent }) => {
         domEvent.stopPropagation();
@@ -152,7 +152,7 @@ const PreviewSessionRow = memo(function PreviewSessionRow({
     },
     {
       key: "fork",
-      label: t("chat.fork", "分叉"),
+      label: t("chat.fork", "Fork"),
       icon: <GitFork size={14} />,
       disabled: itemForkDisabled,
       title: itemForkDisabled && itemForkHint ? itemForkHint : undefined,
@@ -593,7 +593,7 @@ export default function MinimalAgentSessionNav({
                   </div>
                 ) : list.length === 0 ? (
                   <div className={styles.minimalAgentEmpty}>
-                    {t("chat.noSessionsYet", "直接发消息即可开始对话")}
+                    {t("chat.noSessionsYet", "Send a message to start chatting")}
                   </div>
                 ) : (
                   list.map((session) => (

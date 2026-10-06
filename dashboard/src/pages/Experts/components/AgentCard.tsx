@@ -500,7 +500,7 @@ export const AgentCard = memo(function AgentCard({
               onClick={handleOpenChat}
             >
               <MessageSquare size={13} />
-              {t("experts.openChat", "对话")}
+              {t("experts.openChat", "Chat")}
               <ChevronRight size={13} />
             </button>
           ) : isOwner &&
@@ -515,8 +515,8 @@ export const AgentCard = memo(function AgentCard({
               onClick={() => void handleToggle(true)}
             >
               {localState === "failed"
-                ? t("experts.retryStart", "重试启动")
-                : t("experts.startAgent", "启动")}
+                ? t("experts.retryStart", "Retry start")
+                : t("experts.startAgent", "Start")}
             </button>
           ) : null}
         </div>

@@ -83,17 +83,17 @@ let initPromise: Promise<void> | null = null;
 export function initI18n(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
-      const initial = resolveInitialLocale();
-      const fallback: UiLocale = initial === "zh" ? "en" : "zh";
-      const primaryBundle = await loadLocaleBundle(initial);
+      const initial: UiLocale = "en";
+      const fallback: UiLocale = "en";
+      const primaryBundle = await loadLocaleBundle("en");
 
       await i18n.use(initReactI18next).init({
         resources: {
-          [initial]: { translation: primaryBundle },
+          en: { translation: primaryBundle },
         },
-        lng: initial,
-        fallbackLng: fallback,
-        supportedLngs: ["zh", "en"],
+        lng: "en",
+        fallbackLng: "en",
+        supportedLngs: ["en"],
         nonExplicitSupportedLngs: true,
         interpolation: {
           escapeValue: false,
