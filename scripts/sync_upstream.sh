@@ -25,7 +25,7 @@ git merge upstream/main -m "chore(sync): merge upstream TencentCloud/Octop updat
 echo "=== Re-applying English & Non-China sanitization rules ==="
 python3 scripts/sanitize_non_chinese.py
 
-if ! git diff-index --quiet HEAD; then
+if ! git diff-index --quiet HEAD --; then
   echo "=== Committing sanitization ==="
   git add -A
   git commit -m "chore(sanitize): remove China-hosted services and enforce English defaults"
