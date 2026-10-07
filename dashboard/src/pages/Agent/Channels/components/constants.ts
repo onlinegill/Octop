@@ -28,7 +28,7 @@ export const CHANNEL_KEYS: ChannelKey[] = [
 ];
 
 /** Less-common kinds hidden behind "More channels" until expanded. */
-const COLLAPSED_CHANNEL_KEYS = new Set<ChannelKey>(["telegram"]);
+const COLLAPSED_CHANNEL_KEYS = new Set<ChannelKey>([]);
 
 export function isCollapsedChannelKey(key: ChannelKey): boolean {
   return COLLAPSED_CHANNEL_KEYS.has(key);

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # Cloud metadata first (no public Internet). Then CN-reachable and global HTTPS
 # echo services — api.ipify.org alone is often unreachable from mainland China.
 _METADATA_PUBLIC_IP_URLS: tuple[str, ...] = (
-    "http://169.254.169.254/latest/meta-data/public-ipv4",  # AWS / OpenStack / GCP metadata
+    "http://169.254.169.254/latest/meta-data/public-ipv4",
 )
 _PUBLIC_IP_HTTPS_URLS: tuple[str, ...] = (
     "https://api.ipify.org?format=text",

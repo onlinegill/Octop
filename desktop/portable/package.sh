@@ -244,6 +244,20 @@ assemble_one() {
     rm -rf "$zh_templates"
     cp -R "$en_templates" "$zh_templates"
   fi
+  local zh_agents="${staging}/packages/octop_harness/builtin/agents/zh"
+  local en_agents="${staging}/packages/octop_harness/builtin/agents/en"
+  if [[ -d "$zh_agents" && -d "$en_agents" ]]; then
+    echo "[package] replacing octop_harness zh agents with en agents"
+    rm -rf "$zh_agents"
+    cp -R "$en_agents" "$zh_agents"
+  fi
+  local zh_skills="${staging}/packages/octop_harness/builtin/skills/zh"
+  local en_skills="${staging}/packages/octop_harness/builtin/skills/en"
+  if [[ -d "$zh_skills" && -d "$en_skills" ]]; then
+    echo "[package] replacing octop_harness zh skills with en skills"
+    rm -rf "$zh_skills"
+    cp -R "$en_skills" "$zh_skills"
+  fi
 
   cp "${TEMPLATES}/start.sh" "${staging}/start.sh"
   cp "${TEMPLATES}/start.bat" "${staging}/start.bat"
