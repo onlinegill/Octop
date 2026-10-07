@@ -80,7 +80,7 @@ export default function ProactiveConfig({
         message.error(
           t(
             "proactiveConfig.timeRangeError",
-            "关心时段的开始时间必须早于结束时间",
+            "The start time of the care period must be earlier than the end time",
           ),
         );
         return;
@@ -150,7 +150,7 @@ export default function ProactiveConfig({
           <p className={styles.configDesc}>
             {t(
               "proactiveConfig.description",
-              "让 Octop 在合适的时机，主动向你发送一句关心",
+              "Let Octop At the right time, I will take the initiative to send you a message of concern.",
             )}
           </p>
         </div>
@@ -164,7 +164,7 @@ export default function ProactiveConfig({
           <span>
             {t(
               "proactiveConfig.episodeBannerText",
-              "Octop 会从你的情绪日记中挑选合适的时机，主动发来一句关心。你可以在「情绪日记」中查看哪些记录会被参考。",
+              "Octop We will pick the right time from your emotional diary and take the initiative to send you a message of concern. You can check which records will be referenced in the “Emotion Diary”.",
             )}
             {onSwitchToEpisodes && (
               <>
@@ -216,7 +216,7 @@ export default function ProactiveConfig({
                   required: true,
                   message: t(
                     "proactiveConfig.activeHoursStartRequired",
-                    "请选择开始时间",
+                    "Please select a start time",
                   ),
                 },
               ]}
@@ -237,7 +237,7 @@ export default function ProactiveConfig({
                   required: true,
                   message: t(
                     "proactiveConfig.activeHoursEndRequired",
-                    "请选择结束时间",
+                    "Please select end time",
                   ),
                 },
               ]}
@@ -262,7 +262,7 @@ export default function ProactiveConfig({
                   required: true,
                   message: t(
                     "proactiveConfig.minIntervalRequired",
-                    "请输入最小间隔",
+                    "Please enter minimum interval",
                   ),
                 },
                 {
@@ -270,7 +270,7 @@ export default function ProactiveConfig({
                   min: 1,
                   message: t(
                     "proactiveConfig.minIntervalMin",
-                    "最小间隔不能小于 1 小时",
+                    "The minimum interval cannot be less than 1 Hours",
                   ),
                 },
                 {
@@ -280,7 +280,7 @@ export default function ProactiveConfig({
                       return Promise.reject(
                         t(
                           "proactiveConfig.intervalOrderError",
-                          "最短间隔不能大于最长间隔",
+                          "The shortest interval cannot be greater than the longest interval",
                         ),
                       );
                     }
@@ -309,7 +309,7 @@ export default function ProactiveConfig({
                   required: true,
                   message: t(
                     "proactiveConfig.maxIntervalRequired",
-                    "请输入最大间隔",
+                    "Please enter the maximum interval",
                   ),
                 },
                 {
@@ -319,7 +319,7 @@ export default function ProactiveConfig({
                       return Promise.reject(
                         t(
                           "proactiveConfig.intervalOrderError",
-                          "最长间隔不能小于最短间隔",
+                          "The longest interval cannot be smaller than the shortest interval",
                         ),
                       );
                     }

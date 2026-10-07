@@ -74,12 +74,12 @@ def test_resolve_peer_matches_octop_display_name(tmp_path: Path) -> None:
         mgr.create_agent(
             _config(tmp_path / "c", name="agent_clin01"),
             agent_id="clin01",
-            metadata={"user_id": 1, "display_name": "临床辅助专家"},
+            metadata={"user_id": 1, "display_name": "Clinical assistant"},
         )
-    entry = mgr.team.resolve_peer(1, "临床辅助专家", exclude_agent_id="host01")
+    entry = mgr.team.resolve_peer(1, "Clinical assistant", exclude_agent_id="host01")
     assert entry is not None
     assert entry.agent_id == "clin01"
-    assert mgr.team.peer_display_name(entry) == "临床辅助专家"
+    assert mgr.team.peer_display_name(entry) == "Clinical assistant"
 
 
 def test_ask_agent_schema_uses_expert_field() -> None:
@@ -102,8 +102,8 @@ async def test_ask_agent_accepts_expert_or_legacy_agent_key(tmp_path: Path) -> N
             await tools["ask_agent"].ainvoke({"agent": "researcher", "message": "hi"})
         )
         missing = json.loads(
-            await tools["ask_agent"].ainvoke({"expert": "没有这个人", "message": "hi"})
+            await tools["ask_agent"].ainvoke({"expert": "unknown person", "message": "hi"})
         )
     assert by_expert.get("name") == "researcher"
     assert by_legacy.get("name") == "researcher"
-    assert missing == {"error": "expert not found: 没有这个人"}
+    assert missing == {"error": "expert not found: unknown person"}

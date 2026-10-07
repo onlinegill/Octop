@@ -43,8 +43,8 @@ def _workspace(root: str) -> BackendWorkspace:
 def _prompt(title: str) -> dict[str, object]:
     return {
         "title": {"zh": title, "en": title},
-        "description": {"zh": f"{title}说明", "en": f"{title} desc"},
-        "prompt": {"zh": f"请{title}", "en": f"Please {title}"},
+        "description": {"zh": f"{title} notes", "en": f"{title} desc"},
+        "prompt": {"zh": f"Please {title}", "en": f"Please {title}"},
         "color": "#0d9488",
         "icon_name": "heart",
     }
@@ -71,22 +71,22 @@ async def test_team_welcome_uses_member_cards_not_host_cards() -> None:
         await _write_manifest(
             host_ws,
             {
-                "welcome_message": {"zh": "团队介绍", "en": "Team intro"},
-                "quick_prompts": [_prompt("主持卡")],
+                "welcome_message": {"zh": "Team intro", "en": "Team intro"},
+                "quick_prompts": [_prompt("Host card")],
             },
         )
         await _write_manifest(
             doc_ws,
             {
-                "welcome_message": {"zh": "我是医生", "en": "I am a doctor"},
-                "quick_prompts": [_prompt("鉴别诊断"), _prompt("用药提醒")],
+                "welcome_message": {"zh": "I am a doctor", "en": "I am a doctor"},
+                "quick_prompts": [_prompt("Differential diagnosis"), _prompt("Medication reminder")],
             },
         )
         await _write_manifest(
             nurse_ws,
             {
-                "welcome_message": {"zh": "我是护士", "en": "I am a nurse"},
-                "quick_prompts": [_prompt("健康打卡")],
+                "welcome_message": {"zh": "I am a nurse", "en": "I am a nurse"},
+                "quick_prompts": [_prompt("Health check-in")],
             },
         )
         workspaces = {
@@ -106,10 +106,10 @@ async def test_team_welcome_uses_member_cards_not_host_cards() -> None:
         )
         payload = await team_host_welcome_payload(_row(agent_id="host", kind="team"), registry)
 
-    assert payload["welcome_message"]["zh"] == "团队介绍"
-    titles = [card["title"]["zh"] for card in payload["quick_prompts"]]
-    assert titles == ["鉴别诊断", "用药提醒", "健康打卡"]
-    assert "主持卡" not in titles
+    assert payload["welcome_message"]["en"] == "Team intro"
+    titles = [card["title"]["en"] for card in payload["quick_prompts"]]
+    assert titles == ["Differential diagnosis", "Medication reminder", "Health check-in"]
+    assert "Host card" not in titles
     assert [card["expert"] for card in payload["quick_prompts"]] == [
         "doc",
         "doc",
@@ -128,7 +128,7 @@ async def test_team_welcome_prefers_db_welcome_message() -> None:
         host_ws = _workspace(host_dir)
         await _write_manifest(
             host_ws,
-            {"welcome_message": {"zh": "清单介绍", "en": "Manifest"}, "quick_prompts": []},
+            {"welcome_message": {"zh": "Manifest intro", "en": "Manifest"}, "quick_prompts": []},
         )
         registry = SimpleNamespace(
             teams=SimpleNamespace(visible_member_ids=lambda _id: []),
@@ -136,10 +136,10 @@ async def test_team_welcome_prefers_db_welcome_message() -> None:
             workspace_for_agent=lambda _id: host_ws,
         )
         payload = await team_host_welcome_payload(
-            _row(agent_id="host", kind="team", welcome="数据库介绍"),
+            _row(agent_id="host", kind="team", welcome="Database intro"),
             registry,
         )
-    assert payload["welcome_message"] == {"zh": "数据库介绍", "en": "数据库介绍"}
+    assert payload["welcome_message"] == {"zh": "Database intro", "en": "Database intro"}
     assert payload["quick_prompts"] == []
 
 
@@ -154,7 +154,7 @@ async def test_team_welcome_uses_member_default_cards_when_workspace_has_none() 
         )
         payload = await team_host_welcome_payload(_row(agent_id="host", kind="team"), registry)
 
-    titles = [card["title"]["zh"] for card in payload["quick_prompts"]]
+    titles = [card["title"]["en"] for card in payload["quick_prompts"]]
     experts = [card["expert"] for card in payload["quick_prompts"]]
     assert titles
     assert set(experts) == {"doc", "clone"}

@@ -454,7 +454,7 @@ export default function RemoteAndroidPage({
     message.info(
       t(
         "remoteAndroid.installCancelHint",
-        "已取消安装请求，服务端可能仍在继续安装，请稍后刷新状态。",
+        "The installation request has been cancelled. The server may still be installing. Please refresh the status later.",
       ),
     );
   }, [t]);
@@ -1106,7 +1106,7 @@ export default function RemoteAndroidPage({
           )}
           description={t(
             "remoteAndroid.needsInstallDesc",
-            "此主机使用容器 Android 后端。可一键拉取并启动容器；若未安装 Docker 将自动尝试安装（失败时需手动安装）。",
+            "This host uses containers Android Backend. You can pull and start the container with one click; if it is not installed Docker Installation will be attempted automatically (manual installation required if failed).",
           )}
           action={
             <Button

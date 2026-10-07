@@ -200,6 +200,6 @@ async def test_expert_to_chat_golden_path(env: Any) -> None:
     assert r.status_code == 204, r.text
 
     # 9) chat — stream a message and verify we get tokens back (WebSocket transport)
-    chunks = await _ws_turn(c, agent_id, bob_auth, text="你好")
+    chunks = await _ws_turn(c, agent_id, bob_auth, text="Hello there")
     assert any(ch.get("type") == "token" for ch in chunks), f"no token chunks: {chunks}"
     assert chunks[-1]["type"] == "done"

@@ -37,7 +37,7 @@ class SlashCtx:
     gateway_channels: list[dict[str, str]] = field(default_factory=list)
     octop_version: str | None = None
     server_started_at: int | None = None
-    locale: str = "zh"
+    locale: str = "en"
     """Dashboard composer / turn ``metadata.model`` (``provider/model``), if any."""
     model_ref: str | None = None
     default_timezone: str = "Asia/Shanghai"

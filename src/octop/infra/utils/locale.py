@@ -6,17 +6,20 @@ from typing import Literal
 
 Locale = Literal["zh", "en"]
 
-DEFAULT_LOCALE: Locale = "zh"
-SUPPORTED_LOCALES: tuple[Locale, ...] = ("zh", "en")
+DEFAULT_LOCALE: Locale = "en"
+SUPPORTED_LOCALES: tuple[Locale, ...] = ("en",)
 
 
 def normalize_locale(raw: str | None) -> Locale:
     if not raw:
         return DEFAULT_LOCALE
     lower = raw.lower().replace("_", "-")
-    if lower.startswith("zh"):
-        return "zh"
-    return "en"
+    # English-only fork: every locale tag resolves to the English bundle.
+    # Never yield "zh" — it would route into China-first defaults in the
+    # bundled octop_* runtime packages.
+    if lower.startswith("en"):
+        return "en"
+    return DEFAULT_LOCALE
 
 
 def resolve_locale(
@@ -35,9 +38,6 @@ def resolve_locale(
         for key in ("locale", "language", "lang"):
             if metadata.get(key):
                 return normalize_locale(str(metadata[key]))
-    im_zh = {"feishu", "wecom", "weixin", "dingtalk", "qq", "xiaoyi", "yuanbao"}
-    if channel_type in im_zh:
-        return "zh"
     if channel_type == "telegram":
         return "en"
     return DEFAULT_LOCALE

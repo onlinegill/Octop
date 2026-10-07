@@ -33,7 +33,7 @@ def test_resolve_named_backend(repo: BackendRepo) -> None:
         access_key="AKID",
         secret_key="SECRET",
         bucket="b-125",
-        region="ap-guangzhou",
+        region="us-east-1",
     )
     resolved = resolve_agent_backend_spec(
         {"type": "named", "name": "my-cos"},
@@ -42,7 +42,7 @@ def test_resolve_named_backend(repo: BackendRepo) -> None:
     assert resolved == {
         "type": "cos",
         "bucket": "b-125",
-        "region": "ap-guangzhou",
+        "region": "us-east-1",
         "secret_id": "AKID",
         "secret_key": "SECRET",
     }

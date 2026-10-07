@@ -1,4 +1,4 @@
-"""服务器状态 — 采集本机 OS / CPU / 内存 / 磁盘快照，供聊天 UI 渲染。"""
+"""Server status — collect a local OS / CPU / memory / disk snapshot for the chat UI to render."""
 
 from __future__ import annotations
 
@@ -36,10 +36,10 @@ def _uptime_human(seconds: float) -> str:
     minutes, _ = divmod(rem, 60)
     parts: list[str] = []
     if days:
-        parts.append(f"{days} 天")
+        parts.append(f"{days} d")
     if hours or days:
-        parts.append(f"{hours} 小时")
-    parts.append(f"{minutes} 分钟")
+        parts.append(f"{hours} h")
+    parts.append(f"{minutes} min")
     return " ".join(parts)
 
 
@@ -128,16 +128,16 @@ def _text_summary(data: dict[str, Any]) -> str:
     mem = data["memory"]
     disk = data["disk"]
     return (
-        f"主机 {data['hostname']} · {os_info['pretty']} ({os_info['machine']})\n"
-        f"内核 {data['kernel']} · 运行 {data['uptime_h']}\n"
-        f"CPU {cpu['percent']:.0f}%（{cpu['logical']} 逻辑核）· "
-        f"内存 {mem['percent']:.0f}%（{mem['used_h']} / {mem['total_h']}）· "
-        f"磁盘 {disk['percent']:.0f}%（{disk['used_h']} / {disk['total_h']}）"
+        f"Host {data['hostname']} · {os_info['pretty']} ({os_info['machine']})\n"
+        f"Kernel {data['kernel']} · uptime {data['uptime_h']}\n"
+        f"CPU {cpu['percent']:.0f}% ({cpu['logical']} logical cores) · "
+        f"Memory {mem['percent']:.0f}% ({mem['used_h']} / {mem['total_h']}) · "
+        f"Disk {disk['percent']:.0f}% ({disk['used_h']} / {disk['total_h']})"
     )
 
 
 async def get_server_status() -> str:
-    """采集当前服务器操作系统、内核与 CPU/内存/磁盘负载，并在聊天中渲染状态卡片。"""
+    """Collect the current server OS, kernel and CPU/memory/disk load and render a status card in chat."""
     data = _collect()
     payload = {
         "octop_ui": {"renderer": "server_status", "version": 1},
@@ -152,8 +152,8 @@ def setup(ctx: PluginContext) -> None:
         "get_server_status",
         get_server_status,
         description=(
-            "查询当前 Octop 所在服务器的基本信息与资源负载："
-            "操作系统、内核版本、主机名、运行时长，以及 CPU / 内存 / 磁盘使用率。"
-            "在聊天中渲染可视化状态卡片。无需参数；需要最新数据时再次调用即可。"
+            "Query basic information and resource load of the server running Octop: "
+            "operating system, kernel version, hostname, uptime, and CPU / memory / disk usage. "
+            "Renders a visual status card in chat. Takes no arguments; call again for fresh data."
         ),
     )

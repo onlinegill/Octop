@@ -199,7 +199,7 @@ export default function FilePanelContent({
         message.warning(
           t(
             "chat.dockFileMaybeDeleted",
-            "该文件可能为处理过程中的临时文件，当前已经被删除。",
+            "This file may be a temporary file during processing and has been deleted.",
           ),
         );
         return;
@@ -350,7 +350,7 @@ export default function FilePanelContent({
             <p className={styles.fileMissingTitle}>
               {t(
                 "chat.dockFileMaybeDeleted",
-                "该文件可能为处理过程中的临时文件，当前已经被删除。",
+                "This file may be a temporary file during processing and has been deleted.",
               )}
             </p>
           </div>

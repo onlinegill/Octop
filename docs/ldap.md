@@ -1,102 +1,102 @@
-# LDAP 目录登录
+# LDAP Directory Login
 
-> Octop 支持接入企业目录（Active Directory、OpenLDAP 等）作为登录方式：用户在**现有登录表单**里直接输入域账号和密码，Octop 通过目录完成认证，并可自动创建本地账号、按目录组映射角色。
+> Octop supports connecting an enterprise directory (Active Directory, OpenLDAP, etc.) as a login method: users enter their domain account and password in the **existing login form**, Octop authenticates through the directory, and can optionally auto-create local accounts and map roles from directory groups.
 
-本文覆盖：功能与设计、跑起来（含本地 LDAP 开发服务器）、配置项参考、登录行为细则、HTTP API、测试方法、故障排查。
+This document covers: features and design, getting it running (including a local LDAP dev server), configuration reference, login behavior details, HTTP API, testing, and troubleshooting.
 
 ---
 
-## 一、功能概览
+## 1. Feature overview
 
-| 能力 | 说明 |
+| Capability | Description |
 |---|---|
-| 登录方式 | 复用 `/api/auth/login`，无需新端点。**有本地密码的账号在本地判完即止**；无本地密码、或本地无此用户时回退目录 |
-| 检索方式 | 服务账号（或匿名）先检索用户 DN，再用该 DN 以用户密码二次 bind 验证 |
-| 账号开通 | 首次目录登录自动创建 Octop 账号（可关闭） |
-| 角色映射 | 按目录组成员关系判定 `admin` / `user`，仅在建号时判定一次 |
-| 属性同步 | 登录时回写邮箱、显示名；**不动**已存在账号的角色 |
-| 传输安全 | `ldaps://` 或 `ldap://` + StartTLS，证书校验可关（仅测试自签证书） |
-| 凭据存储 | 绑定密码经 Fernet 加密后存 `sso_providers.client_secret_enc`，API 从不回传 |
+| Login method | Reuses `/api/auth/login`, no new endpoint. **Accounts with a local password finish locally**; accounts without a local password, or users unknown locally, fall back to the directory |
+| Lookup | A service account (or anonymous) first searches for the user DN, then re-binds with that DN and the user's password to verify |
+| Account provisioning | The first directory login auto-creates an Octop account (can be disabled) |
+| Role mapping | `admin` / `user` is decided by directory group membership, only once at account creation |
+| Attribute sync | Email and display name are written back at login; existing accounts' roles are **not** touched |
+| Transport security | `ldaps://` or `ldap://` + StartTLS; certificate verification can be disabled (test self-signed certificates only) |
+| Credential storage | The bind password is Fernet-encrypted into `sso_providers.client_secret_enc` and is never returned by the API |
 
-### 设计要点
+### Design points
 
-1. **不新增登录表单**。目录用户走原有的用户名/密码输入框，登录页只多一行提示（`login.ldapHint`），与现有交互一致。后端在本地密码校验失败后回退目录，因此同一入口同时服务本地账号与目录账号。
-2. **角色只在开通时判定，之后不回写**。把已存在的用户挪进管理员组**不会**静默提权；角色变更由管理员在 Octop 内显式操作。
-3. **零 schema 变更**。复用既有 SSO 表结构：配置行是 `sso_providers.kind = 'ldap'`（明细放在该行的 `extra` JSON），身份关联复用 `user_sso_identities`。
-4. **目录故障 ≠ 密码错误**。目录不可达返回 `502 LDAP_UNAVAILABLE`，密码错误返回 `401 AUTH_FAILED`。若该用户名对应的是**有本地密码**的账号，即使目录宕机也只报 401（避免掩盖用户打错密码）。
+1. **No new login form.** Directory users use the existing username/password inputs; the login page only adds one hint line (`login.ldapHint`), consistent with current interaction. The backend falls back to the directory after local password verification fails, so the same entry point serves both local and directory accounts.
+2. **Roles are decided only at provisioning and never written back afterward.** Moving an existing user into the admin group does **not** silently elevate them; role changes are an explicit operation by an admin inside Octop.
+3. **Zero schema change.** It reuses the existing SSO table structure: the config row is `sso_providers.kind = 'ldap'` (details in that row's `extra` JSON), and identity links reuse `user_sso_identities`.
+4. **Directory failure ≠ wrong password.** An unreachable directory returns `502 LDAP_UNAVAILABLE`, a wrong password returns `401 AUTH_FAILED`. If the username corresponds to an account **with a local password**, only 401 is reported even if the directory is down (so a user's typo'd password is not masked).
 
 ---
 
-## 二、工作原理
+## 2. How it works
 
-### 2.1 登录时序
+### 2.1 Login sequence
 
 ```
-用户提交 username / password
-        │
-        ├─ 1. 本地密码校验（UserManager.authenticate）
-        │      成功 → 签发 JWT，结束
-        │
-        └─ 2. LDAP 已启用？否 → 401 AUTH_FAILED
-               │
-               ├─ 2.1 用服务账号 bind（bind_dn + 绑定密码；bind_dn 为空则匿名）
-               ├─ 2.2 以 user_filter 检索（{username} 替换为转义后的输入）→ 用户 DN
-               ├─ 2.3 用「该用户 DN + 用户输入的密码」二次 bind  ← 只 bind 检索结果，绝不 bind 用户输入值
-               ├─ 2.4 读取属性（邮箱 / 显示名 / 所属组）
-               ├─ 2.5 已有身份关联 → 更新资料（邮箱、显示名）后返回
-               │      无关联 且 auto_provision → 建号 + 按组定角色 + 建立身份关联
-               │      无关联 且 auto_provision=false → 403 LDAP_USER_NOT_PROVISIONED
-               └─ 3. 签发 JWT（与本地登录完全同构）
+User submits username / password
+       │
+       ├─ 1. Local password check (UserManager.authenticate)
+       │      success → issue JWT, done
+       │
+       └─ 2. LDAP enabled? no → 401 AUTH_FAILED
+              │
+              ├─ 2.1 Bind with the service account (bind_dn + bind password; anonymous if bind_dn is empty)
+              ├─ 2.2 Search with user_filter ({username} replaced by the escaped input) → user DN
+              ├─ 2.3 Re-bind with "that user DN + the password the user typed"  ← bind only the search result, never bind the user's raw input
+              ├─ 2.4 Read attributes (email / display name / groups)
+              ├─ 2.5 Existing identity link → update profile (email, display name) and return
+              │      No link and auto_provision → create account + set role by group + create identity link
+              │      No link and auto_provision=false → 403 LDAP_USER_NOT_PROVISIONED
+              └─ 3. Issue JWT (structurally identical to a local login)
 ```
 
-所有网络与 bind 均为阻塞调用，通过 `run_in_executor` 执行，不阻塞事件循环。
+All network and bind calls are blocking and run through `run_in_executor`, so the event loop is not blocked.
 
-### 2.2 数据落库
+### 2.2 Data persistence
 
-| 数据 | 位置 |
+| Data | Location |
 |---|---|
-| 目录配置 | `sso_providers` 行，`kind='ldap'`；`enabled` / `display_name` 为列，其余在 `extra` JSON |
-| 绑定密码 | 同行的 `client_secret_enc`（Fernet 加密，密钥在 `secrets` 表的 `sso_fernet`） |
-| 身份关联 | `user_sso_identities(user_id, provider_id, subject)`，`subject` = 用户 DN |
-| 新账号 | `users` 行，`password_hash IS NULL`（目录账号没有本地密码） |
+| Directory config | `sso_providers` row with `kind='ldap'`; `enabled` / `display_name` are columns, the rest are in the `extra` JSON |
+| Bind password | The same row's `client_secret_enc` (Fernet-encrypted; the key is the `secrets` table's `sso_fernet`) |
+| Identity link | `user_sso_identities(user_id, provider_id, subject)`, where `subject` = the user DN |
+| New account | A `users` row with `password_hash IS NULL` (directory accounts have no local password) |
 
-> 目录账号的 `password_hash` 为 `NULL`，所以 `POST /api/auth/change-password` 会返回 `400 PASSWORD_NOT_SET`（而不是误导性的「当前密码错误」）。
+> A directory account's `password_hash` is `NULL`, so `POST /api/auth/change-password` returns `400 PASSWORD_NOT_SET` (rather than a misleading "current password is wrong").
 
 ---
 
-## 三、跑起来
+## 3. Getting it running
 
-以下流程在**全新目录**中逐条验证过，可直接复制执行。
+The following flow was verified step by step against a **brand-new directory** and can be copied and executed directly.
 
-### 3.0 前置条件
+### 3.0 Prerequisites
 
-| 依赖 | 说明 |
+| Dependency | Note |
 |---|---|
-| Python 3.12+ / uv | Octop 运行环境（仓库根目录 `uv sync` 一次） |
-| Go 1.21+ | 仅用于构建本地 LDAP 开发服务器（glauth） |
-| `ldapsearch`（可选） | OpenLDAP 客户端，用于手工验证目录；macOS 自带 |
+| Python 3.12+ / uv | The Octop runtime (run `uv sync` once at the repo root) |
+| Go 1.21+ | Only for building the local LDAP dev server (glauth) |
+| `ldapsearch` (optional) | OpenLDAP client for manually checking the directory; bundled with macOS |
 
-Octop 侧依赖 `ldap3`，已加入 `pyproject.toml`，`uv sync` 后会安装。
+Octop depends on `ldap3`, which is already in `pyproject.toml` and installed by `uv sync`.
 
-### 3.1 启动本地 LDAP 服务器（glauth）
+### 3.1 Start a local LDAP server (glauth)
 
-开发用目录选 [glauth](https://github.com/glauth/glauth)——Go 写的轻量 LDAP 服务，单二进制、配置文件驱动、不需要数据库或容器。
+For a development directory we choose [glauth](https://github.com/glauth/glauth) — a lightweight LDAP service written in Go: a single binary, config-driven, no database or container required.
 
-下面的示例把沙箱放在 `~/octop-ldap-dev/`（任意目录都行，**不要**放在 Octop 仓库内，避免污染工作区）：
+The example below puts the sandbox in `~/octop-ldap-dev/` (any directory works; **do not** place it inside the Octop repo, to avoid polluting the workspace):
 
 ```bash
 LDAP_DEV=~/octop-ldap-dev
 mkdir -p "$LDAP_DEV" && cd "$LDAP_DEV"
 
-# 1) 克隆
+# 1) Clone
 git clone --depth 1 https://github.com/glauth/glauth.git ldap-glauth
 
-# 2) 构建 —— 必须 GOWORK=off：上游是 Go workspace，会拒绝 -mod=mod
+# 2) Build — GOWORK=off is required: upstream is a Go workspace and rejects -mod=mod
 cd ldap-glauth/v2
 GOWORK=off go build -o "$LDAP_DEV/glauth" .
 ```
 
-新建 `~/octop-ldap-dev/glauth.cfg`（下方为完整内容，测试账号可自行增删）：
+Create `~/octop-ldap-dev/glauth.cfg` (full content below; add or remove test accounts as you like):
 
 ```toml
 debug = false
@@ -104,7 +104,7 @@ debug = false
 [ldap]
   enabled = true
   listen = "127.0.0.1:3893"
-  # Octop 拒绝「启用明文 ldap:// 且未开 StartTLS」的配置，所以本地目录也开 StartTLS。
+  # Octop rejects configs that "enable plaintext ldap:// without StartTLS", so the local directory also enables StartTLS.
   tls = true
   tlsCertPath = "glauth.crt"
   tlsKeyPath = "glauth.key"
@@ -124,7 +124,7 @@ debug = false
   PeriodOfFailedBinds = 10
   BlockFailedBindsFor = 30
 
-# 服务账号：仅用于检索
+# Service account: used only for searches
 [[users]]
   name = "svc-octop"
   uidnumber = 6001
@@ -183,14 +183,14 @@ debug = false
   gidnumber = 5503
 ```
 
-`passsha256` 是明文密码的 SHA-256 小写十六进制：
+`passsha256` is the lowercase hex SHA-256 of the plaintext password:
 
 ```bash
 printf '%s' 'mypassword' | shasum -a 256 | cut -d' ' -f1     # macOS
 printf '%s' 'mypassword' | sha256sum | cut -d' ' -f1         # Linux
 ```
 
-先生成自签证书（glauth 按相对路径解析，故放在配置同目录）：
+First generate a self-signed certificate (glauth resolves relative paths, so place it in the same directory as the config):
 
 ```bash
 cd ~/octop-ldap-dev
@@ -201,18 +201,18 @@ openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
 chmod 600 glauth.key
 ```
 
-启动并自检（`-ZZ` 表示强制 StartTLS）：
+Start it and self-check (`-ZZ` forces StartTLS):
 
 ```bash
 ~/octop-ldap-dev/glauth -c ~/octop-ldap-dev/glauth.cfg
 
-# 另开一个终端：以服务账号检索
+# In another terminal: search with the service account
 ldapsearch -LLL -x -H ldap://127.0.0.1:3893 \
   -D "uid=svc-octop,cn=users,dc=example,dc=org" -w bindpw \
   -b "dc=example,dc=org" "(uid=alice)" uid mail memberOf
 ```
 
-预期输出（关键：`memberOf` 决定管理员角色）：
+Expected output (the key point: `memberOf` determines the admin role):
 
 ```
 dn: uid=alice,cn=admin,ou=users,dc=example,dc=org
@@ -221,12 +221,12 @@ mail: alice@example.org
 memberOf: cn=admin,ou=groups,dc=example,dc=org
 ```
 
-### 3.2 启动 Octop（独立 HOME，避免污染现有实例）
+### 3.2 Start Octop (separate HOME, to avoid polluting an existing instance)
 
-用独立 `HOME` + `OCTOP_HOME` 起一个一次性实例，数据库与向导密码都落在临时目录：
+Use a separate `HOME` + `OCTOP_HOME` to spin up a throwaway instance whose database and wizard password land in a temp directory:
 
 ```bash
-cd <repo 根目录>
+cd <repo root>
 RUNTIME=/tmp/octop-ldap-dev
 mkdir -p "$RUNTIME/home"
 
@@ -235,7 +235,7 @@ OCTOP_HOME="$RUNTIME/home/.octop" \
 uv run octop run --host 127.0.0.1 --port 8799
 ```
 
-首次启动会打印一次性的设置向导密码，同时写入 `$RUNTIME/home/octop-login.txt`：
+The first start prints a one-time setup-wizard password, also written to `$RUNTIME/home/octop-login.txt`:
 
 ```
 ╔══════════════════════════════════════════════════════════╗
@@ -245,43 +245,43 @@ uv run octop run --host 127.0.0.1 --port 8799
 ╚══════════════════════════════════════════════════════════╝
 ```
 
-### 3.3 完成初始化向导
+### 3.3 Complete the setup wizard
 
-**方式 A：浏览器向导（最简单）** — 打开 `http://127.0.0.1:8799`，粘贴上面的向导密码，按提示选数据库（SQLite 即可）、创建管理员账号、完成。
+**Option A: browser wizard (simplest)** — open `http://127.0.0.1:8799`, paste the wizard password above, pick the database (SQLite is fine) as prompted, create the admin account, and finish.
 
-**方式 B：脚本化（可复现，下述命令均已验证）**
+**Option B: scripted (reproducible; the commands below were all verified)**
 
 ```bash
 API=http://127.0.0.1:8799/api
 RUNTIME=/tmp/octop-ldap-dev
 PW=$(head -1 "$RUNTIME/home/octop-login.txt")
 
-# 1) 校验向导密码 → 拿到一次性 wizard_token
+# 1) Verify the wizard password → get a one-time wizard_token
 TOK=$(curl -sS -X POST "$API/setup/verify-password" \
   -H 'Content-Type: application/json' -d "{\"password\":\"$PW\"}" \
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["wizard_token"])')
 
-# 2) 绑定控制面数据库（SQLite）
+# 2) Bind the control-plane database (SQLite)
 curl -sS -X POST "$API/setup/database" -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $TOK" -d '{"driver":"sqlite"}'
 # → {"ok":true,"driver":"sqlite"}
 
-# 3) 创建初始管理员（密码需满足强度策略：≥8 位且含字母与数字）
+# 3) Create the initial admin (password must meet the strength policy: ≥8 chars with letters and digits)
 curl -sS -X POST "$API/setup/initial-admin" -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $TOK" \
   -d '{"username":"admin","password":"TestPass12"}'
 
-# 4) 结束向导
+# 4) Finish the wizard
 curl -sS -X POST "$API/setup/finish" -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $TOK" -d '{"provider_draft":null}'
 # → {"ok":true}
 ```
 
-### 3.4 配置 LDAP
+### 3.4 Configure LDAP
 
-**方式 A：浏览器** — 用 `admin` 登录后进入 **管理 → 用户 → LDAP** 页，按 3.5 的表格填写，点「保存」再点「测试连接」。
+**Option A: browser** — sign in as `admin`, go to the **Admin → Users → LDAP** page, fill in the fields from the table in 3.5, click "Save", then click "Test connection".
 
-**方式 B：API**
+**Option B: API**
 
 ```bash
 API=http://127.0.0.1:8799/api
@@ -301,40 +301,40 @@ curl -sS -X PUT "$API/auth/ldap/config" -H 'Content-Type: application/json' \
     "auto_provision": true
   }'
 
-# 测试连通性（服务账号 bind + 探测 user_base_dn）
+# Test connectivity (service-account bind + probe user_base_dn)
 curl -sS -X POST "$API/auth/ldap/config/test" -H "Authorization: Bearer $AT"
-# → {"ok":true,"detail":"已连接 LDAP 目录服务 (ldap://127.0.0.1:3893)"}
+# → {"ok":true,"detail":"Connected to the LDAP directory service (ldap://127.0.0.1:3893)"}
 
-# 登录页可读的公开状态
+# Public status readable by the login page
 curl -sS "$API/auth/ldap/status"
 # → {"enabled":true,"display_name":"Corp Directory"}
 ```
 
-### 3.5 本地目录对应的配置值
+### 3.5 Configuration values for the local directory
 
-| 表单/API 字段 | 值 | 说明 |
+| Form/API field | Value | Note |
 |---|---|---|
-| 服务器地址 `server_url` | `ldap://127.0.0.1:3893` | |
-| StartTLS `start_tls` | 开 | 本地目录自签证书，**必须**开启（否则启用会被拒） |
-| 校验 TLS 证书 `verify_tls` | 关 | 仅因测试用自签证书；生产保持开启 |
-| 绑定 DN `bind_dn` | `uid=svc-octop,cn=users,dc=example,dc=org` | 留空则匿名检索 |
-| 绑定密码 `bind_password` | `bindpw` | 只写；省略则保留已存值 |
-| 用户基准 DN `user_base_dn` | `dc=example,dc=org` | |
-| 用户过滤器 `user_filter` | `(uid={username})` | 必须含字面量 `{username}` |
-| 用户名字段 `username_attribute` | `uid` | |
-| 邮箱字段 `email_attribute` | `mail` | |
-| 显示名称字段 `display_name_attribute` | `givenName` | 见下方提示 |
-| 所属组字段 `group_attribute` | `memberOf` | |
-| 管理员组 `admin_groups` | `admin` | 逗号分隔，可填组 CN 或完整 DN |
-| 首次登录自动创建 `auto_provision` | 开 | |
+| Server URL `server_url` | `ldap://127.0.0.1:3893` | |
+| StartTLS `start_tls` | on | The local directory uses a self-signed certificate; **must** be on (otherwise enabling is rejected) |
+| Verify TLS certificate `verify_tls` | off | Only because the test uses a self-signed certificate; keep it on in production |
+| Bind DN `bind_dn` | `uid=svc-octop,cn=users,dc=example,dc=org` | Empty = anonymous search |
+| Bind password `bind_password` | `bindpw` | Write-only; omit to keep the stored value |
+| User base DN `user_base_dn` | `dc=example,dc=org` | |
+| User filter `user_filter` | `(uid={username})` | Must contain the literal `{username}` |
+| Username attribute `username_attribute` | `uid` | |
+| Email attribute `email_attribute` | `mail` | |
+| Display-name attribute `display_name_attribute` | `givenName` | See the note below |
+| Group attribute `group_attribute` | `memberOf` | |
+| Admin groups `admin_groups` | `admin` | Comma-separated; may be a group CN or full DN |
+| Auto-provision on first login `auto_provision` | on | |
 
-> **提示**：glauth 不把 `cn` 作为用户可检索属性，因此本地目录用 `display_name_attribute = "cn"` 取不到显示名（`givenName` 可以）。真实 OpenLDAP / AD 正常暴露 `cn`。
+> **Note**: glauth does not expose `cn` as a searchable user attribute, so with the local directory `display_name_attribute = "cn"` retrieves no display name (`givenName` works). Real OpenLDAP / AD expose `cn` normally.
 
-### 3.6 用目录账号登录
+### 3.6 Sign in with a directory account
 
-浏览器：退出当前登录 → 在登录页直接输入目录账号（会看到「使用 Corp Directory 账号登录」提示行）→ 拖过验证码 → 登录。
+Browser: sign out of the current session → enter the directory account directly on the login page (you will see the hint line "Sign in with your Corp Directory account") → complete the captcha → sign in.
 
-命令行：
+Command line:
 
 ```bash
 API=http://127.0.0.1:8799/api
@@ -346,132 +346,132 @@ for u in alice:alicepw bob:bobpw carol:carolpw; do
 done
 ```
 
-预期结果：
+Expected result:
 
-| 账号 | 密码 | 所属组 | Octop 角色 |
+| Account | Password | Group | Octop role |
 |---|---|---|---|
 | `alice` | `alicepw` | `admin` | `admin` |
 | `bob` | `bobpw` | `engineering` | `user` |
 | `carol` | `carolpw` | `users` | `user` |
-| `alice@example.org` | `alicepw` | — | 邮箱也能登录（默认过滤器含 `mail`） |
+| `alice@example.org` | `alicepw` | — | Email also logs in (the default filter includes `mail`) |
 
-密码错误返回 `401 AUTH_FAILED`；目录宕机返回 `502 LDAP_UNAVAILABLE`。
+A wrong password returns `401 AUTH_FAILED`; a down directory returns `502 LDAP_UNAVAILABLE`.
 
 ---
 
-## 四、配置项参考
+## 4. Configuration reference
 
-| 字段 | 默认值 | 说明 |
+| Field | Default | Note |
 |---|---|---|
-| `enabled` | `false` | 关闭时登录不再回退目录；可保存未填完的草稿 |
-| `display_name` | `""` | 登录页提示行里显示的名称 |
-| `server_url` | `""` | `ldap://` 或 `ldaps://`；端口缺省 389 / 636 |
-| `start_tls` | `false` | 对明文 `ldap://` 连接做 StartTLS 升级；**不可**与 `ldaps://` 同用。**启用时若用 `ldap://` 且未开 StartTLS 会被拒绝**，避免口令明文传输 |
-| `verify_tls` | `true` | 校验服务端证书；仅自签测试服务器才关。关闭时会持续告警 |
-| `bind_dn` | `""` | 服务账号 DN；留空 = 匿名检索 |
-| `bind_password` | — | 只写字段，从不回传；省略则保留已存值 |
-| `user_base_dn` | `""` | 用户检索基准 DN，必填 |
-| `user_filter` | `(\|(uid={username})(sAMAccountName={username})(mail={username}))` | 必须含字面量 `{username}`，会被转义后替换 |
-| `username_attribute` | `uid` | 用于确定 Octop 用户名 |
-| `email_attribute` | `mail` | 回写到账号邮箱 |
-| `display_name_attribute` | `cn` | 回写到显示名 |
-| `subject_attribute` | `""`（留空） | 身份主键：目录侧稳定不变的属性（OpenLDAP `entryUUID`、AD `objectGUID`）。**默认留空**＝显式选择用条目 DN，此时条目改名/搬家会再开一个账号。点「测试连接」会回报该目录实际提供的属性（`detected_subject_attribute`），照它填上即可 |
-| `group_attribute` | `memberOf` | 多值属性，用于组判定；开启 `group_search` 后不生效 |
-| `group_search` | `false` | 改为「检索组条目」判定成员，适用于没有 `memberOf` overlay 的 OpenLDAP |
-| `group_search_base` | `""` | 组所在基准 DN；留空沿用 `user_base_dn` |
-| `group_member_attribute` | `member` | 组条目上的成员属性。`member` / `uniqueMember` 存成员 **DN**；`memberUid`（经典 OpenLDAP `posixGroup`）存**用户名**——两种取值都会匹配，无需额外配置 |
-| `admin_groups` | `""` | 逗号分隔；可填组 CN（`admin`）或完整 DN（`cn=ops,ou=groups,dc=x`）。**仅首次开通账号时生效** |
-| `allowed_groups` | `""` | 逗号分隔；非空时仅这些组的成员可登录，其他目录账号被拒绝且不会建号 |
-| `auto_provision` | `false` | 默认关闭：目录账号需先有 Octop 账号，或由管理员显式开启自动开通 |
-| `timeout_seconds` | `10` | 连接/接收超时，范围 1–60 |
+| `enabled` | `false` | When off, login no longer falls back to the directory; an unfinished draft can be saved |
+| `display_name` | `""` | The name shown in the login-page hint line |
+| `server_url` | `""` | `ldap://` or `ldaps://`; default port 389 / 636 |
+| `start_tls` | `false` | Upgrades a plaintext `ldap://` connection to StartTLS; **cannot** be combined with `ldaps://`. **When enabled with `ldap://` and StartTLS off it is rejected**, to avoid sending the password in plaintext |
+| `verify_tls` | `true` | Verifies the server certificate; disable only for self-signed test servers. A warning is emitted continuously while off |
+| `bind_dn` | `""` | Service-account DN; empty = anonymous search |
+| `bind_password` | — | Write-only field, never returned; omit to keep the stored value |
+| `user_base_dn` | `""` | User search base DN, required |
+| `user_filter` | `(\|(uid={username})(sAMAccountName={username})(mail={username}))` | Must contain the literal `{username}`, which is escaped before substitution |
+| `username_attribute` | `uid` | Used to determine the Octop username |
+| `email_attribute` | `mail` | Written back to the account email |
+| `display_name_attribute` | `cn` | Written back to the display name |
+| `subject_attribute` | `""` (empty) | Identity primary key: a directory-side stable attribute (OpenLDAP `entryUUID`, AD `objectGUID`). **Empty by default** = explicitly use the entry DN, in which case renaming/moving an entry creates another account. "Test connection" reports the attributes the directory actually provides (`detected_subject_attribute`); fill it in accordingly |
+| `group_attribute` | `memberOf` | Multi-valued attribute used for group decisions; has no effect once `group_search` is enabled |
+| `group_search` | `false` | Switches to "search group entries" to decide membership, for OpenLDAP without the `memberOf` overlay |
+| `group_search_base` | `""` | Base DN where groups live; empty falls back to `user_base_dn` |
+| `group_member_attribute` | `member` | The member attribute on group entries. `member` / `uniqueMember` store the member **DN**; `memberUid` (classic OpenLDAP `posixGroup`) stores the **username** — both value kinds match, no extra config needed |
+| `admin_groups` | `""` | Comma-separated; may be a group CN (`admin`) or full DN (`cn=ops,ou=groups,dc=x`). **Only effective at first account provisioning** |
+| `allowed_groups` | `""` | Comma-separated; when non-empty, only members of these groups can sign in, and other directory accounts are rejected without account creation |
+| `auto_provision` | `false` | Off by default: a directory account needs a pre-existing Octop account, or an admin explicitly enables auto-provisioning |
+| `timeout_seconds` | `10` | Connect/receive timeout, range 1–60 |
 
-保存已启用（`enabled=true`）的配置会做完整校验；保存草稿（`enabled=false`）允许字段不全，便于分次填写。
+Saving an enabled (`enabled=true`) config runs full validation; saving a draft (`enabled=false`) allows incomplete fields for incremental entry.
 
 ---
 
-## 五、登录行为细则
+## 5. Login behavior details
 
-| 场景 | 行为 |
+| Scenario | Behavior |
 |---|---|
-| 用户名匹配 | 按 `user_filter` 检索；优先与 `username_attribute` **完全相等**的条目。无精确命中但只有**唯一**一条时也接受；命中多条且无精确匹配则**拒绝**（避免把口令验到别人的条目上） |
-| 过滤器注入 | 输入值经 `escape_filter_chars` 转义，`*`、`(` 等不会扩大检索范围 |
-| 组名比较 | 大小写不敏感；`admin` 与 `cn=admin,ou=groups,dc=x` 视为同一组 |
-| 身份关联 | 以 `subject_attribute`（默认 `entryUUID`）为键，条目改名/换 OU 不会重复建号 |
-| 首次登录 | 建号：用户名取目录值（冲突自动加 `_2` 后缀）。按 `admin_groups` 选用 **admin 或预设 user 角色模板**，权限与策略都从模板拷贝 |
-| 再次登录 | 更新邮箱与显示名；**不**覆盖已有角色、权限与策略 |
-| 邮箱冲突 | 目录邮箱若已被其他 Octop 账号占用，则该账号邮箱留空，不报错 |
-| 账号被停用 | `403 USER_DISABLED` |
-| 未开通且 `auto_provision=false` | `403 LDAP_USER_NOT_PROVISIONED` |
-| 不在 `allowed_groups` 内 | `403 LDAP_GROUP_NOT_ALLOWED`（不建号） |
-| **任何有本地密码的账号**打错密码 | 在本地就结束：`401 AUTH_FAILED`，**绝不**把该口令发给目录（不泄漏本地口令、不占用目录的失败计数）。即便该账号同时也绑定了目录也一样 |
-| 无本地密码的账号（目录开通的，或 Octop 里没有这个用户）打错密码 | 去目录 bind，失败返回 `401`，并按「用户名 + 客户端地址」计入目录登录限流 |
-| 本地密码与目录密码都想用 | 请选择：设置本地密码后，以本地密码为准；不设本地密码则走目录 |
-| 目录账号被改名 | 下次登录即刷新显示名（无需重启 Octop）。**但**若 `subject_attribute` 留空（按 DN 关联），改名会被当作新用户另开账号 |
-| 目录不可达 / 服务账号密码轮换失效 | `502 LDAP_UNAVAILABLE`（本地有密码的账号仍报 401） |
-| 修改密码 | 目录账号无本地密码，`400 PASSWORD_NOT_SET` |
-| 账号被删除 | 下次登录若 `auto_provision` 开启会重新建号 |
+| Username matching | Searches by `user_filter`; prefers the entry **exactly equal** to `username_attribute`. Accepts a **unique** non-exact match; rejects when multiple match and none is exact (to avoid verifying the password against someone else's entry) |
+| Filter injection | Input is escaped via `escape_filter_chars`, so `*`, `(`, etc. cannot broaden the search |
+| Group-name comparison | Case-insensitive; `admin` and `cn=admin,ou=groups,dc=x` are treated as the same group |
+| Identity link | Keyed by `subject_attribute` (default `entryUUID`), so renaming/moving an entry doesn't create a duplicate account |
+| First login | Creates an account: the username comes from the directory value (an `_2` suffix is appended on conflict). Picks the **admin or the preset user role template** per `admin_groups`; permissions and policies are copied from the template |
+| Subsequent logins | Updates email and display name; does **not** overwrite existing roles, permissions, or policies |
+| Email conflict | If the directory email is already taken by another Octop account, that account's email is left blank without error |
+| Account disabled | `403 USER_DISABLED` |
+| Not provisioned and `auto_provision=false` | `403 LDAP_USER_NOT_PROVISIONED` |
+| Not in `allowed_groups` | `403 LDAP_GROUP_NOT_ALLOWED` (no account created) |
+| **Any account with a local password** types a wrong password | Ends locally: `401 AUTH_FAILED`, and that password is **never** sent to the directory (no local-password leak, no consuming the directory's failure count). This holds even if the account is also bound to the directory |
+| An account with no local password (directory-provisioned, or a user absent in Octop) types a wrong password | Binds to the directory; on failure returns `401`, counted against directory login rate limiting by "username + client address" |
+| Want both a local password and a directory password | Choose one: once you set a local password it wins; without one, the directory is used |
+| A directory account is renamed | The display name refreshes on the next login (no Octop restart needed). **But** if `subject_attribute` is empty (DN-based linking), the rename is treated as a new user and another account is created |
+| Directory unreachable / service-account password rotation invalidated | `502 LDAP_UNAVAILABLE` (accounts with a local password still report 401) |
+| Change password | Directory accounts have no local password → `400 PASSWORD_NOT_SET` |
+| Account deleted | The next login re-creates it if `auto_provision` is on |
 
-> **生产注意**
+> **Production notes**
 >
-> 1. **角色只在首次开通时判定**。之后把用户加入 `admin_groups` 不会提权，移出也不会降权——这与「目录是权限源」的常见预期相反。需要变更请在 Octop 用户列表里改角色。
-> 2. **组属性来源**：默认读用户条目上的 `memberOf`（AD 天然提供）。没有 `memberof` overlay 的 OpenLDAP 请开启 `group_search` 反查组成员：`member` / `uniqueMember`（存 DN）与 `memberUid`（存用户名）都已支持。嵌套组（组套组）**不支持**，仅比较直接成员。
-> 3. **同名组风险**：`admin_groups` 写短名（`admin`）时，任何 OU 下的同名组都算命中；写完整 DN 则按整条 DN 比较，更安全。
-> 4. **身份主键**：默认留空＝用条目 DN，改名或换 OU 会新建账号。请点「测试连接」，它会回报该目录能提供的属性（`entryUUID` 或 `objectGUID`），填进 `subject_attribute` 后**新开通**的账号即按该键关联。注意：切换主键会导致**既有**账号关联失配，需要管理员重新关联。
-> 5. **组白名单**：生产环境建议设置 `allowed_groups`，避免目录中任何可被过滤到的账号都能建号。
+> 1. **Roles are decided only at first provisioning.** Adding a user to `admin_groups` afterward will not elevate them, nor will removal demote them — contrary to the common "directory is the source of permissions" expectation. Change roles in the Octop user list instead.
+> 2. **Where group attributes come from**: by default it reads `memberOf` on the user entry (natively provided by AD). For OpenLDAP without the `memberof` overlay, enable `group_search` to reverse-look-up group members: `member` / `uniqueMember` (store DN) and `memberUid` (store username) are both supported. Nested groups (groups inside groups) are **not** supported — only direct members are compared.
+> 3. **Same-name group risk**: when `admin_groups` uses a short name (`admin`), any same-named group under any OU counts as a hit; a full DN is compared as a whole DN and is safer.
+> 4. **Identity primary key**: empty by default = use the entry DN, so renaming or moving an OU creates a new account. Click "Test connection"; it reports the attributes the directory can provide (`entryUUID` or `objectGUID`). After filling `subject_attribute`, **newly provisioned** accounts link by that key. Note: switching the primary key breaks the linking of **existing** accounts and requires an admin to re-link them.
+> 5. **Group allowlist**: in production, set `allowed_groups` to prevent any filterable account in the directory from being provisioned.
 
 ---
 
-> 5. **本地密码优先且终局**：给一个目录账号设置本地密码后，该密码即成为其唯一登录口令——目录密码不再生效（但也不会被外发）。若要保留目录密码，请不要为该账号设置本地密码。
-> 6. **登录限流**按「用户名 + 客户端地址」计数。地址取自直连对端；**仅当对端是环回地址**（本机/同 Pod 上的反向代理）时才采用 `X-Forwarded-For`，且取其中最右侧一跳（可信代理append 的那条），因此无法用伪造头重置额度。所以部署在反向代理后请确保代理与 Octop 同机，否则所有用户会共享同一个来源地址。
+> 5. **Local password takes precedence and is final**: once you set a local password for a directory account, that password becomes its only login credential — the directory password no longer works (and is never sent out). To keep the directory password, do not set a local password for that account.
+> 6. **Login rate limiting** counts by "username + client address". The address comes from the direct peer; **only when the peer is a loopback address** (a reverse proxy on the same host/pod) is `X-Forwarded-For` used, taking the right-most hop (the one the trusted proxy appended), so forged headers cannot reset the quota. Therefore, when deployed behind a reverse proxy, make sure the proxy is on the same host as Octop, otherwise all users share a single source address.
 
 ---
 
-## 六、HTTP API
+## 6. HTTP API
 
-| 方法 | 路径 | 权限 | 说明 |
+| Method | Path | Permission | Note |
 |---|---|---|---|
-| `GET` | `/api/auth/ldap/status` | 公开 | `{enabled, display_name}`，供登录页提示 |
-| `GET` | `/api/auth/ldap/config` | `sso` | 目录配置；`bind_password` 不返回，用 `has_bind_password` 表示是否已设 |
-| `PUT` | `/api/auth/ldap/config` | `sso` | 新增/更新配置；`bind_password` 只写 |
-| `POST` | `/api/auth/ldap/config/test` | `sso` | 服务账号 bind + 探测 `user_base_dn` → `{ok, detail}` |
+| `GET` | `/api/auth/ldap/status` | public | `{enabled, display_name}`, for the login-page hint |
+| `GET` | `/api/auth/ldap/config` | `sso` | Directory config; `bind_password` is not returned; `has_bind_password` indicates whether it is set |
+| `PUT` | `/api/auth/ldap/config` | `sso` | Create/update config; `bind_password` is write-only |
+| `POST` | `/api/auth/ldap/config/test` | `sso` | Service-account bind + probe `user_base_dn` → `{ok, detail}` |
 
-登录本身复用 `POST /api/auth/login`（公开），无需新端点。错误码：
+Login itself reuses `POST /api/auth/login` (public), with no new endpoint. Error codes:
 
-| 错误码 | HTTP | 含义 |
+| Error code | HTTP | Meaning |
 |---|---|---|
-| `LDAP_BAD_REQUEST` | 400 | 配置非法（URL 协议、缺 `{username}`、属性名、超时范围等） |
-| `LDAP_UNAVAILABLE` | 502 | 目录不可达 / 服务账号被拒 / 检索失败 |
-| `LDAP_USER_NOT_PROVISIONED` | 403 | 目录账号未开通且未启用自动创建 |
-| `PASSWORD_NOT_SET` | 400 | 试图为目录账号修改本地密码 |
-| `AUTH_FAILED` | 401 | 凭据无效 |
+| `LDAP_BAD_REQUEST` | 400 | Invalid config (URL scheme, missing `{username}`, attribute name, timeout range, etc.) |
+| `LDAP_UNAVAILABLE` | 502 | Directory unreachable / service account rejected / search failed |
+| `LDAP_USER_NOT_PROVISIONED` | 403 | Directory account not provisioned and auto-provisioning not enabled |
+| `PASSWORD_NOT_SET` | 400 | Attempt to change a local password for a directory account |
+| `AUTH_FAILED` | 401 | Invalid credentials |
 
 ---
 
-## 七、测试
+## 7. Testing
 
-### 7.1 单元测试（无需目录）
+### 7.1 Unit tests (no directory needed)
 
 ```bash
 uv run pytest tests/unit/auth/test_ldap_config.py tests/unit/auth/test_ldap_client.py -q
 # → 51 passed
 ```
 
-- `test_ldap_config.py`（27 项，含 11 个参数化校验用例）：URL 解析与默认端口、校验规则（协议/主机/StartTLS 冲突/属性名/超时范围/`{username}` 必填）、草稿保存、`extra` 往返、组名逗号切分、组名归一化。
-- `test_ldap_client.py`（24 项）：登录成功/密码错误/未知用户、**服务账号 DN 不可冒用**、过滤器转义、邮箱登录、同名精确匹配、目录不可达与服务账号被拒的分类、匿名 bind、StartTLS 失败、属性缺失与类型转换。
+- `test_ldap_config.py` (27 cases, including 11 parameterized validation cases): URL parsing and default ports, validation rules (scheme/host/StartTLS conflict/attribute name/timeout range/required `{username}`), draft saving, `extra` round-trip, comma-splitting of group names, group-name normalization.
+- `test_ldap_client.py` (24 cases): successful login / wrong password / unknown user, **service-account DN cannot be impersonated**, filter escaping, email login, exact same-name matching, classification of unreachable directory vs rejected service account, anonymous bind, StartTLS failure, missing attributes and type conversion.
 
-### 7.2 集成测试（走真实 HTTP，仅替换 socket 边界）
+### 7.2 Integration tests (real HTTP, only the socket boundary is replaced)
 
 ```bash
 uv run pytest tests/integration/test_auth_ldap.py -q
 ```
 
-19 项，覆盖：开通与角色映射、非管理员组、**改组不提权**、密码错误、服务账号 DN 冒用、本地密码优先、`auto_provision` 开关、目录宕机分类、服务账号密码轮换、停用账号、目录账号改密、公开状态、权限校验、**绑定密码不外泄**、省略密码保留原值、非法配置本地化报错、连通性测试、未配置时完全跳过目录。
+19 items covering: provisioning and role mapping, non-admin groups, **group change does not elevate**, wrong password, service-account DN impersonation, local password precedence, the `auto_provision` switch, directory-down classification, service-account password rotation, disabled accounts, directory-account password change, public status, permission checks, **bind password is not leaked**, omitting the password keeps the old value, localized errors for invalid config, connectivity test, and fully skipping the directory when unconfigured.
 
-`tests/support/ldap_fake.py` 只替换 `ldap3.Connection`（忠实复刻它的 `open()` 返回 `None`、失败抛 `LDAPSocketOpenError` 等语义），其上层——客户端、服务、路由——全部是生产代码。
+`tests/support/ldap_fake.py` replaces only `ldap3.Connection` (faithfully reproducing its semantics such as `open()` returning `None` and raising `LDAPSocketOpenError` on failure); everything above it — client, service, router — is production code.
 
-### 7.3 Live 测试（对真实目录）
+### 7.3 Live tests (against a real directory)
 
-需要 3.1 的目录在跑：
+Requires the directory from 3.1 running:
 
 ```bash
 OCTOP_LDAP_TEST_URL=ldap://127.0.0.1:3893 \
@@ -485,62 +485,62 @@ OCTOP_LDAP_TEST_EXPECTED_ROLE=admin \
 uv run pytest tests/live/test_ldap_live.py -m live -v
 ```
 
-它经由真实 HTTP API 完成配置 → 连通性测试 → 目录登录 → `has_password=false` 校验 → 错误密码拒绝。换 `OCTOP_LDAP_TEST_USER` / `_PASSWORD` / `_EXPECTED_ROLE` 为 `bob`/`bobpw`/`user` 或 `carol`/`carolpw`/`user` 即可验证非管理员映射。缺任一环境变量则自动跳过，不会让 CI 变红。
+It goes through the real HTTP API: configure → connectivity test → directory login → `has_password=false` check → reject a wrong password. Swap `OCTOP_LDAP_TEST_USER` / `_PASSWORD` / `_EXPECTED_ROLE` to `bob`/`bobpw`/`user` or `carol`/`carolpw`/`user` to verify non-admin mapping. Any missing environment variable causes an automatic skip, so CI is not broken.
 
-### 7.4 浏览器验证要点
+### 7.4 Browser verification points
 
-1. 管理 → 用户 → **LDAP** 页应回填已保存配置，「测试连接」显示 `已连接 LDAP 目录服务`。
-2. 退出登录后，登录页密码框下出现「使用 Corp Directory 账号登录」提示（名称取自 `display_name`）。
-3. 用 `bob/bobpw` 登录后进入 `/chat`，左侧导航**无**「管理」栏目（角色为 `user`）。
+1. The Admin → Users → **LDAP** page should refill the saved config, and "Test connection" should show `Connected to the LDAP directory service`.
+2. After signing out, a "Sign in with your Corp Directory account" hint appears below the password box on the login page (the name comes from `display_name`).
+3. After signing in as `bob/bobpw`, you land at `/chat` and the left nav has **no** "Admin" section (role is `user`).
 
-### 7.5 全量门禁
+### 7.5 Full gate
 
 ```bash
-make all     # format-all + lint + typecheck + test（含 dashboard 构建）
+make all     # format-all + lint + typecheck + test (including the dashboard build)
 cd dashboard && npx tsc -b
 ```
 
-两者都必须通过。
+Both must pass.
 
 ---
 
-## 八、故障排查
+## 8. Troubleshooting
 
-| 现象 | 错误码 / 状态 | 原因与处理 |
+| Symptom | Error code / status | Cause and fix |
 |---|---|---|
-| 保存配置报 400 | `LDAP_BAD_REQUEST` | 看 `detail`：URL 缺 `ldap://`/`ldaps://`、`user_filter` 缺 `{username}`、属性名非法、超时不在 1–60 |
-| 「测试连接」提示服务账号被拒 | `bind_failed` | `bind_dn` 或 `bind_password` 错；DN 写法需与目录一致（`cn=` / `uid=` / `ou=`） |
-| 「测试连接」提示检索被拒 | `search_failed` | `user_base_dn` 越界，或服务账号没有该子树的检索权限（glauth 需 `[[users.capabilities]] action="search"`） |
-| 登录报 502 | `LDAP_UNAVAILABLE` | 服务地址/端口不可达、服务账号密码已轮换、防火墙或证书校验失败（自签证书测试时关 `verify_tls`） |
-| 登录报 403 未开通 | `LDAP_USER_NOT_PROVISIONED` | 开 `auto_provision`，或先在 Octop 内建同名账号 |
-| 登录报 401 | `AUTH_FAILED` | 密码错、用户名在 `user_filter` 下检索不到（检查 `username_attribute` 与过滤器）、或解析出多条且无精确匹配 |
-| 登录成功但不是管理员 | — | 用户不在 `admin_groups` 内；确认目录真的返回 `memberOf`（OpenLDAP 需 `memberof` overlay）；改组**不会**自动提权，需在 Octop 内改角色 |
-| 显示名为空 | — | 目录未暴露该属性（glauth 的 `cn` 即如此，改用 `givenName`） |
-| 改密码报 400 | `PASSWORD_NOT_SET` | 目录账号本就没有本地密码，属预期 |
-| 绑定密码丢了 | — | `PUT` 时省略 `bind_password` 会保留原值；若改了 Fernet 密钥（`secrets.sso_fernet`）则需重新填写 |
+| Saving config returns 400 | `LDAP_BAD_REQUEST` | Check `detail`: URL missing `ldap://`/`ldaps://`, `user_filter` missing `{username}`, invalid attribute name, timeout not in 1–60 |
+| "Test connection" reports the service account rejected | `bind_failed` | Wrong `bind_dn` or `bind_password`; the DN form must match the directory (`cn=` / `uid=` / `ou=`) |
+| "Test connection" reports the search rejected | `search_failed` | `user_base_dn` out of scope, or the service account lacks search rights on that subtree (glauth needs `[[users.capabilities]] action="search"`) |
+| Login returns 502 | `LDAP_UNAVAILABLE` | Server address/port unreachable, service-account password rotated, firewall or certificate verification failure (disable `verify_tls` for self-signed test certificates) |
+| Login returns 403 not provisioned | `LDAP_USER_NOT_PROVISIONED` | Enable `auto_provision`, or create a same-named account in Octop first |
+| Login returns 401 | `AUTH_FAILED` | Wrong password; the username is not found under `user_filter` (check `username_attribute` and the filter); or multiple entries were resolved with no exact match |
+| Login succeeds but the user is not an admin | — | The user is not in `admin_groups`; confirm the directory actually returns `memberOf` (OpenLDAP needs the `memberof` overlay). A group change does **not** auto-elevate; change the role in Octop |
+| Display name is empty | — | The directory does not expose that attribute (glauth's `cn` is such a case; use `givenName` instead) |
+| Change password returns 400 | `PASSWORD_NOT_SET` | A directory account simply has no local password; this is expected |
+| Bind password was lost | — | Omitting `bind_password` on `PUT` keeps the old value; if the Fernet key (`secrets.sso_fernet`) changed, re-enter it |
 
 ---
 
-## 九、生产环境准备清单
+## 9. Production readiness checklist
 
-1. **服务账号**：建一个只读检索账号，授予 `user_base_dn` 子树读权限；不要用域管账号。
-2. **传输安全**：优先 `ldaps://`，其次 `ldap://` + StartTLS；证书可信时保持 `verify_tls` 开启。
-3. **过滤器**：按目录类型调整，AD 常用 `(&(objectClass=user)(sAMAccountName={username}))`；OpenLDAP 常用 `(&(objectClass=inetOrgPerson)(uid={username}))`。
-4. **组映射**：确认目录返回 `memberOf`（OpenLDAP 需 overlay），或接受管理员手动授予。
-5. **属性映射**：`display_name_attribute` 建议 `displayName`（AD）或 `cn`/`displayName`（OpenLDAP）。
-6. **首次上线**：可用 `auto_provision=true` 便于导入；稳定后可关掉，改为管理员先在 Octop 内建号。
+1. **Service account**: create a read-only search account granted read access to the `user_base_dn` subtree; do not use a domain-admin account.
+2. **Transport security**: prefer `ldaps://`, then `ldap://` + StartTLS; keep `verify_tls` on when the certificate is trusted.
+3. **Filters**: adjust by directory type; AD commonly uses `(&(objectClass=user)(sAMAccountName={username}))`; OpenLDAP commonly uses `(&(objectClass=inetOrgPerson)(uid={username}))`.
+4. **Group mapping**: confirm the directory returns `memberOf` (OpenLDAP needs the overlay), or accept manual admin grants.
+5. **Attribute mapping**: `display_name_attribute` is best as `displayName` (AD) or `cn`/`displayName` (OpenLDAP).
+6. **First rollout**: `auto_provision=true` eases importing; once stable, turn it off and have admins create accounts in Octop first.
 
 ---
 
-## 十、相关文件
+## 10. Related files
 
-| 路径 | 作用 |
+| Path | Purpose |
 |---|---|
-| `src/octop/infra/auth/ldap/config.py` | 配置模型、校验、`extra` 序列化与组名解析 |
-| `src/octop/infra/auth/ldap/client.py` | `ldap3` 客户端：服务 bind、检索、用户 bind 验证 |
-| `src/octop/infra/auth/ldap/service.py` | 配置读写、开通账号、角色映射 |
-| `src/octop/api/routers/auth_ldap.py` | 4 个 HTTP 端点 |
-| `src/octop/api/routers/auth.py` | 登录时回退目录（`_authenticate_ldap`） |
-| `dashboard/src/pages/Admin/Users/LdapPanel.tsx` | 管理端配置表单 |
-| `tests/support/ldap_fake.py` | 测试用假目录（替换 `ldap3.Connection`） |
-| `tests/live/test_ldap_live.py` | 对真实目录的端到端测试 |
+| `src/octop/infra/auth/ldap/config.py` | Config model, validation, `extra` serialization, and group-name parsing |
+| `src/octop/infra/auth/ldap/client.py` | `ldap3` client: service bind, search, user-bind verification |
+| `src/octop/infra/auth/ldap/service.py` | Config read/write, account provisioning, role mapping |
+| `src/octop/api/routers/auth_ldap.py` | The four HTTP endpoints |
+| `src/octop/api/routers/auth.py` | Directory fallback at login (`_authenticate_ldap`) |
+| `dashboard/src/pages/Admin/Users/LdapPanel.tsx` | Admin config form |
+| `tests/support/ldap_fake.py` | Fake directory for tests (replaces `ldap3.Connection`) |
+| `tests/live/test_ldap_live.py` | End-to-end tests against a real directory |

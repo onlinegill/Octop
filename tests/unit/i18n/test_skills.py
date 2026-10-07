@@ -9,15 +9,15 @@ from octop.i18n import all_skill_labels, skill_display_name
 
 
 def test_skill_display_name_known_zh():
-    assert skill_display_name("pdf", "zh") == "PDF 处理"
+    assert skill_display_name("pdf", "zh") == "PDF"
 
 
 def test_skill_display_name_octop_assistant_slug_zh():
-    assert skill_display_name("octop-assistant", "zh") == "Octop 助手"
+    assert skill_display_name("octop-assistant", "zh") == "Octop Assistant"
 
 
 def test_skill_display_name_octop_assistant_name_zh():
-    assert skill_display_name("octop_assistant", "zh") == "Octop 助手"
+    assert skill_display_name("octop_assistant", "zh") == "Octop Assistant"
 
 
 def test_skill_display_name_unknown_passthrough():

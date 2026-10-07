@@ -1,7 +1,7 @@
 id: github-trending
 version: 0.1.0
-name: GitHub 趋势
-description: 按语言与时间范围查看 GitHub 新星仓库排行
+name: GitHub Trending
+description: Browse trending GitHub repositories by language and time range
 icon: icon.svg
 group: news
 kind: tool

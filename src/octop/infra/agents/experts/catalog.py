@@ -44,12 +44,9 @@ _FALLBACK_BUNDLED_AVATAR_IDS = frozenset(
         "ai-coding-coach",
         "ai-safety-guardian",
         "clinical-learning-subscription",
-        "cvm-ai-doctor",
-        "cvm-cluster-doctor",
         "default",
         "general-assistant",
         "karpathy-knowledge-base",
-        "meituan-living-assistant",
         "multi-agent-orchestrator",
         "news-trend",
         "office-automation",
@@ -57,8 +54,7 @@ _FALLBACK_BUNDLED_AVATAR_IDS = frozenset(
         "parenting-companion",
         "stock-assistant",
         "superpowers-methodology",
-        "tencentcloud-api",
-        "wechat-ops",
+        "team-host",
         "scene-academic",
         "scene-content-creation",
         "scene-data",
@@ -106,11 +102,8 @@ _BUNDLED_AVATAR_IDS = discover_bundled_avatar_ids()
 class ExpertQuickPrompt:
     """One quick-start card shown on the chat welcome screen."""
 
-    title_zh: str
     title_en: str
-    description_zh: str
     description_en: str
-    prompt_zh: str
     prompt_en: str
     color: str = "#e8f4ff"
     icon_name: str | None = None
@@ -121,11 +114,8 @@ class ExpertSummary:
     """Lightweight view used by ``GET /api/experts``."""
 
     id: str
-    label_zh: str
     label_en: str
-    description_zh: str
     description_en: str
-    welcome_message_zh: str = ""
     welcome_message_en: str = ""
     icon_name: str | None = None
     icon_url: str | None = None
@@ -260,9 +250,9 @@ async def read_workspace_manifest_bytes(workspace: BackendWorkspace) -> bytes | 
 
 def _quick_prompt_api_dict(prompt: ExpertQuickPrompt) -> dict[str, Any]:
     return {
-        "title": {"zh": prompt.title_zh, "en": prompt.title_en},
-        "description": {"zh": prompt.description_zh, "en": prompt.description_en},
-        "prompt": {"zh": prompt.prompt_zh, "en": prompt.prompt_en},
+        "title": {"en": prompt.title_en},
+        "description": {"en": prompt.description_en},
+        "prompt": {"en": prompt.prompt_en},
         "color": prompt.color,
         "icon_name": prompt.icon_name,
     }
@@ -272,10 +262,7 @@ def welcome_payload_from_manifest_data(data: dict[str, Any]) -> dict[str, Any]:
     """Build dashboard welcome payload from workspace or library ``manifest.json``."""
     wm = data.get("welcome_message")
     return {
-        "welcome_message": {
-            "zh": _coerce_label(wm, "zh"),
-            "en": _coerce_label(wm, "en"),
-        },
+        "welcome_message": {"en": _coerce_label(wm)},
         "quick_prompts": [_quick_prompt_api_dict(p) for p in _parse_quick_prompts(data)],
     }
 
@@ -284,17 +271,14 @@ def welcome_payload_from_expert(expert: Expert) -> dict[str, Any]:
     """Welcome fields from an in-memory catalog expert."""
     summary = expert.summary
     return {
-        "welcome_message": {
-            "zh": summary.welcome_message_zh,
-            "en": summary.welcome_message_en,
-        },
+        "welcome_message": {"en": summary.welcome_message_en},
         "quick_prompts": [_quick_prompt_api_dict(p) for p in expert.quick_prompts],
     }
 
 
 def welcome_payload_has_content(payload: dict[str, Any]) -> bool:
     wm = payload.get("welcome_message")
-    if isinstance(wm, dict) and (wm.get("zh") or wm.get("en")):
+    if isinstance(wm, dict) and wm.get("en"):
         return True
     prompts = payload.get("quick_prompts")
     return isinstance(prompts, list) and len(prompts) > 0
@@ -310,31 +294,26 @@ def default_welcome_payload(catalog: ExpertCatalog | None = None) -> dict[str, A
                 return payload
     return {
         "welcome_message": {
-            "zh": "说出你的想法，我来帮忙",
             "en": "Tell me what you need — I'll help",
         },
         "quick_prompts": [
             {
-                "title": {"zh": "总结内容", "en": "Summarize"},
+                "title": {"en": "Summarize"},
                 "description": {
-                    "zh": "粘贴文字，提炼要点和结论",
                     "en": "Paste text and extract key points",
                 },
                 "prompt": {
-                    "zh": "请帮我总结以下内容，提炼核心要点：\n\n",
                     "en": "Please summarize the following and extract the key points:\n\n",
                 },
                 "color": "#e8f4ff",
                 "icon_name": "file-text",
             },
             {
-                "title": {"zh": "随便问问", "en": "Ask anything"},
+                "title": {"en": "Ask anything"},
                 "description": {
-                    "zh": "有任何问题都可以直接问我",
                     "en": "Ask me anything",
                 },
                 "prompt": {
-                    "zh": "我有一个问题想请教你：",
                     "en": "I have a question for you:",
                 },
                 "color": "#eef2ff",
@@ -381,7 +360,7 @@ async def read_workspace_manifest_task_examples(
 
 
 def _quick_prompts_have_content(prompt: ExpertQuickPrompt) -> bool:
-    return bool(prompt.title_zh or prompt.title_en or prompt.prompt_zh or prompt.prompt_en)
+    return bool(prompt.title_en or prompt.prompt_en)
 
 
 async def apply_workspace_quick_prompts(
@@ -508,9 +487,9 @@ def _read_manifest(path: Path) -> dict[str, Any] | None:
         return None
 
 
-def _coerce_label(node: dict[str, Any] | str | None, fallback: str) -> str:
+def _coerce_label(node: dict[str, Any] | str | None) -> str:
     if isinstance(node, dict):
-        return str(node.get(fallback) or node.get("zh") or node.get("en") or "")
+        return str(node.get("en") or "")
     if isinstance(node, str):
         return node
     return ""
@@ -526,12 +505,9 @@ def _parse_quick_prompts(data: dict[str, Any]) -> tuple[ExpertQuickPrompt, ...]:
             continue
         out.append(
             ExpertQuickPrompt(
-                title_zh=_coerce_label(item.get("title"), "zh"),
-                title_en=_coerce_label(item.get("title"), "en"),
-                description_zh=_coerce_label(item.get("description"), "zh"),
-                description_en=_coerce_label(item.get("description"), "en"),
-                prompt_zh=_coerce_label(item.get("prompt"), "zh"),
-                prompt_en=_coerce_label(item.get("prompt"), "en"),
+                title_en=_coerce_label(item.get("title")),
+                description_en=_coerce_label(item.get("description")),
+                prompt_en=_coerce_label(item.get("prompt")),
                 color=str(item.get("color") or "#e8f4ff"),
                 icon_name=item.get("icon_name") if item.get("icon_name") else None,
             ),
@@ -554,11 +530,11 @@ def _coerce_string_list(raw: Any) -> list[str]:
 def parse_task_examples(data: dict[str, Any]) -> dict[str, list[str]] | None:
     """Parse ``task_examples`` from a manifest dict.
 
-    Canonical form is locale-keyed string arrays::
+    Canonical form is a locale-keyed string array::
 
-        {"zh": ["…"], "en": ["…"]}
+        {"en": ["…"]}
 
-    A plain ``["…"]`` list is treated as the same strings for both locales.
+    A plain ``["…"]`` list is treated as the same strings.
     Missing or invalid values return ``None`` so callers can keep default cards.
     """
     if "task_examples" not in data:
@@ -566,15 +542,11 @@ def parse_task_examples(data: dict[str, Any]) -> dict[str, list[str]] | None:
     raw = data["task_examples"]
     if isinstance(raw, list):
         items = _coerce_string_list(raw)
-        return {"zh": list(items), "en": list(items)}
+        return {"en": list(items)}
     if isinstance(raw, dict):
-        zh_raw = raw.get("zh")
         en_raw = raw.get("en")
-        if isinstance(zh_raw, list) or isinstance(en_raw, list):
-            return {
-                "zh": _coerce_string_list(zh_raw),
-                "en": _coerce_string_list(en_raw),
-            }
+        if isinstance(en_raw, list):
+            return {"en": _coerce_string_list(en_raw)}
     return None
 
 
@@ -582,28 +554,20 @@ _TASK_EXAMPLE_COUNT_THREE = 3
 _TASK_EXAMPLE_COUNT_SIX = 6
 
 
-def default_task_examples(label_zh: str, label_en: str) -> dict[str, list[str]]:
-    """Shared bilingual fallbacks for generated / padded ``task_examples``."""
+def default_task_examples(label: str) -> dict[str, list[str]]:
+    """Shared English fallbacks for generated / padded ``task_examples``."""
     return {
-        "zh": [
-            f"每天「09:00」按「{label_zh}」工作流巡检一次，有结果再发给我，任务创建后立即启用",
-            f"每周一「10:00」汇总上周与「{label_zh}」相关的进展和下周计划",
-            "每个工作日「18:00」复盘当天工作，列出待跟进项",
-            f"每周五「17:00」汇总本周与「{label_zh}」相关的交付物和下周安排",
-            f"每天「08:00」按「{label_zh}」工作流推送一条可执行简报",
-            f"每月 1 日「09:30」复盘上月「{label_zh}」进展，列出本月优先项",
-        ],
         "en": [
             (
-                f"Every day at 09:00, run the {label_en} workflow once and notify me "
+                f"Every day at 09:00, run the {label} workflow once and notify me "
                 "when there is a result — enable immediately"
             ),
-            f"Every Monday at 10:00, summarize last week's {label_en} progress and next week's plan",
+            f"Every Monday at 10:00, summarize last week's {label} progress and next week's plan",
             "Every weekday at 18:00, recap the day's work and list follow-ups",
-            f"Every Friday at 17:00, recap this week's {label_en} deliverables and next week's plan",
-            f"Every day at 08:00, push one actionable {label_en} briefing",
+            f"Every Friday at 17:00, recap this week's {label} deliverables and next week's plan",
+            f"Every day at 08:00, push one actionable {label} briefing",
             (
-                f"On the 1st of each month at 09:30, recap last month's {label_en} "
+                f"On the 1st of each month at 09:30, recap last month's {label} "
                 "progress and list this month's priorities"
             ),
         ],
@@ -615,8 +579,7 @@ def resolve_display_task_examples(
     parsed: dict[str, list[str]] | None,
     catalog: ExpertCatalog | None = None,
     template_name: str | None = None,
-    label_zh: str = "",
-    label_en: str = "",
+    label: str = "",
 ) -> dict[str, list[str]]:
     """Workspace field, then catalog template, then name-based defaults (never null).
 
@@ -625,7 +588,7 @@ def resolve_display_task_examples(
     """
     if parsed is not None:
         normalized = normalize_task_examples_for_display(parsed)
-        return normalized if normalized is not None else {"zh": [], "en": []}
+        return normalized if normalized is not None else {"en": []}
     if catalog is not None and template_name:
         expert = catalog.get(template_name)
         summary_examples = (
@@ -635,10 +598,8 @@ def resolve_display_task_examples(
             normalized = normalize_task_examples_for_display(summary_examples)
             if normalized is not None:
                 return normalized
-    zh = (label_zh or label_en or "助手").strip() or "助手"
-    en = (label_en or label_zh or "Assistant").strip() or "Assistant"
-    return normalize_task_examples_for_display(default_task_examples(zh, en)) or {
-        "zh": [],
+    name = (label or "Assistant").strip() or "Assistant"
+    return normalize_task_examples_for_display(default_task_examples(name)) or {
         "en": [],
     }
 
@@ -658,8 +619,7 @@ def display_task_examples_for_agent(
         parsed=parsed,
         catalog=catalog,
         template_name=template,
-        label_zh=name,
-        label_en=name,
+        label=name,
     )
 
 
@@ -682,35 +642,31 @@ def normalize_task_examples_for_display(
     """Keep display lists at 3 or 6 entries; 4–5 truncate to 3, extras cap at 6."""
     if parsed is None:
         return None
-    zh = list(parsed.get("zh") or [])
     en = list(parsed.get("en") or [])
-    if not zh and not en:
-        return {"zh": [], "en": []}
+    if not en:
+        return {"en": []}
     cap = (
         _TASK_EXAMPLE_COUNT_SIX
-        if max(len(zh), len(en)) >= _TASK_EXAMPLE_COUNT_SIX
+        if len(en) >= _TASK_EXAMPLE_COUNT_SIX
         else _TASK_EXAMPLE_COUNT_THREE
     )
-    return {"zh": zh[:cap], "en": en[:cap]}
+    return {"en": en[:cap]}
 
 
 def snap_task_examples(
-    zh: list[str],
     en: list[str],
     *,
-    fillers_zh: list[str],
     fillers_en: list[str],
     count: int | None = None,
 ) -> dict[str, list[str]]:
-    """Keep exactly 3 or 6 bilingual examples (4–5 pad to 6; fewer pad to 3)."""
-    out_zh = [item for item in zh if item][:_TASK_EXAMPLE_COUNT_SIX]
+    """Keep exactly 3 or 6 examples (4–5 pad to 6; fewer pad to 3)."""
     out_en = [item for item in en if item][:_TASK_EXAMPLE_COUNT_SIX]
     if count in (_TASK_EXAMPLE_COUNT_THREE, _TASK_EXAMPLE_COUNT_SIX):
         target = count
     else:
         target = (
             _TASK_EXAMPLE_COUNT_SIX
-            if max(len(out_zh), len(out_en)) > _TASK_EXAMPLE_COUNT_THREE
+            if len(out_en) > _TASK_EXAMPLE_COUNT_THREE
             else _TASK_EXAMPLE_COUNT_THREE
         )
 
@@ -725,9 +681,8 @@ def snap_task_examples(
             side.append(extras[idx % len(extras)])
             idx += 1
 
-    _pad(out_zh, fillers_zh)
     _pad(out_en, fillers_en)
-    return {"zh": out_zh[:target], "en": out_en[:target]}
+    return {"en": out_en[:target]}
 
 
 class ExpertCatalog:
@@ -801,12 +756,9 @@ class ExpertCatalog:
                 seed_paths = discover_seed_paths(entry)
                 summary = ExpertSummary(
                     id=ex_id,
-                    label_zh=_coerce_label(data.get("label"), "zh"),
-                    label_en=_coerce_label(data.get("label"), "en"),
-                    description_zh=_coerce_label(data.get("description"), "zh"),
-                    description_en=_coerce_label(data.get("description"), "en"),
-                    welcome_message_zh=_coerce_label(data.get("welcome_message"), "zh"),
-                    welcome_message_en=_coerce_label(data.get("welcome_message"), "en"),
+                    label_en=_coerce_label(data.get("label")),
+                    description_en=_coerce_label(data.get("description")),
+                    welcome_message_en=_coerce_label(data.get("welcome_message")),
                     icon_name=data.get("icon_name"),
                     icon_url=resolve_expert_icon_url(
                         ex_id,
@@ -875,9 +827,7 @@ def resolve_expert_agent_name(
 ) -> str:
     if override:
         return override
-    if locale == "zh":
-        return expert.summary.label_zh or expert.summary.label_en or expert_id
-    return expert.summary.label_en or expert.summary.label_zh or expert_id
+    return expert.summary.label_en or expert_id
 
 
 def expert_agent_config(_expert_id: str, _expert: Expert, **extra: Any) -> dict[str, Any]:
@@ -896,7 +846,7 @@ def build_create_spec_from_expert(
     user_id: int,
     name: str | None = None,
     description: str | None = None,
-    locale: str = "zh",
+    locale: str = "en",
     default_model: str | None = None,
     config_extra: dict[str, Any] | None = None,
     runtime_config: dict[str, Any] | None = None,
@@ -915,20 +865,8 @@ def build_create_spec_from_expert(
     resolved_name = resolve_expert_agent_name(expert, expert_id, locale=locale, override=name)
     if description:
         resolved_description = description
-    elif locale == "zh":
-        resolved_description = (
-            expert.summary.description_zh
-            or expert.summary.label_zh
-            or expert.summary.description_en
-            or expert.summary.label_en
-        )
     else:
-        resolved_description = (
-            expert.summary.description_en
-            or expert.summary.label_en
-            or expert.summary.description_zh
-            or expert.summary.label_zh
-        )
+        resolved_description = expert.summary.description_en or expert.summary.label_en or ""
     extra = dict(config_extra or {})
     extra_color = extra.pop("color", None)
     extra_icon_url = extra.pop("icon_url", None)

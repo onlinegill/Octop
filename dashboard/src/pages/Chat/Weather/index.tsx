@@ -138,11 +138,11 @@ const WeatherIcon = ({
 const getWeatherLabel = (type: string) => {
   switch (type) {
     case "sunny":
-      return "晴朗";
+      return "Clear";
     case "rainy":
-      return "雨天";
+      return "Rainy day";
     case "cloudy":
-      return "多云";
+      return "Cloudy";
     default:
       return type;
   }

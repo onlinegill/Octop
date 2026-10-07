@@ -125,7 +125,7 @@ def test_create_and_update_profile_fields(repo: AgentRepo, user_id: int):
         icon_url="https://cdn.example.com/a.png",
         skill_package_ids='["PACK01"]',
         published_expert_id="exp_1",
-        welcome_message="你好",
+        welcome_message="Hello",
         template_name="general-assistant",
     )
     row = repo.get(aid)
@@ -135,10 +135,10 @@ def test_create_and_update_profile_fields(repo: AgentRepo, user_id: int):
     assert row.icon_url == "https://cdn.example.com/a.png"
     assert row.skill_package_ids == '["PACK01"]'
     assert row.published_expert_id == "exp_1"
-    assert row.welcome_message == "你好"
-    repo.update_config(aid, color="#111111", welcome_message="改")
+    assert row.welcome_message == "Hello"
+    repo.update_config(aid, color="#111111", welcome_message="Updated")
     updated = repo.get(aid)
     assert updated is not None
     assert updated.color == "#111111"
-    assert updated.welcome_message == "改"
+    assert updated.welcome_message == "Updated"
     assert updated.icon_name == "zap"

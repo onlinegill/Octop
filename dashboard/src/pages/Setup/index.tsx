@@ -276,7 +276,6 @@ export default function SetupPage() {
               size="small"
               value={currentLang}
               options={[
-                { label: t("account.langZh"), value: "zh" },
                 { label: t("account.langEn"), value: "en" },
               ]}
               onChange={handleLanguageChange}

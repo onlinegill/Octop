@@ -527,7 +527,7 @@ export default function ChatInputActionsRow({
                       onClick={() => openModelReasoning(value)}
                       aria-label={`${modelOptionLabel(model)} ${t(
                         "chat.reasoningMode",
-                        "思考模式",
+                        "Thinking model",
                       )}`}
                     >
                       <Brain size={14} />
@@ -1072,7 +1072,7 @@ export default function ChatInputActionsRow({
                 ? t("browser.recordReplay.replay", "Replay last browser recording")
                 : t(
                     "browser.recordReplay.noRecording",
-                    "请先完成一次浏览器录制",
+                    "Please complete a browser recording first",
                   )
             }
             mouseEnterDelay={0.4}
@@ -1117,7 +1117,7 @@ export default function ChatInputActionsRow({
                 isTeam
                   ? t("chat.stopTeamHint", {
                       defaultValue:
-                        "停止本轮生成；已开始的成员回复可能仍会继续推送",
+                        "Stops generation for this cycle; member replies that have been started may still be pushed",
                     })
                   : t("chat.stop", "Stop")
               }
@@ -1130,7 +1130,7 @@ export default function ChatInputActionsRow({
                   isTeam
                     ? t("chat.stopTeamHint", {
                         defaultValue:
-                          "停止本轮生成；已开始的成员回复可能仍会继续推送",
+                          "Stops generation for this cycle; member replies that have been started may still be pushed",
                       })
                     : t("chat.stop", "Stop")
                 }

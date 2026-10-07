@@ -58,12 +58,12 @@ async def convert_unit(value: float, from_unit: str, to_unit: str) -> str:
     try:
         v = float(value)
     except (TypeError, ValueError):
-        return _payload({"error": "invalid value"}, "value 必须是数字。")
+        return _payload({"error": "invalid value"}, "value must be a number.")
     if src in _TEMP or dst in _TEMP:
         if src not in _TEMP or dst not in _TEMP:
             return _payload(
                 {"error": "category mismatch"},
-                "温度单位 c/f/k 不能与长度或质量互转。",
+                "temperature units c/f/k cannot be converted to or from length or mass.",
             )
         result = _convert_temp(v, src, dst)
         category = "temperature"
@@ -78,7 +78,7 @@ async def convert_unit(value: float, from_unit: str, to_unit: str) -> str:
     else:
         return _payload(
             {"error": "unknown or incompatible units"},
-            "不支持的单位或类别不匹配。长度: m,km,cm,mi,ft,in；质量: kg,g,lb,oz；温度: c,f,k。",
+            "unsupported unit or category mismatch. length: m,km,cm,mi,ft,in; mass: kg,g,lb,oz; temperature: c,f,k.",
         )
     data = {
         "value": v,
@@ -95,5 +95,5 @@ def setup(ctx: PluginContext) -> None:
     ctx.tool(
         "convert_unit",
         convert_unit,
-        description="单位换算。长度/质量/温度分别互转，类别不匹配会报错。",
+        description="Unit conversion. length/mass/temperature each convert within their category; a category mismatch raises an error.",
     )

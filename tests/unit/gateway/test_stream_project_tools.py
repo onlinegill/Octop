@@ -8,7 +8,7 @@ from octop.infra.gateway.process.stream_project import enrich_tool_stream_chunk
 def test_enrich_tool_stream_chunk_adds_display_name():
     chunk = {"type": "tool_call_chunk", "name": "read_file", "args": "{"}
     out = enrich_tool_stream_chunk(chunk, "zh")
-    assert out["display_name"] == "读取文件"
+    assert out["display_name"] == "Read file"
     assert out["name"] == "read_file"
 
 
@@ -22,10 +22,10 @@ def test_tool_start_event_carries_localized_hint():
 
     from octop.i18n import channel_tool_hint_start
 
-    label = "读取文件"
+    label = "Read file"
     event = MessageEvent.tool_start(
         label,
         tool_hint_text=channel_tool_hint_start(label, "zh"),
     )
     assert event.metadata["tool_hint_text"] == channel_tool_hint_start(label, "zh")
-    assert "正在调用工具" in event.metadata["tool_hint_text"]
+    assert "Calling tool" in event.metadata["tool_hint_text"]

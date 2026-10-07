@@ -10,7 +10,6 @@ from octop.infra.skills.install import (
     SkillAlreadyExistsError,
     SkillInstallTarget,
     commit_skill_install,
-    prepare_skillhub_package,
 )
 from octop.infra.skills.skill_packages import ResolvedSkillPackage, resolve_skill_package
 
@@ -78,21 +77,3 @@ async def test_commit_overwrite_existing() -> None:
 
     assert target.written["demo"][0][1] == b"---\nname: demo\n---\nupdated"
     assert target.after == [("demo", None)]
-
-
-def test_prepare_skillhub_package_adds_presentation_metadata() -> None:
-    package = prepare_skillhub_package(
-        "hub-skill",
-        [("SKILL.md", b"---\nname: hub-skill\ndescription: x\n---\n\nbody\n")],
-        display_name="展示名",
-        icon_url="https://example.com/icon.png",
-    )
-
-    assert isinstance(package, ResolvedSkillPackage)
-    assert package.slug == "hub-skill"
-    assert package.source == "skillhub"
-    manifest = next(content for path, content in package.files if path == "SKILL.md")
-    text = manifest.decode("utf-8")
-    assert "display_name: 展示名" in text
-    assert "icon_url: https://example.com/icon.png" in text
-    assert "source: skillhub" in text

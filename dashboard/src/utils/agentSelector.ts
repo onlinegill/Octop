@@ -80,7 +80,7 @@ function pickLeftChips(
 
 /**
  * Hide trailing chips when the bar overflows. Always keeps the current
- * selection on the bar; ``hiddenIds`` go behind 「更多」.
+ * selection on the bar; ``hiddenIds`` go behind “More”.
  */
 export function splitBarOverflow(
   chips: BarChipSize[],

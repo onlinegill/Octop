@@ -42,7 +42,7 @@ vi.mock("../../../context/VoiceOutputContext", () => ({
 
 vi.mock("../../../context/AgentContext", () => ({
   useAgent: () => ({
-    activeAgent: { agent_id: "host", name: "助手", icon_name: "bot" },
+    activeAgent: { agent_id: "host", name: "Assistant", icon_name: "bot" },
     agents: [],
   }),
 }));

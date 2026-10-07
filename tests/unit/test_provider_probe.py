@@ -19,18 +19,18 @@ def test_build_chat_model_includes_provider_id_and_model_name() -> None:
         kind="openai",
         base_url="https://api.example.com/v1",
         api_key="sk-test",
-        get_models=lambda: [{"id": "MiniMax-M2.7", "name": "MiniMax-M2.7"}],
+        get_models=lambda: [{"id": "Example-M2.7", "name": "Example-M2.7"}],
     )
 
     with patch("octop_harness.llm.factory.build_chat_model") as mock_build:
         mock_build.return_value = object()
-        _build_chat_model(row, model_id="MiniMax-M2.7")
+        _build_chat_model(row, model_id="Example-M2.7")
 
     provider, model = mock_build.call_args[0]
     assert provider.id == "HAI"
     assert provider.name == "HAI"
-    assert model.id == "MiniMax-M2.7"
-    assert model.name == "MiniMax-M2.7"
+    assert model.id == "Example-M2.7"
+    assert model.name == "Example-M2.7"
 
 
 def _embedding_row(**overrides: Any) -> SimpleNamespace:
@@ -144,19 +144,19 @@ async def test_chat_probe_maps_insufficient_balance() -> None:
         result = await probe_provider_row(row, model_id="gpt-4o-mini", locale="zh")
 
     assert result["ok"] is False
-    assert "余额" in result["error"] or "额度" in result["error"]
+    assert "balance" in result["error"].lower() or "quota" in result["error"].lower()
     assert "402" not in result["error"]
     assert "Insufficient Balance" not in result["error"]
 
 
 @pytest.mark.asyncio
 async def test_embedding_probe_reports_empty_404_with_url() -> None:
-    request = httpx.Request("POST", "https://api.model.haihub.cn/v1/embeddings")
+    request = httpx.Request("POST", "https://api.example.com/v1/embeddings")
     response = httpx.Response(404, text="", request=request)
     post = AsyncMock(return_value=response)
     row = _embedding_row(
         name="HAI",
-        base_url="https://api.model.haihub.cn/v1",
+        base_url="https://api.example.com/v1",
         models=[{"id": "bge-large-zh-v1.5", "name": "bge", "embedding": True}],
     )
     with patch(
@@ -166,7 +166,7 @@ async def test_embedding_probe_reports_empty_404_with_url() -> None:
         result = await probe_provider_row(row, model_id="bge-large-zh-v1.5")
 
     assert result["ok"] is False
-    assert result["error"] == "HTTP 404 POST https://api.model.haihub.cn/v1/embeddings"
+    assert result["error"] == "HTTP 404 POST https://api.example.com/v1/embeddings"
 
 
 @pytest.mark.asyncio

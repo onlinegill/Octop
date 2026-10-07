@@ -1,33 +1,33 @@
-# Agent 互调（harness teams）
+# Agent Peer Calls (harness teams)
 
-> 架构与 inbox 设计见 [agent-interop-mailbox.md](./agent-interop-mailbox.md)。  
-> 后台协作见 [agent-delegation.md](./agent-delegation.md)。
+> For the architecture and inbox design, see [agent-interop-mailbox.md](./agent-interop-mailbox.md).  
+> For background collaboration, see [agent-delegation.md](./agent-delegation.md).
 
-## 原则
+## Principles
 
-**`@` Agent** = 进入主 stream 前，对每个被 @ 的 Agent 做一次同步 `call_peer`，结果注入 `system` 后继续主 Agent。
+**`@` Agent** = before entering the main stream, perform one synchronous `call_peer` for each `@`-mentioned Agent; inject the result into `system`, then continue with the main Agent.
 
-**`ask_agent`** = 模型自行判断是否协作；`mode=sync` 即时返回，`mode=background` 走 harness inbox + `GlobalProcessor.on_reply` 投递。
+**`ask_agent`** = the model itself decides whether to collaborate; `mode=sync` returns immediately, `mode=background` goes through the harness inbox + `GlobalProcessor.on_reply` delivery.
 
-## 用户侧：`@` Agent
+## User side: `@` Agent
 
-1. 输入框 `@Researcher` → 请求带 `target_agent_ids`
+1. The input box `@Researcher` → the request carries `target_agent_ids`
 2. `AgentManager.apply_mention_agent_calls` → `HarnessAgentManager.team.apply_mentions`
-3. 各 Agent 回复注入 `system`，再 stream 当前 Agent
+3. Each Agent's reply is injected into `system`, then the current Agent streams
 
-## Agent 侧工具（harness `teams/tools.py`）
+## Agent-side tools (harness `teams/tools.py`)
 
-| 工具 | 作用 |
-|------|------|
-| `agent_list` | 列出当前用户可协作的 Agent |
-| `ask_agent` | 同步或后台协作（见 [agent-delegation.md](./agent-delegation.md)） |
+| Tool | Purpose |
+|------|---------|
+| `agent_list` | Lists the Agents the current user can collaborate with |
+| `ask_agent` | Synchronous or background collaboration (see [agent-delegation.md](./agent-delegation.md)) |
 
-在 `AgentManager._build_harness_config` 中通过 `team.team_tools()` 注入（与 cron 工具同级）。
+Injected in `AgentManager._build_harness_config` via `team.team_tools()` (on par with the cron tools).
 
-## 执行栈
+## Execution stack
 
 ```text
-用户 @ Agent
+User @ Agent
   → AgentManager.apply_mention_agent_calls
   → TeamManager.apply_mentions → call_peer (sync)
 
@@ -38,13 +38,13 @@ ask_agent mode=background
   → TeamManager.submit_peer → inbox worker → GlobalProcessor.on_reply
 ```
 
-## 相关文件
+## Related files
 
-- `octop_harness/teams/` — inbox、`TeamManager`、`build_team_tools`
-- `infra/gateway/processor.py` — `GlobalProcessor`（消息路由 + `TeamProcessor` 回调）
-- `api/routers/chat.py`、`infra/gateway/processor.py` — `@` 与 slash
+- `octop_harness/teams/` — inbox, `TeamManager`, `build_team_tools`
+- `infra/gateway/processor.py` — `GlobalProcessor` (message routing + `TeamProcessor` callbacks)
+- `api/routers/chat.py`, `infra/gateway/processor.py` — `@` and slash commands
 
-## 后续（可选）
+## Follow-ups (optional)
 
-- `call` 超时与审计
-- 父 thread 展示「后台调研进行中」进度
+- `call` timeouts and auditing
+- Show "background research in progress" progress in the parent thread

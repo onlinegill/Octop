@@ -62,7 +62,7 @@ interface KnowledgeCitationPanelContentProps {
 
 /**
  * Knowledge citation preview body for a chat dock tab (same shell as workspace
- * file tabs opened from “编辑了 N 个文件”).
+ * file tabs opened from “Edited N Files”).
  */
 export default function KnowledgeCitationPanelContent({
   citation,

@@ -5,17 +5,11 @@ from __future__ import annotations
 from typing import Protocol
 from urllib.parse import urlparse
 
-import yaml
-
 from octop.infra.skills import skills_hub
 from octop.infra.skills.skill_packages import (
     ResolvedSkillPackage,
-    SkillPackageError,
-    resolve_skill_package,
     resolve_workspace_uploads,
-    validate_skill_slug,
 )
-from octop.infra.utils.frontmatter import parse_frontmatter
 
 
 class SkillAlreadyExistsError(Exception):
@@ -39,86 +33,6 @@ class SkillInstallTarget(Protocol):
 def _valid_skillhub_icon_url(value: str) -> bool:
     parsed = urlparse(value)
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
-
-
-def with_skillhub_presentation_metadata(
-    content: str,
-    *,
-    display_name: str,
-    icon_url: str,
-    label: dict[str, str] | None = None,
-    summary: dict[str, str] | None = None,
-) -> str:
-    """Persist SkillHub presentation fields without changing the stable skill id."""
-    if not display_name and not icon_url and not label and not summary:
-        return content
-
-    meta, body = parse_frontmatter(content)
-    metadata = meta.get("metadata")
-    metadata = {} if not isinstance(metadata, dict) else dict(metadata)
-    octop_meta = metadata.get("octop")
-    octop_meta = {} if not isinstance(octop_meta, dict) else dict(octop_meta)
-
-    octop_meta["source"] = "skillhub"
-    if icon_url:
-        octop_meta["icon_url"] = icon_url
-    if label:
-        octop_meta["label"] = {key: value for key, value in label.items() if value}
-    elif display_name:
-        octop_meta["display_name"] = display_name
-    if summary:
-        octop_meta["summary"] = {key: value for key, value in summary.items() if value}
-    metadata["octop"] = octop_meta
-    meta["metadata"] = metadata
-
-    dumped = yaml.safe_dump(
-        meta,
-        allow_unicode=True,
-        default_flow_style=False,
-        sort_keys=False,
-    ).rstrip()
-    rendered = f"---\n{dumped}\n---\n"
-    if body:
-        rendered += f"\n{body}"
-    if content.endswith("\n") and not rendered.endswith("\n"):
-        rendered += "\n"
-    return rendered
-
-
-def prepare_skillhub_package(
-    skill_name: str,
-    files: list[tuple[str, bytes]],
-    *,
-    display_name: str = "",
-    icon_url: str = "",
-    label: dict[str, str] | None = None,
-    summary: dict[str, str] | None = None,
-) -> ResolvedSkillPackage:
-    """Normalize SkillHub download files into a canonical package."""
-    safe_name = validate_skill_slug(skill_name)
-    transformed: list[tuple[str, bytes]] = []
-    for rel, original_content in files:
-        normalized = rel.replace("\\", "/")
-        content = original_content
-        if normalized == "SKILL.md":
-            try:
-                manifest = content.decode("utf-8")
-            except UnicodeDecodeError:
-                pass
-            else:
-                content = with_skillhub_presentation_metadata(
-                    manifest,
-                    display_name=display_name,
-                    icon_url=icon_url,
-                    label=label,
-                    summary=summary,
-                ).encode("utf-8")
-        transformed.append((normalized, content))
-    return resolve_skill_package(
-        slug=safe_name,
-        files=transformed,
-        source="skillhub",
-    )
 
 
 def resolve_url_import(
@@ -172,36 +86,6 @@ async def install_skill_from_url(
     )
 
 
-async def install_skill_from_skillhub(
-    target: SkillInstallTarget,
-    *,
-    skill_name: str,
-    files: list[tuple[str, bytes]],
-    display_name: str = "",
-    icon_url: str = "",
-    label: dict[str, str] | None = None,
-    summary: dict[str, str] | None = None,
-    overwrite: bool = False,
-    enable: bool | None = None,
-) -> ResolvedSkillPackage:
-    """Prepare SkillHub files and commit them into the target."""
-    if not files:
-        raise SkillPackageError(f"skillhub installed nothing for '{skill_name}'")
-    package = prepare_skillhub_package(
-        skill_name,
-        files,
-        display_name=display_name,
-        icon_url=icon_url,
-        label=label,
-        summary=summary,
-    )
-    return await commit_skill_install(
-        target,
-        package,
-        overwrite=overwrite,
-        enable=enable,
-    )
-
 
 def valid_skillhub_icon_url(value: str) -> bool:
     """Public alias used by HTTP routers for icon URL validation."""
@@ -212,10 +96,7 @@ __all__ = [
     "SkillAlreadyExistsError",
     "SkillInstallTarget",
     "commit_skill_install",
-    "install_skill_from_skillhub",
     "install_skill_from_url",
-    "prepare_skillhub_package",
     "resolve_url_import",
     "valid_skillhub_icon_url",
-    "with_skillhub_presentation_metadata",
 ]

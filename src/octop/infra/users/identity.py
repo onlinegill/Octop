@@ -19,7 +19,7 @@ class User:
     username: str
     role: str  # role-template public id: admin | user | custom ULID
     display_name: str | None
-    locale: str = "zh"
+    locale: str = "en"
     permissions: list[str] = field(default_factory=list)
 
     @property

@@ -390,7 +390,7 @@ class TeamManager:
     async def _wait_host_dispatch_idle(self, host_id: str, room_thread_id: str) -> None:
         """Do not start wrap-up while the first host turn is still streaming.
 
-        Member answers can finish while the host is still saying「稍候」.
+        Member answers can finish while the host is still saying "one moment".
         Two host token streams on the same room socket then interleave.
         """
         hub = getattr(self._gateway, "ws_hub", None) if self._gateway is not None else None
@@ -1137,16 +1137,11 @@ def _is_team_system_prompt(text: str) -> bool:
     head = text.lstrip()
     return head.startswith(
         (
-            "[团队成员",
-            "[系统唤醒",
-            "[团队派工",
-            "[主持人调度",
             "[team member",
             "[system wake-up",
             "[background task",
             "[Team assignment",
             "[Host dispatch",
-            "以下是当前群聊记录",
             "Here is the current group-chat transcript",
         )
     )

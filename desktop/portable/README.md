@@ -1,118 +1,118 @@
-# Octop 绿色便携包（多平台）
+# Octop portable (green) bundle (multi-platform)
 
-解压即用：内置便携 CPython + Octop 及依赖，通过 `start.sh` / `start.bat` 启动。  
-**不依赖**系统 Python，也**不包含** Wails / 桌面壳——用浏览器打开 Dashboard。  
-首启走上游正常 setup wizard（本目录**不含** OOB / UI 裁剪）。
+Unzip and run: a bundled portable CPython plus Octop and its dependencies, launched via `start.sh` / `start.bat`.  
+It does **not** depend on the system Python and does **not** include Wails / a desktop shell — it opens the Dashboard in your browser.  
+First launch goes through the normal upstream setup wizard (this directory has **no** OOB / UI trimming).
 
-## 与上游解耦
+## Decoupled from upstream
 
-本能力全部落在：
+Everything lives in:
 
-- `desktop/portable/**`（脚本 / 模板 / 本目录 Makefile）
-- `.github/workflows/octop-desktop.yml`（多平台 CI）
-- `desktop/portable/.gitignore`（`/release/` `/runtimes/` `/wheels/` 等忽略构建产物）
-- `tests/unit/test_green_launch.py`（launch.py PATH / addsitedir）
+- `desktop/portable/**` (scripts / templates / this directory's Makefile)
+- `.github/workflows/octop-desktop.yml` (multi-platform CI)
+- `desktop/portable/.gitignore` (`/release/`, `/runtimes/`, `/wheels/` etc. ignore build artifacts)
+- `tests/unit/test_green_launch.py` (launch.py PATH / addsitedir)
 
-**不修改** `src/`、`dashboard/`、`pyproject.toml`、`uv.lock`、根 `Makefile`。  
-合并上游时只需留意上述路径；日常用：
+It does **not** modify `src/`, `dashboard/`, `pyproject.toml`, `uv.lock`, or the root `Makefile`.  
+When merging upstream, only watch those paths; day to day use:
 
 ```bash
 make -f desktop/portable/Makefile green
 ```
 
-依赖版本必须以仓库根目录 `uv.lock` 为准：`package.sh` 使用
-`uv export --frozen`，出包后跑 `desktop/portable/verify_imports.py`
-校验关键包 pin 与 import（含 `langchain-openai` / `langchain-core` 配对），
-避免「同安装、不同环境」因版本错配或原生扩展加载失败而偶发报错。
-平台 overrides（`darwin-amd64` / `windows-arm64` 的 `cryptography==46.x`）
-会一并传入校验，避免与 lock 中的 49.x 误报不一致。
+Dependency versions must follow the repo-root `uv.lock`: `package.sh` uses
+`uv export --frozen`, and after packing run `desktop/portable/verify_imports.py`
+to check key package pins and imports (including the `langchain-openai` / `langchain-core` pairing),
+avoiding intermittent "same install, different environment" failures from version mismatches or native-extension load errors.
+Platform overrides (`cryptography==46.x` for `darwin-amd64` / `windows-arm64`)
+are passed into the verification too, avoiding false mismatches against 49.x in the lock.
 
-## 产物布局
+## Artifact layout
 
-公开文件名：`Octop-portable-<plat>-<version>.zip`。zip 内目录仍是：
+Public filename: `Octop-portable-<plat>-<version>.zip`. The zip's inner directory is still:
 
 ```
 Octop-<plat>/
   runtime/       # python-build-standalone
-  packages/      # Octop + 依赖（site-packages，可搬迁）
-  launch.py      # 启动引导（site.addsitedir / Windows pywin32）
+  packages/      # Octop + dependencies (site-packages, relocatable)
+  launch.py      # launch bootstrap (site.addsitedir / Windows pywin32)
   start.sh       # macOS / Linux
   start.bat      # Windows
   README.txt
-  data/          # 首次运行自动创建（用户数据）
+  data/          # created automatically on first run (user data)
 ```
 
-支持平台：`darwin-arm64` `darwin-amd64` `linux-amd64` `linux-arm64` `windows-amd64` `windows-arm64`。
+Supported platforms: `darwin-arm64` `darwin-amd64` `linux-amd64` `linux-arm64` `windows-amd64` `windows-arm64`.
 
-## 构建（在仓库根目录）
+## Build (from the repo root)
 
-需已安装：`uv`、`curl`、`zip`（可选）、Node（编前端）。
+Requires: `uv`, `curl`, `zip` (optional), Node (to build the frontend).
 
 ```bash
-# 一键：当前主机平台（前端 + 便携 CPython + zip）
+# One shot: current host platform (frontend + portable CPython + zip)
 make -f desktop/portable/Makefile green
 
-# 或分步：
-make build-frontend                  # 上游已有目标
+# Or step by step:
+make build-frontend                  # existing upstream target
 bash desktop/portable/bootstrap-runtime.sh
 bash desktop/portable/package.sh
 ```
 
-本地一键重建（nvm 24）：
+Local one-shot rebuild (nvm 24):
 
 ```bash
 bash desktop/portable/rebuild.sh
 ```
 
-交叉组装其它平台时，**带 C 扩展的包**必须在目标 ABI 上构建：
+When cross-assembling other platforms, packages **with C extensions** must be built on the target ABI:
 
-| 目标 | 推荐方式 |
+| Target | Recommended approach |
 |------|----------|
-| 当前主机 | `make -f desktop/portable/Makefile green` |
-| Linux（从 macOS/Windows） | `make -f desktop/portable/Makefile green-linux` |
-| Windows | 在 Windows / CI 上执行同上 `green` |
+| Current host | `make -f desktop/portable/Makefile green` |
+| Linux (from macOS/Windows) | `make -f desktop/portable/Makefile green-linux` |
+| Windows | run the same `green` on Windows / CI |
 
-### 离线包
+### Offline bundle
 
 ```bash
-bash desktop/portable/vendor-wheels.sh          # 按当前 uv.lock 预取 wheel
+bash desktop/portable/vendor-wheels.sh          # prefetch wheels per the current uv.lock
 OCTOP_GREEN_OFFLINE=1 bash desktop/portable/package.sh
 ```
 
-离线缓存必须来自**当前分支**的 `uv.lock`，不要复用旧分叉的 wheel 目录。
+The offline cache must come from the **current branch's** `uv.lock`; do not reuse an old fork's wheel directory.
 
-### macOS Intel（`darwin-amd64`）注意
+### macOS Intel (`darwin-amd64`) note
 
-锁定的 `cryptography` 49.x **不再发布** macOS x86_64 / universal2 wheel。若允许从 sdist 编译，会链到构建机 Homebrew 的 `/usr/local/opt/openssl@3`，用户机缺库即启动失败。
+The pinned `cryptography` 49.x **no longer ships** a macOS x86_64 / universal2 wheel. If it is allowed to compile from sdist it links against the build machine's Homebrew `/usr/local/opt/openssl@3`, and user machines without that library fail to start.
 
-绿包脚本已做：
+The green packaging scripts already:
 
-1. `darwin-amd64` 覆盖钉死 `cryptography==46.0.3`（仍有 `macosx_*_universal2` wheel）
-2. 全平台 `--only-binary cryptography`，禁止源码编译
-3. 打包后 `otool` 检查，拒绝 Homebrew/MacPorts 绝对路径
-4. smoke import 覆盖 `cryptography.fernet`
+1. Pin `cryptography==46.0.3` for the `darwin-amd64` override (which still has a `macosx_*_universal2` wheel)
+2. Use `--only-binary cryptography` on all platforms, forbidding source builds
+3. Run an `otool` check after packaging and reject Homebrew/MacPorts absolute paths
+4. Cover `cryptography.fernet` with a smoke import
 
 ### Windows / pywin32
 
-`mcp` / `docker` 在 win32 上传递依赖 `pywin32`。打包脚本会：
+`mcp` / `docker` transitively depend on `pywin32` on win32. The packaging script:
 
-1. 若 `packages/pywin32_system32` 缺失则显式 `uv pip install pywin32`
-2. 把 `pywintypes*.dll` / `pythoncom*.dll` 拷到 `runtime/`
-3. `launch.py` 用 `site.addsitedir` 处理 `.pth`，并 `os.add_dll_directory`
+1. Explicitly runs `uv pip install pywin32` if `packages/pywin32_system32` is missing
+2. Copies `pywintypes*.dll` / `pythoncom*.dll` into `runtime/`
+3. `launch.py` uses `site.addsitedir` to process `.pth` and `os.add_dll_directory`
 
-**不要**设置 `PYTHONPATH=packages`（会跳过 `.pth`，导致 `No module named pywintypes`）。
+Do **not** set `PYTHONPATH=packages` (it skips `.pth` and causes `No module named pywintypes`).
 
-`windows-arm64` 另排除无 wheel 的 `psycopg-binary` / `sqlite-vec`，并把 `cryptography` 钉到 `46.0.0`（仅该版本提供 `win_arm64` wheel）。
+`windows-arm64` additionally excludes `psycopg-binary` / `sqlite-vec` which have no wheel, and pins `cryptography` to `46.0.0` (only that version ships a `win_arm64` wheel).
 
 ## CI
 
-[`.github/workflows/octop-desktop.yml`](../../.github/workflows/octop-desktop.yml) 在 6 个 runner 上出 zip：
+[`.github/workflows/octop-desktop.yml`](../../.github/workflows/octop-desktop.yml) produces zips on 6 runners:
 
 `linux-amd64` `linux-arm64` `darwin-arm64` `darwin-amd64` `windows-amd64` `windows-arm64`
 
-Actions 使用 GitHub 上游 PBS（`PBS_BASE_URL`），本机构建默认 npmmirror。产物以 `archive: false` 上传，避免 zip-in-zip。
+Actions use the GitHub upstream PBS (`PBS_BASE_URL`), and local builds default to the same GitHub upstream. Artifacts are uploaded with `archive: false` to avoid zip-in-zip.
 
-## Electron 壳
+## Electron shell
 
-壳只消费 `Octop-portable-<plat>-<version>.zip`（zip 内仍是 `Octop-<plat>/`），不要把绿包编进 asar。步骤见
-[`AGENT_ELECTRON_INTEGRATION.md`](AGENT_ELECTRON_INTEGRATION.md)。
+The shell only consumes `Octop-portable-<plat>-<version>.zip` (the inner directory is still `Octop-<plat>/`); do not bundle the green package into the asar. See
+[`AGENT_ELECTRON_INTEGRATION.md`](AGENT_ELECTRON_INTEGRATION.md).

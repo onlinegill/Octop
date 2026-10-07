@@ -53,12 +53,12 @@ def _opensearch_title(client: httpx.Client, lang: str, query: str) -> str | None
     return None
 
 
-async def wiki_summary(query: str, lang: str = "zh") -> str:
+async def wiki_summary(query: str, lang: str = "en") -> str:
     """Fetch Wikipedia summary; opensearch if direct title misses."""
     q = (query or "").strip()
     if not q:
-        return _payload({"error": "empty"}, "请提供词条名或关键词。")
-    language = (lang or "zh").strip().lower() or "zh"
+        return _payload({"error": "empty"}, "Please provide an entry name or keyword.")
+    language = (lang or "en").strip().lower() or "en"
     headers = {"User-Agent": _UA}
     try:
         with httpx.Client(timeout=20.0, headers=headers, follow_redirects=True) as client:
@@ -68,10 +68,10 @@ async def wiki_summary(query: str, lang: str = "zh") -> str:
                 if alt:
                     row = _summary(client, language, alt)
     except Exception as exc:
-        return _payload({"error": str(exc), "query": q}, f"维基查询失败：{exc}")
+        return _payload({"error": str(exc), "query": q}, f"Wikipedia lookup failed: {exc}")
     if not row.get("extract"):
         return _payload({"query": q, "silent": True}, "")
-    text = f"{row['title']}：{row['extract'][:120]}…"
+    text = f"{row['title']}: {row['extract'][:120]}…"
     return _payload({**row, "query": q, "lang": language}, text)
 
 
@@ -79,5 +79,5 @@ def setup(ctx: PluginContext) -> None:
     ctx.tool(
         "wiki_summary",
         wiki_summary,
-        description="维基百科摘要。query 为词条；lang 默认 zh。",
+        description="Wikipedia summary. query is the entry name; lang defaults to en.",
     )

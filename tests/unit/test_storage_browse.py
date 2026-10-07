@@ -66,7 +66,7 @@ def test_row_for_probe_merges_secrets_from_base() -> None:
         access_key="AKIDstored",
         secret_key="SKstored",
         bucket="my-bucket",
-        region="ap-guangzhou",
+        region="us-east-1",
     )
     merged = row_for_probe(
         kind="cos",

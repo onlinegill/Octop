@@ -79,10 +79,7 @@ async def internal_mcp_post(
     if method == "initialize":
         session_id = secrets.token_urlsafe(16)
 
-    if kind == "qcc":
-        resp = await svc.handle_qcc_request(instance_id, body)
-    else:
-        resp = await asyncio.to_thread(handle_mcp_request, kind=kind, creds=creds, body=body)
+    resp = await asyncio.to_thread(handle_mcp_request, kind=kind, creds=creds, body=body)
     if not resp:
         return Response(status_code=202)
 

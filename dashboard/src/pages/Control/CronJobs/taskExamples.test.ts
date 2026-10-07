@@ -48,17 +48,17 @@ describe("resolveTaskExamples", () => {
 
   it("uses the active locale list when present", () => {
     expect(
-      resolveTaskExamples({ zh: ["中文"], en: ["English"] }, "zh", defaults),
-    ).toEqual(["中文"]);
+      resolveTaskExamples({ zh: ["Chinese"], en: ["English"] }, "zh", defaults),
+    ).toEqual(["Chinese"]);
     expect(
-      resolveTaskExamples({ zh: ["中文"], en: ["English"] }, "en", defaults),
+      resolveTaskExamples({ zh: ["Chinese"], en: ["English"] }, "en", defaults),
     ).toEqual(["English"]);
   });
 
   it("falls back to the other locale when the active list is empty", () => {
     expect(
-      resolveTaskExamples({ zh: ["中文"], en: [] }, "en", defaults),
-    ).toEqual(["中文"]);
+      resolveTaskExamples({ zh: ["Chinese"], en: [] }, "en", defaults),
+    ).toEqual(["Chinese"]);
   });
 
   it("shows no cards when the field exists but both lists are empty", () => {
@@ -69,10 +69,10 @@ describe("resolveTaskExamples", () => {
   it("truncates four or five locale items to three", () => {
     expect(
       resolveTaskExamples(
-        { zh: ["一", "二", "三", "四", "五"], en: ["a", "b", "c", "d"] },
+        { zh: ["One", "Two", "Three", "Four", "Five"], en: ["a", "b", "c", "d"] },
         "zh",
         defaults,
       ),
-    ).toEqual(["一", "二", "三"]);
+    ).toEqual(["One", "Two", "Three"]);
   });
 });

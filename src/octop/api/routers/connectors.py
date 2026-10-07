@@ -7,7 +7,7 @@ import json
 import logging
 import secrets
 from html import escape
-from typing import Any, Literal
+from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlparse, urlsplit
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -15,12 +15,11 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, model_validator
 
 from octop.api.common.public_base import resolve_public_base
-from octop.api.deps import current_user, get_server, require_permission
+from octop.api.deps import current_user, get_server
 from octop.i18n import tr
 from octop.infra.auth.sso.redirect_after import sanitize_redirect_after
 from octop.infra.connectors.builder import (
     mcp_server_name,
-    normalize_weiyun_mcp_token,
     validate_create_credentials,
 )
 from octop.infra.connectors.catalog import (
@@ -39,13 +38,6 @@ from octop.infra.connectors.default_open import (
     build_instance_config_json,
     read_default_open,
 )
-from octop.infra.connectors.gateway.cli_dirs import cleanup_creds_cli_dirs
-from octop.infra.connectors.gateway.cli_install import (
-    cli_install_status,
-    get_cli_install_spec,
-    install_connector_cli,
-)
-from octop.infra.connectors.gateway.feishu_user_auth import live_user_auth_preview
 from octop.infra.connectors.oauth import (
     auth_info_for_kind,
     delete_oauth_ctx,
@@ -61,7 +53,6 @@ from octop.infra.connectors.oauth.registry import (
     oauth_target_requires_https,
 )
 from octop.infra.connectors.probe import (
-    detect_local_weknora,
     prepare_probe_credentials,
     probe_connector,
     probe_custom_mcp_server,
@@ -131,28 +122,6 @@ class ExchangeAuthCodeBody(BaseModel):
 class TestCredentialsBody(BaseModel):
     kind: str
     credentials: dict[str, Any] = Field(default_factory=dict)
-
-
-class FeishuUserAuthStartBody(BaseModel):
-    app_id: str
-    app_secret: str
-    cli_config_key: str | None = None
-    domains: list[str] | None = None
-
-
-class FeishuUserAuthCompleteBody(BaseModel):
-    app_id: str
-    app_secret: str
-    device_code: str
-    cli_config_key: str | None = None
-
-
-class AgentlyAuthResponse(BaseModel):
-    status: Literal["idle", "pending", "authorized", "expired", "error"]
-    verification_url: str | None = Field(default=None, description="Device authorization URL")
-    user_code: str | None = Field(default=None, description="Code shown for device authorization")
-    expires_at: int | None = Field(default=None, description="Pending flow expiry, Unix seconds")
-    error: str | None = Field(default=None, description="Localized error, without CLI credentials")
 
 
 class CustomMcpPutBody(BaseModel):
@@ -323,41 +292,13 @@ async def _prepare_credentials(
             extra=extra or None,
         )
         cred_payload.update(exchanged)
-    elif entry.kind == "tencent-weiyun" and entry.auth_kind == "personal_token":
-        raw = str(cred_payload.get("token") or cred_payload.get("access_token") or "").strip()
-        token = normalize_weiyun_mcp_token(raw)
-        if not token:
-            raise ValueError("token is required")
-        cred_payload = {"token": token}
     return validate_create_credentials(kind, cred_payload)
 
 
 def _merge_credentials(
     old: dict[str, Any],
     new: dict[str, Any],
-    *,
-    kind: str | None = None,
 ) -> dict[str, Any]:
-    # QCC: switching auth mode must replace the other mode's secrets, not layer them.
-    if kind == "qcc":
-        new_api_key = str(new.get("api_key") or "").strip()
-        new_access = str(new.get("access_token") or new.get("token") or "").strip()
-        oauth_in_new = bool(new.get("oauth_client_id") or new.get("refresh_token") or new_access)
-        if new_api_key and not oauth_in_new:
-            out: dict[str, Any] = {"api_key": new_api_key}
-            if old.get("internal_token"):
-                out["internal_token"] = old["internal_token"]
-            return out
-        if oauth_in_new:
-            merged_oauth = dict(old)
-            for key, value in new.items():
-                if value is None:
-                    continue
-                if isinstance(value, str) and not value.strip():
-                    continue
-                merged_oauth[key] = value
-            merged_oauth.pop("api_key", None)
-            return merged_oauth
     merged = dict(old)
     for key, value in new.items():
         if value is None:
@@ -374,19 +315,10 @@ def _credentials_preview(kind: str, creds: dict[str, Any]) -> dict[str, Any]:
         return {}
     preview: dict[str, Any] = {}
     if entry.auth_kind == "personal_token":
-        if entry.kind == "tencent-weiyun":
-            if str(creds.get("token") or "").strip():
-                preview["token_configured"] = True
-        elif str(creds.get("token") or creds.get("access_token") or "").strip():
+        if str(creds.get("token") or creds.get("access_token") or "").strip():
             preview["token_configured"] = True
     elif entry.auth_kind == "oauth2":
-        if (
-            kind == "qcc"
-            and str(creds.get("api_key") or "").strip()
-            and not (creds.get("oauth_client_id") or creds.get("refresh_token"))
-        ):
-            preview["api_key_configured"] = True
-        elif str(creds.get("access_token") or "").strip():
+        if str(creds.get("access_token") or "").strip():
             preview["oauth_configured"] = True
         if creds.get("expires_at") is not None:
             preview["expires_at"] = creds.get("expires_at")
@@ -400,29 +332,6 @@ def _credentials_preview(kind: str, creds: dict[str, Any]) -> dict[str, Any]:
     elif entry.auth_kind == "api_key":
         if str(creds.get("api_key") or "").strip():
             preview["api_key_configured"] = True
-        # Legacy tencent-news instances stored the key as ``cookie``.
-        if kind == "tencent-news" and str(creds.get("cookie") or "").strip():
-            preview["api_key_configured"] = True
-        if kind == "tencent-ima" and creds.get("client_id"):
-            preview["client_id"] = str(creds["client_id"])
-        if kind == "feishu-cli" and creds.get("app_id"):
-            preview["app_id"] = str(creds["app_id"])
-            if str(creds.get("app_secret") or "").strip():
-                preview["app_secret_configured"] = True
-            default_as = str(creds.get("default_as") or "bot").strip().lower()
-            preview["default_as"] = "user" if default_as == "user" else "bot"
-            if default_as == "user":
-                preview["user_auth_configured"] = True
-            if creds.get("cli_config_key"):
-                preview["cli_config_key"] = str(creds["cli_config_key"])
-        if kind == "wecom-cli" and creds.get("bot_id"):
-            preview["bot_id"] = str(creds["bot_id"])
-            if str(creds.get("bot_secret") or "").strip():
-                preview["bot_secret_configured"] = True
-        if kind == "tencent-lexiang":
-            company_from = creds.get("company_from") or creds.get("client_id")
-            if company_from:
-                preview["client_id"] = str(company_from)
     elif entry.auth_kind == "imap_app_password":
         if creds.get("email"):
             preview["email"] = str(creds["email"])
@@ -457,14 +366,11 @@ def _schedule_connector_reload(
     user_id: int,
     *,
     all_users: bool = False,
-    mail_instance_id: str | None = None,
 ) -> None:
     assert server.app_runtime is not None
 
     async def _run() -> None:
         try:
-            if mail_instance_id:
-                await server.app_runtime.cron_manager.sync_mail_watch(mail_instance_id)
             if all_users:
                 await server.app_runtime.agent_registry.reload_all()
             else:
@@ -540,15 +446,6 @@ async def get_catalog(
         )
         for e in list_catalog()
     ]
-
-
-@router.get("/connectors/weknora/detect-local", summary="Detect local WeKnora")
-async def detect_weknora_on_octop_host(
-    user: Any = Depends(current_user),
-) -> dict[str, Any]:
-    """Check WeKnora's fixed default loopback health endpoint (no persistence)."""
-    del user
-    return await detect_local_weknora()
 
 
 @router.get("/connector-instances", summary="List connector instances")
@@ -702,9 +599,6 @@ async def get_instance(
         svc = _connector_service(server)
         creds = svc.decrypt(instance_id)
         data["credentials_preview"] = _credentials_preview(inst.kind, creds)
-        if inst.kind == "feishu-cli" and data["credentials_preview"].get("user_auth_configured"):
-            live = await asyncio.to_thread(live_user_auth_preview, creds)
-            data["credentials_preview"].update(live)
     else:
         data["credentials_preview"] = {}
     return data
@@ -779,7 +673,6 @@ async def create_instance(
         server,
         user.id,
         all_users=body.shared,
-        mail_instance_id=instance_id if body.kind == "agently-cli" else None,
     )
     return _instance_to_dict(inst)
 
@@ -866,7 +759,7 @@ async def patch_instance(
         repo.update_metadata(instance_id, shared=body.shared)
     if body.credentials is not None:
         svc = _connector_service(server)
-        merged = _merge_credentials(svc.decrypt(instance_id), body.credentials, kind=inst.kind)
+        merged = _merge_credentials(svc.decrypt(instance_id), body.credentials)
         try:
             prepared = await _prepare_credentials(inst.kind, merged, server.services.settings_repo)
         except ValueError as exc:
@@ -907,7 +800,6 @@ async def patch_instance(
         server,
         inst.user_id,
         all_users=inst.shared or body.shared is True or body.shared is False,
-        mail_instance_id=instance_id if inst.kind == "agently-cli" else None,
     )
     return _instance_to_dict(inst)
 
@@ -947,38 +839,11 @@ async def delete_instance(
         raise OctopError(ErrorCode.CONNECTOR_NOT_FOUND, f"instance {instance_id!r} not found")
     _assert_can_manage_connector(inst, user)
     user_id = inst.user_id
-    cli_creds: dict[str, Any] | None = None
-    if inst.kind in ("feishu-cli", "wecom-cli", "agently-cli") and inst.has_credentials:
-        try:
-            cli_creds = _connector_service(server).decrypt(instance_id)
-        except Exception:
-            cli_creds = {"instance_id": instance_id}
-        else:
-            cli_creds = {**cli_creds, "instance_id": instance_id}
-    if inst.kind == "agently-cli":
-        result = await _connector_service(server).agently_auth_for_instance(
-            instance_id, inst.user_id, "disconnect", locale=resolve_request_locale(request)
-        )
-        if result["status"] == "error":
-            raise OctopError.localized(
-                ErrorCode.CONNECTOR_INVALID_CREDENTIALS,
-                locale=resolve_request_locale(request),
-                details={"reason": result["error"]},
-            )
-    if inst.kind == "qcc":
-        try:
-            await _connector_service(server).disconnect_qcc(instance_id)
-        except ValueError as exc:
-            raise OctopError(ErrorCode.CONNECTOR_INVALID_CREDENTIALS, str(exc)) from exc
-    elif inst.kind != "agently-cli":
-        repo.delete(instance_id)
-    if cli_creds is not None:
-        cleanup_creds_cli_dirs(inst.kind, cli_creds)
+    repo.delete(instance_id)
     _schedule_connector_reload(
         server,
         user_id,
         all_users=inst.shared,
-        mail_instance_id=instance_id if inst.kind == "agently-cli" else None,
     )
     server.services.audit_repo.write(
         actor=user.username,
@@ -1019,8 +884,6 @@ async def test_instance(
     creds = await svc.ensure_fresh_credentials(instance_id, inst.kind)
     if not creds:
         raise OctopError(ErrorCode.CONNECTOR_INVALID_CREDENTIALS, "missing credentials")
-    if inst.kind == "agently-cli":
-        creds["_locale"] = resolve_request_locale(request)
 
     try:
         return await probe_connector(
@@ -1060,8 +923,6 @@ async def test_credentials(
             str(exc),
             details={"reason": str(exc)},
         ) from exc
-    if body.kind == "agently-cli":
-        cred_payload["_locale"] = resolve_request_locale(request)
     try:
         return await probe_connector(
             entry,
@@ -1072,233 +933,6 @@ async def test_credentials(
     except Exception as exc:
         logger.exception("connector credential test failed for %s", body.kind)
         return {"ok": False, "error": str(exc)}
-
-
-@router.get(
-    "/connectors/{kind}/cli-status",
-    summary="Host CLI install status for CLI connectors",
-)
-async def connector_cli_status(
-    kind: str,
-    user: Any = Depends(current_user),
-) -> dict[str, Any]:
-    """Report whether the host binary is on PATH (no side effects)."""
-    del user
-    if get_cli_install_spec(kind) is None:
-        raise OctopError(
-            ErrorCode.CONNECTOR_KIND_UNSUPPORTED,
-            f"kind {kind!r} does not support CLI install",
-        )
-    try:
-        return await asyncio.to_thread(cli_install_status, kind)
-    except ValueError as exc:
-        raise OctopError(ErrorCode.CONNECTOR_KIND_UNSUPPORTED, str(exc)) from exc
-
-
-@router.post(
-    "/connectors/{kind}/install-cli",
-    summary="Install host CLI for CLI connectors (admin)",
-)
-async def connector_install_cli(
-    kind: str,
-    _: Any = Depends(require_permission("connectors")),
-) -> dict[str, Any]:
-    """Run ``npm install -g`` for the connector CLI on the Octop host (admin only).
-
-    Always returns a structured body (even on failure) including ``install_command``
-    and documentation URLs so the UI can guide manual install.
-    """
-    if get_cli_install_spec(kind) is None:
-        raise OctopError(
-            ErrorCode.CONNECTOR_KIND_UNSUPPORTED,
-            f"kind {kind!r} does not support CLI install",
-        )
-    return await asyncio.to_thread(install_connector_cli, kind)
-
-
-@router.post(
-    "/connectors/feishu-cli/user-auth/start",
-    summary="Start Feishu CLI user device-code login",
-)
-async def feishu_cli_user_auth_start(
-    body: FeishuUserAuthStartBody,
-    user: Any = Depends(current_user),
-    server: Any = Depends(get_server),
-) -> dict[str, Any]:
-    """Begin OAuth device-code login (no local HTTPS callback required)."""
-    del user
-    svc = _connector_service(server)
-    try:
-        return await svc.start_feishu_user_auth(
-            app_id=body.app_id,
-            app_secret=body.app_secret,
-            cli_config_key=body.cli_config_key,
-            domains=body.domains,
-        )
-    except ValueError as exc:
-        raise OctopError(
-            ErrorCode.CONNECTOR_INVALID_CREDENTIALS,
-            str(exc),
-            details={"reason": str(exc)},
-        ) from exc
-
-
-@router.post(
-    "/connectors/feishu-cli/user-auth/complete",
-    summary="Complete Feishu CLI user device-code login",
-)
-async def feishu_cli_user_auth_complete(
-    body: FeishuUserAuthCompleteBody,
-    user: Any = Depends(current_user),
-    server: Any = Depends(get_server),
-) -> dict[str, Any]:
-    """Finish device-code login and switch default identity to user."""
-    del user
-    svc = _connector_service(server)
-    try:
-        return await svc.complete_feishu_user_auth(
-            app_id=body.app_id,
-            app_secret=body.app_secret,
-            device_code=body.device_code,
-            cli_config_key=body.cli_config_key or "",
-        )
-    except ValueError as exc:
-        raise OctopError(
-            ErrorCode.CONNECTOR_INVALID_CREDENTIALS,
-            str(exc),
-            details={"reason": str(exc)},
-        ) from exc
-
-
-class FeishuUserAuthInstanceCompleteBody(BaseModel):
-    device_code: str
-    cli_config_key: str | None = None
-
-
-@router.post(
-    "/connector-instances/{instance_id}/agently-auth/start",
-    response_model=AgentlyAuthResponse,
-    summary="Start Agent Mail device authorization",
-    description="Owner only. Starts one bounded background login for this saved instance.",
-)
-async def agently_auth_start(
-    instance_id: str,
-    request: Request,
-    user: Any = Depends(current_user),
-    server: Any = Depends(get_server),
-) -> AgentlyAuthResponse:
-    result = await _connector_service(server).agently_auth_for_instance(
-        instance_id, user.id, "start", locale=resolve_request_locale(request)
-    )
-    return AgentlyAuthResponse(**result)
-
-
-@router.get(
-    "/connector-instances/{instance_id}/agently-auth/status",
-    response_model=AgentlyAuthResponse,
-    summary="Read Agent Mail authorization status",
-    description="Owner only. Poll a device login or check stored authorization without exposing tokens.",
-)
-async def agently_auth_status(
-    instance_id: str,
-    request: Request,
-    user: Any = Depends(current_user),
-    server: Any = Depends(get_server),
-) -> AgentlyAuthResponse:
-    result = await _connector_service(server).agently_auth_for_instance(
-        instance_id, user.id, "status", locale=resolve_request_locale(request)
-    )
-    if result["status"] == "authorized":
-        assert server.app_runtime is not None
-        await server.app_runtime.cron_manager.resume_mail_watch(instance_id)
-    return AgentlyAuthResponse(**result)
-
-
-@router.post(
-    "/connector-instances/{instance_id}/agently-auth/logout",
-    response_model=AgentlyAuthResponse,
-    summary="Log out of Agent Mail",
-    description="Owner only. Cancels pending login, clears the CLI grant and attempts revocation.",
-)
-async def agently_auth_logout(
-    instance_id: str,
-    request: Request,
-    user: Any = Depends(current_user),
-    server: Any = Depends(get_server),
-) -> AgentlyAuthResponse:
-    result = await _connector_service(server).agently_auth_for_instance(
-        instance_id, user.id, "logout", locale=resolve_request_locale(request)
-    )
-    assert server.app_runtime is not None
-    await server.app_runtime.cron_manager.stop_mail_watch(instance_id)
-    return AgentlyAuthResponse(**result)
-
-
-@router.post(
-    "/connector-instances/{instance_id}/agently-auth/refresh",
-    response_model=AgentlyAuthResponse,
-    summary="Refresh Agent Mail authorization",
-    description="Owner only. Refreshes the saved CLI grant and returns sanitized authorization status.",
-)
-async def agently_auth_refresh(
-    instance_id: str,
-    request: Request,
-    user: Any = Depends(current_user),
-    server: Any = Depends(get_server),
-) -> AgentlyAuthResponse:
-    result = await _connector_service(server).agently_auth_for_instance(
-        instance_id, user.id, "refresh", locale=resolve_request_locale(request)
-    )
-    return AgentlyAuthResponse(**result)
-
-
-@router.post(
-    "/connector-instances/{instance_id}/feishu-user-auth/start",
-    summary="Start Feishu user login for an existing connector instance",
-)
-async def feishu_cli_user_auth_start_instance(
-    instance_id: str,
-    user: Any = Depends(current_user),
-    server: Any = Depends(get_server),
-) -> dict[str, Any]:
-    """Same as start, but App Secret is read from the stored instance."""
-    svc = _connector_service(server)
-    try:
-        return await svc.start_feishu_user_auth_for_instance(instance_id, user.id)
-    except ValueError as exc:
-        raise OctopError(
-            ErrorCode.CONNECTOR_INVALID_CREDENTIALS,
-            str(exc),
-            details={"reason": str(exc)},
-        ) from exc
-
-
-@router.post(
-    "/connector-instances/{instance_id}/feishu-user-auth/complete",
-    summary="Complete Feishu user login for an existing connector instance",
-)
-async def feishu_cli_user_auth_complete_instance(
-    instance_id: str,
-    body: FeishuUserAuthInstanceCompleteBody,
-    user: Any = Depends(current_user),
-    server: Any = Depends(get_server),
-) -> dict[str, Any]:
-    svc = _connector_service(server)
-    try:
-        result = await svc.complete_feishu_user_auth_for_instance(
-            instance_id,
-            user.id,
-            device_code=body.device_code,
-            cli_config_key=body.cli_config_key,
-        )
-    except ValueError as exc:
-        raise OctopError(
-            ErrorCode.CONNECTOR_INVALID_CREDENTIALS,
-            str(exc),
-            details={"reason": str(exc)},
-        ) from exc
-    _schedule_connector_reload(server, user.id)
-    return result
 
 
 @router.post("/connector-instances/{instance_id}/refresh", summary="Refresh OAuth tokens")
@@ -1331,8 +965,6 @@ async def auth_info(
     if get_catalog_entry(kind) is None:
         raise OctopError(ErrorCode.CONNECTOR_KIND_UNSUPPORTED, f"unknown kind {kind!r}")
     info = auth_info_for_kind(kind, server.services.settings_repo)
-    if kind == "agently-cli":
-        info["auth_hint"] = tr("connector.agently.auth_hint", resolve_request_locale(request))
     return info
 
 

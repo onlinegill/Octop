@@ -35,7 +35,7 @@ interface ChatDockPanelShellProps {
   onModeChange: (mode: PanelMode) => void;
   onClose: () => void;
   style?: React.CSSProperties;
-  /** Left-side title (filename / “远程浏览器”). */
+  /** Left-side title (filename / “Remote browser”). */
   title?: React.ReactNode;
   /** Content actions left of the layout/close group (mode, refresh, download…). */
   toolbarActions?: React.ReactNode;

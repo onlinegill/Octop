@@ -100,7 +100,7 @@ async def test_hints_from_file_content_with_workspace_resolve_path() -> None:
         hints = hints_from_content_parts(parts, workspace=workspace)
         resolved = resolve_inbound_attachment_path(workspace, stored.path)
         assert len(hints) == 1
-        assert f"Workspace path: {resolved}" in hints[0] or f"工作区路径：{resolved}" in hints[0]
+        assert f"Workspace path: {resolved}" in hints[0]
         assert resolved.replace("\\", "/").endswith(f"/{stored.path}")
         # Must not invent a host root_dir prefix beyond the workspace itself.
         # Canonicalize ws_dir: tempfile may yield an 8.3 short path on Windows
@@ -116,7 +116,7 @@ def test_format_pdf_hint() -> None:
         media_type="application/pdf",
     )
     assert "pdf" in text.lower()
-    assert "[附件]" in text or "Attachment" in text
+    assert "Attachment" in text
 
 
 @pytest.mark.asyncio
@@ -387,13 +387,13 @@ async def test_weixin_pdf_history_is_downloadable_attachment() -> None:
     )
     processor.teams.stamp_host_runtime = MagicMock()
     inbound = InboundMessage(
-        channel_id="weixin-1",
-        channel_type="weixin",
+        channel_id="discord-1",
+        channel_type="discord",
         tenant_id="agent-1",
         content=[
             FileContent(
-                local_path="weixin/01M3KH/1790583376_笔试准考证.pdf",
-                filename="笔试准考证.pdf",
+                local_path="discord/01M3KH/1790583376_exam-admission-ticket.pdf",
+                filename="exam-admission-ticket.pdf",
                 mime_type="application/pdf",
                 size=409157,
             )
@@ -421,10 +421,10 @@ async def test_weixin_pdf_history_is_downloadable_attachment() -> None:
     assert entry["content"] == []
     assert entry["inbound_attachments"] == [
         {
-            "filename": "笔试准考证.pdf",
+            "filename": "exam-admission-ticket.pdf",
             "media_type": "application/pdf",
             "kind": "file",
-            "workspace_path": "inbound/weixin/01M3KH/1790583376_笔试准考证.pdf",
+            "workspace_path": "inbound/discord/01M3KH/1790583376_exam-admission-ticket.pdf",
         }
     ]
 

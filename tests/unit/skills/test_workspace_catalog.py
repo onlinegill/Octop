@@ -43,9 +43,9 @@ def test_list_workspace_skill_summaries_repairs_known_utf8_corruption(
     skill_dir = workspace / "skills" / "humanizer"
     skill_dir.mkdir(parents=True)
     corrupted = (
-        "---\nname: humanizer\ndescription: copy\n---\n每句 ".encode()
+        "---\nname: humanizer\ndescription: copy\n---\nEach sentence ".encode()
         + b"\xe2j$"
-        + "15 字\n".encode()
+        + "15 chars\n".encode()
     )
     (skill_dir / "SKILL.md").write_bytes(corrupted)
 

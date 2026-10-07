@@ -15,7 +15,7 @@ async def test_preferences_bookmarks_roundtrip(env) -> None:
     assert body["remote_browser_bookmarks"] == []
 
     bookmarks = [
-        {"url": "https://cloud.tencent.com", "title": "Tencent Cloud"},
+        {"url": "https://cloud.example.com", "title": "Example Cloud"},
         {"url": "example.com", "title": "Example"},
     ]
     r = await client.patch(
@@ -26,7 +26,7 @@ async def test_preferences_bookmarks_roundtrip(env) -> None:
     assert r.status_code == 200
     saved = r.json()["remote_browser_bookmarks"]
     assert len(saved) == 2
-    assert saved[0]["url"] == "https://cloud.tencent.com"
+    assert saved[0]["url"] == "https://cloud.example.com"
     assert saved[1]["url"] == "https://example.com"
 
     r = await client.get("/api/preferences", headers=auth)
@@ -97,7 +97,7 @@ async def test_preferences_sidebar_nav_roundtrip(env) -> None:
 
     payload = {
         "sidebar_nav": {
-            "groups": [{"id": "settings"}, {"id": "c_aabbccdd1122", "name": "常用"}],
+            "groups": [{"id": "settings"}, {"id": "c_aabbccdd1122", "name": "Frequently used"}],
             "items": [
                 {"key": "chat"},
                 {"key": "experts", "group": "c_aabbccdd1122"},
@@ -108,7 +108,7 @@ async def test_preferences_sidebar_nav_roundtrip(env) -> None:
     r = await client.patch("/api/preferences", headers=auth, json=payload)
     assert r.status_code == 200
     saved = r.json()["sidebar_nav"]
-    assert saved["groups"][1]["name"] == "常用"
+    assert saved["groups"][1]["name"] == "Frequently used"
     assert saved["items"][1]["group"] == "c_aabbccdd1122"
     assert saved["items"][2]["key"] == "tasks"
     assert saved["items"][2]["hidden"] is True

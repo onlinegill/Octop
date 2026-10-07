@@ -1,4 +1,4 @@
-"""Race COS, Hugging Face, and hf-mirror, then download from the winner."""
+"""Resolve the best available origin for an ONNX model and download it."""
 
 from __future__ import annotations
 
@@ -23,9 +23,6 @@ from octop.infra.agents.providers.onnx_catalog import get_onnx_model_meta
 logger = logging.getLogger(__name__)
 
 HF_ENDPOINT_OFFICIAL = "https://huggingface.co"
-HF_ENDPOINT_MIRROR = "https://hf-mirror.com"
-# Public COS bucket; objects live under /models/embedding/{model_id}/.
-COS_ENDPOINT_DEFAULT = "https://octop-1258344699.cos.ap-guangzhou.myqcloud.com"
 COS_PREFIX = "models/embedding"
 COS_MANIFEST_NAME = "files.json"
 COS_REVISION = "cos-mirror"
@@ -79,8 +76,12 @@ def _hf_repo_id(model_name: str) -> str:
 
 
 def cos_base_url() -> str:
-    """Public COS origin; override with ``OCTOP_ONNX_COS_BASE`` for a private bucket."""
-    return os.environ.get(_COS_BASE_ENV, COS_ENDPOINT_DEFAULT).rstrip("/")
+    """User-configured object-storage origin, or an empty string when unset.
+
+    No origin is bundled: set ``OCTOP_ONNX_COS_BASE`` to your own bucket to
+    opt in. The official Hugging Face endpoint is used when this is unset.
+    """
+    return os.environ.get(_COS_BASE_ENV, "").rstrip("/")
 
 
 def cos_object_key(model_name: str, rel_path: str = "") -> str:
@@ -101,32 +102,35 @@ def cos_local_model_dir(dest_root: Path, model_name: str) -> Path:
 
 
 def build_download_candidates(model_name: str) -> list[DownloadCandidate]:
-    """Build COS + official HF + hf-mirror candidates."""
+    """Build the ordered list of origins to race.
+
+    The official Hugging Face endpoint is always a candidate. A
+    user-configured object-storage origin is prepended only when
+    ``OCTOP_ONNX_COS_BASE`` is set; nothing is bundled by default.
+    """
     hf_repo = _hf_repo_id(model_name)
     probe_file = "config.json"
-    return [
-        DownloadCandidate(
-            kind="cos",
-            probe_url=cos_file_url(model_name, probe_file),
-            hf_endpoint="",
-            hf_repo=hf_repo,
-            model_name=model_name,
-        ),
+    candidates: list[DownloadCandidate] = []
+    if cos_base_url():
+        candidates.append(
+            DownloadCandidate(
+                kind="cos",
+                probe_url=cos_file_url(model_name, probe_file),
+                hf_endpoint="",
+                hf_repo=hf_repo,
+                model_name=model_name,
+            )
+        )
+    candidates.append(
         DownloadCandidate(
             kind="hf",
             probe_url=f"{HF_ENDPOINT_OFFICIAL}/{hf_repo}/resolve/main/{probe_file}",
             hf_endpoint=HF_ENDPOINT_OFFICIAL,
             hf_repo=hf_repo,
             model_name=model_name,
-        ),
-        DownloadCandidate(
-            kind="hf-mirror",
-            probe_url=f"{HF_ENDPOINT_MIRROR}/{hf_repo}/resolve/main/{probe_file}",
-            hf_endpoint=HF_ENDPOINT_MIRROR,
-            hf_repo=hf_repo,
-            model_name=model_name,
-        ),
-    ]
+        )
+    )
+    return candidates
 
 
 def probe_source(url: str, timeout_s: float = _PROBE_TIMEOUT_S) -> float:
@@ -259,7 +263,7 @@ _HF_HUB_DISABLE_XET = "HF_HUB_DISABLE_XET"
 
 
 def _disable_hf_xet() -> None:
-    """Force HTTP snapshots; Xet CAS 401s or is unreachable via hf-mirror."""
+    """Force plain HTTP snapshots instead of the Xet CAS transport."""
     os.environ[_HF_HUB_DISABLE_XET] = "1"
     constants = sys.modules.get("huggingface_hub.constants")
     if constants is not None and hasattr(constants, _HF_HUB_DISABLE_XET):
@@ -412,7 +416,7 @@ def export_model_tree_for_cos(
     model_name: str,
     dest_root: Path,
     *,
-    hf_endpoint: str = HF_ENDPOINT_MIRROR,
+    hf_endpoint: str = HF_ENDPOINT_OFFICIAL,
     on_progress: SnapshotProgressFn | None = None,
 ) -> Path:
     """Download *model_name* and write the COS object tree under *dest_root*.

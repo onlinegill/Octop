@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Octop：面向团队与家庭轻协作的自托管 AI 助手平台。"
+      content="Octop: a self-hosted AI assistant platform for lightweight team and family collaboration."
     />
-    <title>Octop｜自托管 AI 助手平台</title>
+    <title>Octop | Self-hosted AI assistant platform</title>
     <style>
       :root {
         --ink: #eaf3ff;
@@ -38,8 +38,8 @@
           system-ui,
           -apple-system,
           BlinkMacSystemFont,
-          "PingFang SC",
-          "Microsoft YaHei",
+          "Inter", "Segoe UI", "Helvetica Neue", Arial,
+          "Noto Sans", sans-serif;
           sans-serif;
         line-height: 1.6;
       }
@@ -462,7 +462,7 @@
   <body>
     <header class="hero">
       <nav>
-        <a class="brand" href="#top" aria-label="Octop 首页">
+        <a class="brand" href="#top" aria-label="Octop home">
           <svg viewBox="0 0 1493 440" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <g clip-path="url(#octop-logo-clip)">
               <rect width="440" height="440" rx="110" fill="url(#octop-logo-paint0)" stroke="url(#octop-logo-paint1)" stroke-width="4.4"/>
@@ -491,8 +491,8 @@
           </svg>
         </a>
         <div class="nav-links">
-          <a href="#now">现状</a><a href="#edge">亮点</a
-          ><a href="#compare">对比</a><a href="#roadmap">规划</a>
+          <a href="#now">Status</a><a href="#edge">Highlights</a
+          ><a href="#compare">Compare</a><a href="#roadmap">Roadmap</a>
         </div>
       </nav>
     </header>
@@ -500,44 +500,44 @@
     <main>
       <section id="now">
         <div class="section-head">
-          <div class="eyebrow">01 / 现状</div>
-          <h2>懂你、帮你、陪你成长的智能伙伴。</h2>
+          <div class="eyebrow">01 / Status</div>
+          <h2>A smart companion that understands you, helps you, and grows with you.</h2>
           <p>
-            Octop 已具备完整的自托管运行形态：Web 控制台、CLI、IM
-            通道与定时任务由单一进程统一承载；每位用户可拥有自己的
-            Agent、工作区、模型配置、通道与自动化。
+            Octop already ships as a complete self-hosted runtime: the Web
+            console, CLI, IM channels, and scheduled tasks are all served by a
+            single process, and each user can have their own agents, workspaces, model configuration, channels, and automations.
           </p>
         </div>
         <div class="grid grid-3">
           <article class="card">
             <div class="icon">◎</div>
-            <h3>统一工作入口</h3>
+            <h3>A unified work entry point</h3>
             <p>
-              Web 控制台、命令行、飞书、钉钉、QQ、Discord、企业微信与 API
-              使用同一 Agent 运行时。
+              The Web console, command line, Discord, Telegram, MQTT, and API
+              all share the same agent runtime.
             </p>
           </article>
           <article class="card">
             <div class="icon">◫</div>
-            <h3>面向轻协作</h3>
+            <h3>Built for lightweight collaboration</h3>
             <p>
-              JWT 用户隔离、管理员角色与“每用户多个
-              Agent”，适配家庭与小团队的共享与分工。
+              JWT user isolation, admin roles, and "multiple agents per user"
+              suit sharing and division of labor in families and small teams.
             </p>
           </article>
           <article class="card">
             <div class="icon">↗</div>
-            <h3>企业可集成</h3>
+            <h3>Enterprise-ready integration</h3>
             <p>
-              OAuth + MCP Connector、HTTP/WebSocket API，以及可接入 COS/S3
-              等远程工作区后端，降低融入既有环境的成本。
+              OAuth + MCP connectors, an HTTP/WebSocket API, and remote workspace
+              backends such as COS/S3 lower the cost of fitting into an existing environment.
             </p>
           </article>
         </div>
         <div class="metrics-panel">
-          <h3>社区与商业化进展 <span class="label">团队披露</span></h3>
+          <h3>Community and commercial progress <span class="label">Team disclosure</span></h3>
           <p>
-            截至本材料编制时的业务口径；对外发布时请同步更新统计日期与客户授权状态。
+            Business figures as of the time this material was prepared; update the as-of date and customer authorization status before publishing.
           </p>
           <table class="metrics-table">
             <tbody>
@@ -546,18 +546,18 @@
                 <td>1000+</td>
               </tr>
               <tr>
-                <th>客户群用户</th>
-                <td>1000+（活跃社群）</td>
+                <th>Community users</th>
+                <td>1000+ (active community)</td>
               </tr>
               <tr>
-                <th>企业集成</th>
-                <td>多家企业客户在集成中</td>
+                <th>Enterprise integrations</th>
+                <td>Several enterprise customers integrating</td>
               </tr>
               <tr>
-                <th>标杆客户</th>
+                <th>Flagship customers</th>
                 <td>
-                  传媒大脑（已从 OpenClaw 迁移至
-                  Octop），深大医院等多家企事业单位。
+                  A media platform (migrated from OpenClaw to Octop) and
+                  several other enterprises and institutions.
                 </td>
               </tr>
             </tbody>
@@ -567,102 +567,102 @@
 
       <section class="band" id="edge">
         <div class="section-head">
-          <div class="eyebrow">02 / 总体方向</div>
-          <h2>更易用、更聪明、更安全、更省 Token。</h2>
+          <div class="eyebrow">02 / Overall direction</div>
+          <h2>Easier, smarter, safer, and more token-efficient.</h2>
           <p>
-            Octop 的产品演进围绕四个明确方向展开：降低 AI
-            助手的使用门槛，提升复杂任务的协作与推理质量，建立可验证的安全边界，并让长程任务以更低
-            Token 成本持续运行。
+            Octop's product evolution follows four clear directions: lowering the
+            barrier to using an AI assistant, improving collaboration and reasoning
+            quality on complex tasks, establishing verifiable safety boundaries, and running long-horizon tasks at a lower token cost.
           </p>
         </div>
         <div class="grid grid-4">
           <article class="card direction-card">
             <div class="icon">↗</div>
-            <strong>更易用</strong>
+            <strong>Easier</strong>
             <p>
-              降低使用门槛，开箱即用。让用户在熟悉的 Web、CLI 与 IM
-              环境中，快速获得可执行的 AI 助手。
+              Lower the barrier and work out of the box, so users get an actionable
+              AI assistant in the familiar Web, CLI, and IM environments.
             </p>
           </article>
           <article class="card direction-card">
             <div class="icon">✦</div>
-            <strong>更聪明</strong>
+            <strong>Smarter</strong>
             <p>
-              用多专家协作与上下文管理，帮助 Agent
-              理解更长的任务链路，完成更复杂的分工与推理。
+              Use multi-expert collaboration and context management to help agents
+              understand longer task chains and handle more complex division of labor and reasoning.
             </p>
           </article>
           <article class="card direction-card">
             <div class="icon">◇</div>
-            <strong>更安全</strong>
+            <strong>Safer</strong>
             <p>
-              通过用户/数据隔离、权限控制和沙箱化演进，让 AI
-              在真实环境中工作时始终处于可控边界。
+              Through user/data isolation, permission control, and progressive
+              sandboxing, keep AI within controllable boundaries while working in real environments.
             </p>
           </article>
           <article class="card direction-card">
             <div class="icon">↓</div>
-            <strong>更省 Token</strong>
+            <strong>More token-efficient</strong>
             <p>
-              以文件系统
-              offload、分层提示词与分层记忆承载长程上下文，减少无效重复推理与成本。
+              Carry long-horizon context with filesystem offload, layered prompts,
+              and layered memory to reduce wasted repeated reasoning and cost.
             </p>
           </article>
         </div>
 
         <div class="highlights-head">
-          <div class="eyebrow">围绕方向打造的产品亮点</div>
-          <h3>把产品理念落到可部署、可协作、可运行的能力上。</h3>
+          <div class="eyebrow">Product highlights shaped by these directions</div>
+          <h3>Turning product ideas into deployable, collaborative, runnable capabilities.</h3>
         </div>
         <div class="grid grid-3">
           <article class="card feature-card">
             <div class="icon">01</div>
-            <strong>多用户 × 多专家架构</strong>
+            <strong>Multi-user × multi-expert architecture</strong>
             <p>
-              每位用户创建多个独立 Agent，并可从专家库选择角色；MBTI
-              人格与系统提示词使角色长期稳定、分工清晰，为多人轻协作与后续
-              AgentTeams 奠定基础。
+              Each user can create multiple independent agents and pick roles from
+              the expert library; MBTI personas and system prompts keep roles stable
+              over time with clear division of labor, laying the foundation for lightweight multi-user collaboration and future AgentTeams.
             </p>
           </article>
           <article class="card feature-card">
             <div class="icon">02</div>
-            <strong>存算分离与可插拔后端存储</strong>
+            <strong>Separated compute/storage with pluggable backends</strong>
             <p>
-              后端存储可落在本地、Docker、COS/S3
-              等后端；计算与存储解耦，便于按企业基础设施部署，记忆也能随工作区迁移。
+              Backend storage can live locally, in Docker, or on COS/S3; decoupling
+              compute from storage makes deployment on enterprise infrastructure easier, and memory travels with the workspace.
             </p>
           </article>
           <article class="card feature-card">
             <div class="icon">03</div>
-            <strong>上下文管理与 Token 效率</strong>
+            <strong>Context management and token efficiency</strong>
             <p>
-              文件系统
-              offload、分层提示词、分层记忆与全文检索，将长期信息放在需要时再取回，避免上下文窗口被无效内容占满。
+              Filesystem offload, layered prompts, layered memory, and full-text search
+              keep long-lived information retrievable on demand, so the context window is not filled with useless content.
             </p>
           </article>
           <article class="card feature-card">
             <div class="icon">04</div>
-            <strong>连接器与真实环境操作</strong>
+            <strong>Connectors and real-environment operation</strong>
             <p>
-              Connector（OAuth + MCP）、浏览器自动化、交互式 Shell、远程桌面与
-              ACP，将 AI 接入外部系统、终端、网页与 GUI 工作流。
+              Connectors (OAuth + MCP), browser automation, an interactive Shell,
+              remote desktop, and ACP connect AI to external systems, terminals, the web, and GUI workflows.
             </p>
           </article>
           <article class="card feature-card">
             <div class="icon">05</div>
-            <strong>主动服务与AI人格</strong>
+            <strong>Proactive service and AI personas</strong>
             <p>
-              定时任务可主动推送；MBTI 人格与自定义系统提示词让 Agent
-              从“被动问答”走向具有稳定服务风格的长期伙伴。
+              Scheduled tasks can push proactively; MBTI personas and custom system
+              prompts move agents from passive Q&amp;A to a long-term partner with a consistent service style.
             </p>
           </article>
           <article class="card feature-card">
             <div class="icon">06</div>
-            <strong>安全边界持续加固</strong>
+            <strong>Continuously hardened safety boundaries</strong>
             <p>
-              当前具备 JWT 用户隔离、工具审批、Shell
-              命令防护与敏感信息脱敏；下一步研究 rootfs 数据隔离与 Agent
-              完全沙箱化。
+              Today: JWT user isolation, tool approvals, Shell command guardrails,
+              and sensitive-data redaction; next: research rootfs data isolation and
+              full agent sandboxing.
             </p>
           </article>
         </div>
@@ -670,11 +670,11 @@
 
       <section id="compare">
         <div class="section-head">
-          <div class="eyebrow">03 / 公开资料对比</div>
-          <h2>关键功能对比</h2>
+          <div class="eyebrow">03 / Comparison of public information</div>
+          <h2>Key feature comparison</h2>
           <p>
-            以下内容基于各项目官方仓库或官方站点的公开文档整理，状态截至
-            2026-08-17。
+            The following is compiled from the official repositories or public
+            documentation of each project, current as of 2026-08-17.
           </p>
         </div>
         <div class="compare-layout">
@@ -682,7 +682,7 @@
             <svg
               viewBox="0 0 520 470"
               role="img"
-              aria-label="Octop、OpenClaw、Hermes 的公开产品定位雷达图"
+              aria-label="Radar chart of the public product positioning of Octop, OpenClaw, and Hermes"
             >
               <g
                 transform="translate(260 235)"
@@ -729,12 +729,12 @@
                 font-weight="600"
                 text-anchor="middle"
               >
-                <text x="260" y="34">团队/多用户治理</text>
-                <text x="451" y="132">生态与通道</text>
-                <text x="447" y="354">自主学习</text>
-                <text x="260" y="450">运行环境覆盖</text>
-                <text x="68" y="354">工作区可迁移</text>
-                <text x="76" y="132">自托管控制面</text>
+                <text x="260" y="34">Team / multi-user governance</text>
+                <text x="451" y="132">Ecosystem and channels</text>
+                <text x="447" y="354">Self-learning</text>
+                <text x="260" y="450">Runtime coverage</text>
+                <text x="68" y="354">Portable workspaces</text>
+                <text x="76" y="132">Self-hosted control plane</text>
               </g>
             </svg>
             <div class="legend">
@@ -745,28 +745,28 @@
           </div>
           <div>
             <p class="notice">
-              <b>图表读法：</b>
+              <b>How to read the chart:</b>
               <span class="notice-line"
-                >六个轴反映公开定位与官方已文档化的覆盖范围，并非统一基准下的
-                1–5 分能力评分。</span
+                >The six axes reflect public positioning and officially documented
+                coverage, not a 1-5 capability score on a single scale.</span
               >
               <span class="notice-line"
-                >Octop 偏向团队治理、可迁移工作区与远程操作；OpenClaw
-                偏向跨平台个人助手与插件生态。</span
+                >Octop leans toward team governance, portable workspaces, and remote
+                operation; OpenClaw leans toward a cross-platform personal assistant and a plugin ecosystem.</span
               >
               <span class="notice-line"
-                >Hermes 突出自学习闭环、子 Agent 与多种终端后端。</span
+                >Hermes emphasizes a self-learning loop, sub-agents, and multiple terminal backends.</span
               >
               <span class="notice-line"
-                >DeepSeek Harness 仍为 developer
-                preview，未纳入雷达图，而列入下方功能矩阵。</span
+                >DeepSeek Harness is still a developer preview, so it is left out of the
+                radar chart and listed in the feature matrix below.</span
               >
             </p>
             <div class="table-wrap" style="margin-top: 20px">
               <table class="matrix">
                 <thead>
                   <tr>
-                    <th>已公开能力</th>
+                    <th>Publicly documented capability</th>
                     <th>Octop</th>
                     <th>OpenClaw</th>
                     <th>Hermes</th>
@@ -775,82 +775,82 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>多用户 / 角色治理</td>
-                    <td class="yes">● JWT、多 Agent/用户</td>
-                    <td class="unknown">— 未在本次资料中确认</td>
-                    <td class="unknown">— 未在本次资料中确认</td>
-                    <td class="unknown">— README 未说明</td>
+                    <td>Multi-user / role governance</td>
+                    <td class="yes">● JWT, multiple agents per user</td>
+                    <td class="unknown">— Not confirmed by this material</td>
+                    <td class="unknown">— Not confirmed by this material</td>
+                    <td class="unknown">— Not stated in the README</td>
                   </tr>
                   <tr>
-                    <td>多 Agent 编排</td>
-                    <td class="partial">△ 多 Agent / 专家库；Teams 规划中</td>
-                    <td class="unknown">— 本次未作同口径确认</td>
-                    <td class="yes">● 隔离子 Agent、并行执行</td>
-                    <td class="unknown">— README 未说明</td>
+                    <td>Multi-agent orchestration</td>
+                    <td class="partial">△ Multiple agents / expert library; Teams planned</td>
+                    <td class="unknown">— Not confirmed on the same basis here</td>
+                    <td class="yes">● Isolated sub-agents, parallel execution</td>
+                    <td class="unknown">— Not stated in the README</td>
                   </tr>
                   <tr>
-                    <td>记忆与迁移</td>
-                    <td class="yes">● 工作区随存储后端迁移</td>
-                    <td class="partial">△ 文件/技能体系</td>
-                    <td class="yes">● 可从 OpenClaw 导入数据</td>
-                    <td class="unknown">— README 未说明</td>
+                    <td>Memory and portability</td>
+                    <td class="yes">● Workspaces move with the storage backend</td>
+                    <td class="partial">△ File / skill system</td>
+                    <td class="yes">● Can import data from OpenClaw</td>
+                    <td class="unknown">— Not stated in the README</td>
                   </tr>
                   <tr>
-                    <td>扩展与外部系统</td>
-                    <td class="yes">● OAuth Connector、MCP、ACP</td>
-                    <td class="yes">● 工具、技能与插件</td>
-                    <td class="yes">● MCP 与技能系统</td>
-                    <td class="yes">● “Everything is a Plugin”</td>
+                    <td>Extensions and external systems</td>
+                    <td class="yes">● OAuth connectors, MCP, ACP</td>
+                    <td class="yes">● Tools, skills, and plugins</td>
+                    <td class="yes">● MCP and a skill system</td>
+                    <td class="yes">● "Everything is a Plugin"</td>
                   </tr>
                   <tr>
-                    <td>浏览器 / 终端 / 桌面</td>
-                    <td class="yes">● 三者均有</td>
-                    <td class="partial">△ 节点与平台能力</td>
-                    <td class="yes">● 浏览器、6 种终端后端</td>
-                    <td class="partial">△ 本地 Web UI；未确认远程操作</td>
+                    <td>Browser / terminal / desktop</td>
+                    <td class="yes">● All three</td>
+                    <td class="partial">△ Nodes and platform capabilities</td>
+                    <td class="yes">● Browser, six terminal backends</td>
+                    <td class="partial">△ Local Web UI; remote operation unconfirmed</td>
                   </tr>
                   <tr>
-                    <td>自动化 / 主动触达</td>
-                    <td class="yes">● Cron + IM 推送</td>
-                    <td class="partial">△ 文档化的自动化能力</td>
-                    <td class="yes">● Cron + 多平台投递</td>
-                    <td class="unknown">— README 未说明</td>
+                    <td>Automation / proactive reach</td>
+                    <td class="yes">● Cron + IM push</td>
+                    <td class="partial">△ Documented automation capabilities</td>
+                    <td class="yes">● Cron + multi-platform delivery</td>
+                    <td class="unknown">— Not stated in the README</td>
                   </tr>
                   <tr>
-                    <td>上下文 / Token 效率</td>
-                    <td class="yes">● offload、分层提示词与记忆</td>
-                    <td class="unknown">— 本次未作同口径确认</td>
-                    <td class="partial">△ 压缩命令与持久记忆</td>
-                    <td class="unknown">— README 未说明</td>
+                    <td>Context / token efficiency</td>
+                    <td class="yes">● Offload, layered prompts and memory</td>
+                    <td class="unknown">— Not confirmed on the same basis here</td>
+                    <td class="partial">△ Compaction commands and persistent memory</td>
+                    <td class="unknown">— Not stated in the README</td>
                   </tr>
                   <tr>
-                    <td>自学习 / 技能沉淀</td>
-                    <td class="partial">△ 已列入路线图</td>
-                    <td class="unknown">— 本次未作同口径确认</td>
-                    <td class="yes">● 自动创建、改进技能</td>
-                    <td class="unknown">— README 未说明</td>
+                    <td>Self-learning / skill accumulation</td>
+                    <td class="partial">△ On the roadmap</td>
+                    <td class="unknown">— Not confirmed on the same basis here</td>
+                    <td class="yes">● Automatically creates and improves skills</td>
+                    <td class="unknown">— Not stated in the README</td>
                   </tr>
                   <tr>
-                    <td>安全与执行控制</td>
-                    <td class="yes">● 隔离、审批、命令防护</td>
-                    <td class="unknown">— 本次未作同口径确认</td>
-                    <td class="yes">● 审批、配对、容器隔离</td>
-                    <td class="unknown">— README 未说明</td>
+                    <td>Security and execution control</td>
+                    <td class="yes">● Isolation, approvals, command guardrails</td>
+                    <td class="unknown">— Not confirmed on the same basis here</td>
+                    <td class="yes">● Approvals, pairing, container isolation</td>
+                    <td class="unknown">— Not stated in the README</td>
                   </tr>
                   <tr>
-                    <td>主要交互面</td>
-                    <td class="yes">● Web、CLI、IM、API</td>
-                    <td class="yes">● 多 OS / 多平台</td>
-                    <td class="yes">● CLI、网关、Dashboard</td>
-                    <td class="partial">△ 本地 Web UI（预览）</td>
+                    <td>Primary interfaces</td>
+                    <td class="yes">● Web, CLI, IM, API</td>
+                    <td class="yes">● Multiple OSes / platforms</td>
+                    <td class="yes">● CLI, gateway, Dashboard</td>
+                    <td class="partial">△ Local Web UI (preview)</td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <p class="muted" style="font-size: 12px; margin-top: 10px">
-              符号说明：● 官方资料明确描述；△
-              存在相关机制但与本行定义不完全等同；—
-              本次公开资料未确认，不等于“不具备”。
+              Legend: ● clearly described in official material; △ a related mechanism
+              exists but is not fully equivalent to this row's definition; — not confirmed
+              by the public material reviewed here, which does not mean "not available".
             </p>
           </div>
         </div>
@@ -858,38 +858,38 @@
 
       <section class="band" id="roadmap">
         <div class="section-head">
-          <div class="eyebrow">04 / 规划</div>
-          <h2>Teams / 自进化 / 客户端 / 插件机制</h2>
+          <div class="eyebrow">04 / Roadmap</div>
+          <h2>Teams / self-evolution / clients / plugin mechanism</h2>
           <p>
-            以下为短期与中长期规划。
+            The following covers short- and longer-term plans.
           </p>
         </div>
         <div class="roadmap">
           <article class="card phase">
-            <small>近期 / 安全基座</small>
-            <h3>隔离从权限走向运行时</h3>
+            <small>Near term / security foundation</small>
+            <h3>Isolation moves from permissions to runtime</h3>
             <ul>
-              <li>研究以 rootfs 为核心的用户数据边界</li>
-              <li>推进 Agent 沙箱化运行与最小权限</li>
-              <li>将隔离、审批、审计转化为可验证的安全能力</li>
+              <li>Research rootfs-based user data boundaries</li>
+              <li>Advance sandboxed agent execution and least privilege</li>
+              <li>Turn isolation, approvals, and auditing into verifiable security capabilities</li>
             </ul>
           </article>
           <article class="card phase">
-            <small>中期 / 自进化与智能协作</small>
-            <h3>从多个 Agent 到 AgentTeams</h3>
+            <small>Mid term / self-evolution and intelligent collaboration</small>
+            <h3>From multiple agents to AgentTeams</h3>
             <ul>
-              <li>多 Agent 编队、分工与编排</li>
-              <li>把对话经验沉淀为可复用技能</li>
-              <li>加强上下文管理与 Token 效率</li>
+              <li>Multi-agent formations, division of labor, and orchestration</li>
+              <li>Distill conversation experience into reusable skills</li>
+              <li>Strengthen context management and token efficiency</li>
             </ul>
           </article>
           <article class="card phase">
-            <small>扩展 / 产品与平台</small>
-            <h3>从验证到规模化赋能</h3>
+            <small>Expansion / product and platform</small>
+            <h3>From validation to scaling up</h3>
             <ul>
-              <li>浏览器录制 Octop 验证</li>
-              <li>PC 与移动端协同，拓宽使用场景</li>
-              <li>成熟能力再反哺 lh 与 clawpro 等上层平台</li>
+              <li>Browser-recorded Octop validation</li>
+              <li>PC and mobile collaboration to broaden use cases</li>
+              <li>Feed mature capabilities back into upper-layer platforms such as lh and clawpro</li>
             </ul>
           </article>
         </div>
@@ -897,18 +897,18 @@
     </main>
 
     <footer>
-      <b style="color: var(--ink)">资料依据与更新说明</b>
+      <b style="color: var(--ink)">Sources and update notes</b>
       <div class="source-list">
         <span
           >•
           <a
-            href="https://github.com/TencentCloud/Octop"
+            href="https://github.com/onlinegill/Octop"
             target="_blank"
             rel="noreferrer"
-            >Octop 官方仓库与 README</a
-          >：多用户、多
-          Agent、工作区后端、浏览器/终端/远程桌面、Connector、ACP、Cron
-          等。</span
+            >Octop official repository and README</a
+          >: multi-user, multi-agent, workspace backends, browser/terminal/remote
+          workspace backends, browser/terminal/remote desktop, connectors, ACP, Cron,
+          and more.</span
         >
         <span
           >•
@@ -916,8 +916,8 @@
             href="https://github.com/openclaw/openclaw"
             target="_blank"
             rel="noreferrer"
-            >OpenClaw 官方仓库</a
-          >：个人助手定位、通道、技能、插件、节点与平台能力。</span
+            >OpenClaw official repository</a
+          >: personal-assistant positioning, channels, skills, plugins, nodes, and platform capabilities.</span
         >
         <span
           >•
@@ -925,8 +925,8 @@
             href="https://github.com/NousResearch/hermes-agent"
             target="_blank"
             rel="noreferrer"
-            >Hermes 官方仓库</a
-          >：学习闭环、子 Agent、Cron、浏览器与终端后端、OpenClaw 导入。</span
+            >Hermes official repository</a
+          >: learning loop, sub-agents, Cron, browser and terminal backends, OpenClaw import.</span
         >
         <span
           >•
@@ -934,14 +934,14 @@
             href="https://github.com/deepseek-ai/deepseek-harness"
             target="_blank"
             rel="noreferrer"
-            >DeepSeek Harness 官方仓库</a
-          >：开发者 Agent Harness、插件化架构与本地 Web UI；官方标注为 developer
-          preview。</span
+            >DeepSeek Harness official repository</a
+          >: a developer Agent Harness, plugin architecture, and local Web UI; officially labeled a
+          developer preview.</span
         >
       </div>
       <p style="margin-top: 20px">
-        版本：2026-08-17 ·
-        本页不构成第三方产品验收或安全测评；竞品功能和市场数据应在发布前重新核验。
+        Version: 2026-08-17 ·
+        This page is not a third-party product acceptance or security assessment; competitor features and market data should be re-verified before publishing.
       </p>
     </footer>
   </body>

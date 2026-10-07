@@ -40,15 +40,15 @@ docker run -d \
   octop:latest
 ```
 
-### Faster downloads (China mirrors)
+### Faster downloads (optional mirrors)
 
 Pass mirror env vars when building:
 
 ```bash
-PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple \
-PIP_TRUSTED_HOST=mirrors.cloud.tencent.com \
-NPM_REGISTRY=https://mirrors.cloud.tencent.com/npm/ \
-APT_MIRROR=mirrors.cloud.tencent.com \
+PIP_INDEX_URL=https://pypi.org/simple \
+PIP_TRUSTED_HOST=pypi.org \
+NPM_REGISTRY=https://registry.npmjs.org/ \
+APT_MIRROR=deb.debian.org \
 bash docker/docker_build.sh
 ```
 
@@ -63,7 +63,6 @@ bash docker/docker_build.sh
 | `OCTOP_DATABASE_URL` | — | PostgreSQL DSN (or other `OCTOP_DATABASE_*`; see [configuration.md](../docs/configuration.md)) |
 | `OCTOP_DATABASE_DRIVER` | — | `sqlite` \| `postgresql` when overriding defaults via env |
 | `OPENAI_API_KEY` | — | OpenAI-compatible API key |
-| `DASHSCOPE_API_KEY` | — | Alibaba DashScope API key |
 
 For Compose, put these in `docker/.env`. Values only reach the container if listed under `environment:` in `docker-compose.yml` (Compose interpolates `.env`; it does not auto-export every key). Alternatively write the same keys into the mounted data dir as `~/.octop/env`.
 

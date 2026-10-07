@@ -48,10 +48,10 @@ describe("AuthGuard offline boot", () => {
     const alert = await screen.findByRole("alert");
     expect(alert).toBeInTheDocument();
     expect(alert.textContent).toMatch(
-      /errors\.offlineTitle|Cannot reach|无法连接/,
+      /errors\.offlineTitle|Cannot reach|Unable to connect/,
     );
     expect(
-      screen.getByRole("button", { name: /errors\.retry|Retry|重试/ }),
+      screen.getByRole("button", { name: /errors\.retry|Retry|Try again/ }),
     ).toBeInTheDocument();
     expect(screen.queryByText("protected-shell")).not.toBeInTheDocument();
   });
@@ -125,7 +125,7 @@ describe("AuthGuard offline boot", () => {
     );
 
     const retry = await screen.findByRole("button", {
-      name: /errors\.retry|Retry|重试/,
+      name: /errors\.retry|Retry|Try again/,
     });
     await user.click(retry);
     expect(await screen.findByText("protected-shell")).toBeInTheDocument();

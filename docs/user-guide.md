@@ -1,479 +1,453 @@
-# Octop 用户帮助文档
+# Octop User Guide
 
-> 本帮助文档面向最终用户，介绍 **安装 → 设置向导 → 配置模型 → 基本使用** 的完整流程。
-> 所有运行时数据默认存放在 `~/.octop/`（可通过 `OCTOP_HOME` 覆盖）。
-
----
-
-## 目录
-
-- [一、简介](#一简介)
-- [二、安装 Octop](#二安装-octop)
-  - [2.1 环境要求](#21-环境要求)
-  - [2.2 一键脚本安装（推荐）](#22-一键脚本安装推荐)
-  - [2.3 验证安装](#23-验证安装)
-  - [2.4 Docker 安装（生产推荐）](#24-docker-安装生产推荐)
-- [三、首次启动与设置向导](#三首次启动与设置向导)
-  - [3.1 启动服务](#31-启动服务)
-  - [3.2 向导步骤说明](#32-向导步骤说明)
-  - [3.3 无人值守 / 跳过向导](#33-无人值守--跳过向导)
-- [四、配置模型（LLM 供应商）](#四配置模型llm-供应商)
-  - [4.1 预设供应商](#41-预设供应商)
-  - [4.2 自定义供应商](#42-自定义供应商)
-  - [4.3 选择模型并测试连接](#43-选择模型并测试连接)
-  - [4.4 在控制台中管理供应商](#44-在控制台中管理供应商)
-  - [4.5 通过 CLI 配置供应商](#45-通过-cli-配置供应商)
-  - [4.6 本地模型 Ollama](#46-本地模型-ollama)
-  - [4.7 图片与视频生成模型](#47-图片与视频生成模型)
-- [五、基本使用](#五基本使用)
-  - [5.1 登录](#51-登录)
-  - [5.2 对话（Chat）](#52-对话chat)
-  - [5.3 创建 Agent（专家库 / MBTI 人格）](#53-创建-agent专家库--mbti-人格)
-  - [5.4 连接器（Connectors）](#54-连接器connectors)
-  - [5.5 通道（Channels / IM）](#55-通道channels--im)
-  - [5.6 定时任务（Cron）](#56-定时任务cron)
-  - [5.7 ACP（与 IDE / 编码 Agent 协作）](#57-acp与-ide--编码-agent-协作)
-  - [5.8 设置（用户 / 安全 / TLS / 系统）](#58-设置用户--安全--tls--系统)
-  - [5.9 远程桌面与浏览器 AI](#59-远程桌面与浏览器-ai)
-- [六、常用命令速查](#六常用命令速查)
-- [七、常见问题](#七常见问题)
-- [八、插图清单](#八插图清单)
+> This guide is for end users and walks through the full flow of **Install → Setup wizard → Configure models → Basic usage**.
+> All runtime data is stored under `~/.octop/` by default (override with `OCTOP_HOME`).
 
 ---
 
-## 一、简介
+## Contents
 
-**Octop** 是一个开源、自托管的 AI 助手平台，支持多用户、多 Agent。它在单进程中同时提供 Web 控制台、CLI、IM 通道（飞书、钉钉、QQ、Discord、企业微信等）和定时任务，所有数据都保存在你自己的机器上。
-
-![图 1.1 — Octop 产品总览](assets/overview.png)
-
-核心特性速览：
-
-- 👥 多用户多 Agent 专家团，可在家庭 / 团队内共享。
-- 🎭 16 种 MBTI 人格模板，为每个 Agent 赋予鲜明性格。
-- 🔒 本地优先、JWT 多用户隔离、工具审批与命令护栏。
-- 🔌 Connector（OAuth + MCP）与专家库拓展能力边界。
-- 🧠 可迁移记忆，随工作区一起保存。
-- 🖥️ 远程桌面、浏览器 AI+、终端 AI+ 等富交互能力。
+- [1. Introduction](#1-introduction)
+- [2. Installing Octop](#2-installing-octop)
+  - [2.1 Requirements](#21-requirements)
+  - [2.2 One-line script install (recommended)](#22-one-line-script-install-recommended)
+  - [2.3 Verifying the install](#23-verifying-the-install)
+  - [2.4 Docker install (recommended for production)](#24-docker-install-recommended-for-production)
+- [3. First launch and the setup wizard](#3-first-launch-and-the-setup-wizard)
+  - [3.1 Starting the service](#31-starting-the-service)
+  - [3.2 Wizard steps](#32-wizard-steps)
+  - [3.3 Unattended / skipping the wizard](#33-unattended--skipping-the-wizard)
+- [4. Configuring models (LLM providers)](#4-configuring-models-llm-providers)
+  - [4.1 Preset providers](#41-preset-providers)
+  - [4.2 Custom providers](#42-custom-providers)
+  - [4.3 Selecting models and testing the connection](#43-selecting-models-and-testing-the-connection)
+  - [4.4 Managing providers in the console](#44-managing-providers-in-the-console)
+  - [4.5 Configuring providers via the CLI](#45-configuring-providers-via-the-cli)
+  - [4.6 Local models with Ollama](#46-local-models-with-ollama)
+- [5. Basic usage](#5-basic-usage)
+  - [5.1 Login](#51-login)
+  - [5.2 Chat](#52-chat)
+  - [5.3 Creating agents (expert library / MBTI personas)](#53-creating-agents-expert-library--mbti-personas)
+  - [5.4 Connectors](#54-connectors)
+  - [5.5 Channels (IM)](#55-channels-im)
+  - [5.6 Scheduled tasks (Cron)](#56-scheduled-tasks-cron)
+  - [5.7 ACP (working with IDEs / coding agents)](#57-acp-working-with-ides--coding-agents)
+  - [5.8 Settings (users / security / TLS / system)](#58-settings-users--security--tls--system)
+  - [5.9 Remote desktop and Browser AI](#59-remote-desktop-and-browser-ai)
+- [6. Common command quick reference](#6-common-command-quick-reference)
+- [7. FAQ](#7-faq)
+- [8. Figure index](#8-figure-index)
 
 ---
 
-## 二、安装 Octop
+## 1. Introduction
 
-### 2.1 环境要求
+**Octop** is an open-source, self-hosted AI assistant platform with multi-user and multi-agent support. A single process serves the Web console, the CLI, IM channels (Telegram, Discord, MQTT, and more), and scheduled tasks — and all data stays on your own machine.
 
-- 操作系统：**macOS / Linux / Windows**。
-- **无需** 预先安装 Python —— 安装脚本会通过 [uv](https://docs.astral.sh/uv/) 在 `~/.octop/` 下自动创建隔离的 Python 3.12 虚拟环境。
-- 需要可访问外网，用于下载安装脚本与依赖。
+![Figure 1.1 — Octop product overview](assets/overview.png)
 
-### 2.2 一键脚本安装（推荐）
+At a glance:
+
+- 👥 Multi-user, multi-agent expert teams you can share across a household or team.
+- 🎭 16 MBTI persona templates that give every agent a distinct character.
+- 🔒 Local-first design, JWT multi-user isolation, tool approval, and command guardrails.
+- 🔌 Connectors (OAuth + MCP) and the expert library extend what agents can do.
+- 🧠 Portable memory that migrates with the workspace.
+- 🖥️ Rich interactions such as remote desktop, Browser AI+, and Terminal AI+.
+
+---
+
+## 2. Installing Octop
+
+### 2.1 Requirements
+
+- Operating system: **macOS / Linux / Windows**.
+- **No** pre-installed Python required — the installer uses [uv](https://docs.astral.sh/uv/) to create an isolated Python 3.12 virtual environment under `~/.octop/`.
+- Outbound network access, to download the installer and dependencies.
+
+### 2.2 One-line script install (recommended)
 
 **macOS / Linux**
 
 ```bash
-curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/onlinegill/Octop/main/scripts/install.sh | bash
 ```
 
-**Windows（PowerShell）**
+**Windows (PowerShell)**
 
 ```powershell
-irm https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.ps1 | iex
+irm https://raw.githubusercontent.com/onlinegill/Octop/main/scripts/install.ps1 | iex
 ```
 
-**Windows（cmd）** —— 先下载再运行：
+**Windows (cmd)** — download first, then run:
 
 ```bat
-curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install.bat -o install.bat
+curl -fsSL https://raw.githubusercontent.com/onlinegill/Octop/main/scripts/install.bat -o install.bat
 install.bat
 ```
 
-安装完成后，**打开一个新终端** 或重新加载 shell 配置，使 PATH 生效：
+After the install completes, **open a new terminal** or reload your shell config so PATH takes effect:
 
 ```bash
 source ~/.zshrc   # Zsh
-# 或
+# or
 source ~/.bashrc  # Bash
 ```
 
-安装脚本会把 `octop` 命令放入 `~/.octop/bin` 并加入 PATH，并在 `~/.octop/venv` 创建隔离环境；**不会改动系统 Python**。
+The installer places the `octop` command in `~/.octop/bin` and adds it to PATH, and creates an isolated environment in `~/.octop/venv`; it **never modifies the system Python**.
 
-> **可选附加组件**：安装脚本支持通过 `--extras` 追加能力，例如浏览器自动化 `--extras browser`；也可用 `--version` 指定版本、`--mirror <url>` 使用国内 PyPI 镜像。更多选项见 [scripts/README.md](../scripts/README.md)。
+> **Optional extras**: the installer supports extra capabilities via `--extras`, for example browser automation with `--extras browser`; you can also pin a version with `--version` or use a custom PyPI mirror with `--mirror <url>`. See [scripts/README.md](../scripts/README.md) for more options.
 
-### 2.3 验证安装
+### 2.3 Verifying the install
 
 ```bash
 octop --version
 octop run --help
 ```
 
-若提示 `command not found: octop`，请确认已重新加载 shell 或检查 `~/.octop/bin` 是否在 PATH 中。
+If you see `command not found: octop`, reload your shell or check that `~/.octop/bin` is on PATH.
 
-### 2.4 Docker 安装（生产推荐）
+### 2.4 Docker install (recommended for production)
 
 ```bash
-# 构建并后台启动
+# Build and start in the background
 docker compose -f docker/docker-compose.yml up -d
 
-# 或手动构建后运行
+# Or build manually and then run
 bash docker/docker_build.sh
 docker run -d \
   -p 8088:8088 \
   -v octop-data:/data/.octop \
   -e HOME=/data \
-  -e OCTOP_DEFAULT_PASSWORD="<自定义强密码，留空则自动生成随机密码>" \
+  -e OCTOP_DEFAULT_PASSWORD="<your own strong password; leave empty to auto-generate a random one>" \
   octop:latest
 ```
 
-完整环境变量见 [.env.example](../.env.example)：
+See [.env.example](../.env.example) for the full set of environment variables:
 
-| 变量 | 默认值 | 说明 |
+| Variable | Default | Description |
 |------|--------|------|
-| `OCTOP_PORT` | `8088` | HTTP 监听端口 |
-| `OCTOP_DEFAULT_PASSWORD` | _(空)_ | 首次运行管理员密码（Docker 引导；≥8 位且含字母+数字；留空则自动生成随机密码并写入 credential.txt） |
-| `OCTOP_ADMIN_USERNAME` | `admin` | 首次运行管理员用户名 |
-| `OCTOP_DATA` | `~/.octop` | 宿主机数据目录（compose 挂载） |
+| `OCTOP_PORT` | `8088` | HTTP listen port |
+| `OCTOP_DEFAULT_PASSWORD` | _(empty)_ | First-run admin password (Docker bootstrap; ≥8 characters with letters + digits; empty auto-generates a random password and writes it to credential.txt) |
+| `OCTOP_ADMIN_USERNAME` | `admin` | First-run admin username |
+| `OCTOP_DATA` | `~/.octop` | Host data directory (compose bind mount) |
 
-> 后续计划：Docker 首次启动可改为随机生成管理员密码，并仅写入 `credential.txt`。
+> Planned: later Docker first-boot may randomize the admin password and write it only to `credential.txt`.
 
 ---
 
-## 三、首次启动与设置向导
+## 3. First launch and the setup wizard
 
-### 3.1 启动服务
+### 3.1 Starting the service
 
-安装完成后，直接启动服务即可。首次运行时，控制面数据库、JWT 密钥与首个管理员都会在**设置向导**中创建（绿场默认延后打开数据库，直到向导里确认 SQLite / PostgreSQL）：
-
-```bash
-octop run       # 前台启动 API + Web 控制台
-```
-
-若希望服务在后台常驻，可注册为系统服务：
+Once the install finishes, just start the service. On first run, the control-plane database, the JWT secret, and the first admin are created in the **setup wizard** (a green-field install defers opening the database until you confirm SQLite / PostgreSQL in the wizard):
 
 ```bash
-octop service start   # Linux(systemd) / macOS(launchd) / Windows 服务
+octop run       # Start the API + Web console in the foreground
 ```
 
-启动后打开 **http://127.0.0.1:8088**。
+If you want the service to run persistently in the background, register it as a system service:
 
-首次访问会**自动跳转到设置向导页面**（URL 类似 `/setup`）。若启用了启动密码保护，向导会先要求输入一次性「设置密码」。
+```bash
+octop service start   # Linux (systemd) / macOS (launchd) / Windows service
+```
 
-### 3.2 向导步骤说明
+After it starts, open **http://127.0.0.1:8088**.
 
-设置向导为分步引导，依次完成以下步骤（若关闭了 `require_setup_password`，则从「数据库」步开始）：
+The first visit **automatically redirects to the setup wizard page** (a URL like `/setup`). If startup password protection is enabled, the wizard first asks for a one-time "setup password".
 
-![图 3.1 — 设置向导步骤条](assets/setup-01-steps.png)
+### 3.2 Wizard steps
 
-**步骤 1：设置密码（可选）**
+The setup wizard is a step-by-step guide that walks through the following in order (if `require_setup_password` is disabled, it starts at the "Database" step):
 
-- 首次配置需要一个临时「设置密码」作为保护（默认开启）。
-- 密码打印在启动终端，并写入服务器上的引导文件（常见为 `~/octop-login.txt`）。
-- 此步**不依赖**控制面数据库是否已打开。
+![Figure 3.1 — Setup wizard step bar](assets/setup-01-steps.png)
 
-**步骤 2：选择控制面数据库**
+**Step 1: Set a password (optional)**
 
-- 默认使用本地 **SQLite**（路径相对 `~/.octop/`，通常为 `octop.db`），点击「保存并继续」即可。
-- 「展开更多」可配置 **PostgreSQL**（内测）：填写主机等并先「测试连接」，再「使用 PostgreSQL 并继续」。
-- 向导会把选择写入 `config.json` 的 `database` 段，并在服务进程内**首次绑定**连接池、跑迁移。
-- 也可事先用环境变量指定（见 [configuration.md](configuration.md) 的 `OCTOP_DATABASE_*`）；已有库文件的升级安装不会延后建连。
-- 本步只配置**控制面**；若选用 PostgreSQL，Agent 记忆默认复用同一 DSN（可用 `memory.backend.type=sqlite` 强制文件记忆）。详见 [configuration.md](configuration.md)。
+- The initial configuration needs a temporary "setup password" as protection (enabled by default).
+- The password is printed in the startup terminal and written to a bootstrap file on the server (commonly `~/octop-login.txt`).
+- This step does **not** depend on whether the control-plane database is open yet.
 
-**步骤 3：创建管理员账号**
+**Step 2: Choose the control-plane database**
 
-- 填写 **用户名**（默认 `admin`）、**密码**、**显示名称**。
-- 密码须至少 8 位，且同时包含字母和数字（与控制台「修改密码」策略一致）。
-- 该账号为首个管理员，拥有用户管理、系统设置等最高权限。
-- 记下该账号，后续登录与日常使用都依赖它。
+- The default is local **SQLite** (path relative to `~/.octop/`, usually `octop.db`); click "Save and continue".
+- "Show more" lets you configure **PostgreSQL** (beta): fill in the host and so on, "Test connection" first, then "Use PostgreSQL and continue".
+- The wizard writes the choice into the `database` section of `config.json`, and **binds the connection pool for the first time** inside the service process and runs migrations.
+- You can also specify this up front via environment variables (see `OCTOP_DATABASE_*` in [configuration.md](configuration.md)); upgrading an install that already has a database file does not defer the connection.
+- This step only configures the **control plane**; if you choose PostgreSQL, agent memory reuses the same DSN by default (you can force file-based memory with `memory.backend.type=sqlite`). See [configuration.md](configuration.md).
 
-![图 3.2 — 创建管理员账号](assets/setup-02-admin.png)
+**Step 3: Create the admin account**
 
-**步骤 4：配置模型（LLM 供应商）**
+- Enter a **username** (default `admin`), a **password**, and a **display name**.
+- The password must be at least 8 characters and contain both letters and digits (same policy as "Change password" in the console).
+- This account is the first administrator and holds the highest privileges, including user management and system settings.
+- Note the account down; later logins and daily use depend on it.
 
-- 选择预设供应商（如 OpenAI、DeepSeek、Ollama 等）或自定义供应商。
-- 填写 API Key、Base URL，勾选要启用的模型。
-- 点击 **测试连接**，通过后点击 **继续**。
-- 该步骤可**跳过**（Skip），稍后在控制台「设置 → 模型 / 供应商」中再配置。
+![Figure 3.2 — Creating the admin account](assets/setup-02-admin.png)
 
-详见下一节 [四、配置模型](#四配置模型llm-供应商)。
+**Step 4: Configure models (LLM providers)**
 
-![图 3.3 — 向导中的模型配置](assets/setup-03-model.png)
+- Choose a preset provider (such as OpenAI, DeepSeek, Ollama, etc.) or a custom provider.
+- Enter the API Key and Base URL, and check the models you want to enable.
+- Click **Test connection**, and once it passes click **Continue**.
+- This step can be **skipped** and configured later in the console under "Settings → Models / Providers".
 
-**步骤 5：完成**
+See the next section, [4. Configuring models](#4-configuring-models-llm-providers).
 
-- 向导写入配置、解锁完整 API，并自动以刚创建的管理员身份登录。
-- 完成后进入 Web 控制台首页。
+![Figure 3.3 — Model configuration in the wizard](assets/setup-03-model.png)
 
-> **备份提示：** 系统备份按控制面引擎区分（SQLite 文件 vs `pg_dump`）。SQLite 与 PostgreSQL 的备份**不能跨引擎互恢**；恢复前运行时引擎须与备份一致。PostgreSQL 模式下主机需提供 `pg_dump` / `pg_restore`。
+**Step 5: Finish**
 
-### 3.3 无人值守 / 跳过向导
+- The wizard writes the configuration, unlocks the full API, and automatically logs you in as the admin you just created.
+- When it completes you land on the Web console home page.
 
-对于自动化部署，可省略向导中的"设置密码"步骤，直接在 Web 控制台通过环境变量预设管理员身份后启动：
+> **Backup note:** system backups differ by control-plane engine (a SQLite file vs `pg_dump`). SQLite and PostgreSQL backups **cannot be restored across engines**; before restoring, the running engine must match the backup. In PostgreSQL mode the host must provide `pg_dump` / `pg_restore`.
+
+### 3.3 Unattended / skipping the wizard
+
+For automated deployments you can skip the "setup password" step and pre-set the admin identity via environment variables before starting, straight from the Web console:
 
 ```bash
 export OCTOP_ADMIN_USERNAME=admin
-export OCTOP_ADMIN_PASSWORD="<你的强密码，≥8 位且含字母和数字>"
+export OCTOP_ADMIN_PASSWORD="<your strong password, ≥8 characters with letters and digits>"
 octop run
 ```
 
-密码须满足策略（≥8 位，同时包含字母和数字）。之后再在 Web 控制台中完成模型等其余配置即可。
+The password must satisfy the policy (≥8 characters with both letters and digits). Afterward you can finish the rest of the configuration, such as models, in the Web console.
 
 ---
 
-## 四、配置模型（LLM 供应商）
+## 4. Configuring models (LLM providers)
 
-Octop 通过 **供应商（Provider）** 接入大模型。每个 Agent 可使用不同的供应商与模型。支持 OpenAI 兼容 API、Anthropic、AWS Bedrock、DashScope（通义千问）、Ollama 本地模型等。
+Octop connects to large models through **providers**. Each agent can use a different provider and model. It supports OpenAI-compatible APIs, Anthropic, AWS Bedrock, and local models via Ollama.
 
-### 4.1 预设供应商
+### 4.1 Preset providers
 
-在向导"模型"步骤或控制台"设置 → 模型"中，可一键选择常见预设：
+In the wizard's "Models" step or the console's "Settings → Models", you can pick common presets in one click:
 
-| 预设 | 说明 |
+| Preset | Description |
 |------|------|
-| OpenAI | 官方 API，需 API Key |
-| Anthropic | Claude 系列，需 API Key |
-| DeepSeek | 需 API Key |
-| 智谱 Zhipu | 通义 / 智谱 GLM，需 API Key |
-| Kimi | 月之暗面，需 API Key |
-| Ollama | 本地模型，默认无需 API Key |
+| OpenAI | Official API, needs an API Key |
+| Anthropic | Claude family, needs an API Key |
+| DeepSeek | Needs an API Key |
+| Ollama | Local models, no API Key by default |
 
-选择预设后会自动带出该供应商的默认 `base_url` 与内置模型列表。
+Selecting a preset automatically fills in that provider's default `base_url` and built-in model list.
 
-### 4.2 自定义供应商
+### 4.2 Custom providers
 
-当所需服务不在预设中时（如自建 OpenAI 兼容网关、Azure OpenAI、第三方中转），可选择"自定义"：
+When the service you need is not among the presets (for example a self-hosted OpenAI-compatible gateway, Azure OpenAI, or a third-party relay), choose "Custom":
 
-- **类型（kind）**：`openai`（OpenAI 兼容）、`anthropic`、`bedrock`。
-- **名称**：自定义显示名。
-- **Base URL**：API 接入地址（如 `https://api.openai.com/v1`）。
-- **API Key**：服务商提供的密钥。
+- **Type (kind)**: `openai` (OpenAI-compatible), `anthropic`, `bedrock`.
+- **Name**: a custom display name.
+- **Base URL**: the API endpoint (for example `https://api.openai.com/v1`).
+- **API Key**: the key provided by the vendor.
 
-![图 4.1 — 自定义供应商与模型选择](assets/model-01-custom.png)
+![Figure 4.1 — Custom provider and model selection](assets/model-01-custom.png)
 
-### 4.3 选择模型并测试连接
+### 4.3 Selecting models and testing the connection
 
-1. 在供应商下勾选要启用的模型（可全选 / 全不选）。
-2. 点击 **测试连接**，系统会向供应商发送一次探测请求并显示延迟。
-3. 测试通过后点击 **继续 / 保存**。
+1. Under a provider, check the models you want to enable (you can select all / none).
+2. Click **Test connection**; the system sends one probe request to the provider and shows the latency.
+3. Once the test passes, click **Continue / Save**.
 
-> 若测试失败，请检查 API Key、Base URL、网络连通性与账户配额。
+> If the test fails, check the API Key, Base URL, network connectivity, and account quota.
 
-### 4.4 在控制台中管理供应商
+### 4.4 Managing providers in the console
 
-除首次向导外，日常可在 **设置 → 模型 / 供应商** 中：
+Beyond the initial wizard, you can do the following day to day under **Settings → Models / Providers**:
 
-- 新增 / 编辑 / 删除供应商。
-- 为一个供应商增删模型（含自定义模型 ID、上下文窗口、最大 Token、是否支持推理）。
-- 为不同 Agent 指定默认供应商与模型。
+- Add / edit / delete providers.
+- Add or remove models for a provider (including a custom model ID, context window, max tokens, and whether reasoning is supported).
+- Assign a default provider and model to different agents.
 
-![图 4.2 — 控制台模型管理](assets/model-02-manage.png)
+![Figure 4.2 — Console model management](assets/model-02-manage.png)
 
-### 4.5 通过 CLI 配置供应商
+### 4.5 Configuring providers via the CLI
 
 ```bash
-octop models              # 查看供应商预设与模型解析
-octop provider list       # 列出已配置供应商
-octop provider --help     # 供应商增删改查帮助
+octop models              # View provider presets and model resolution
+octop provider list       # List configured providers
+octop provider --help     # Provider CRUD help
 ```
 
-### 4.6 本地模型 Ollama
+### 4.6 Local models with Ollama
 
-若本机已运行 Ollama，可选择 `ollama` 预设（默认 `base_url` 为本地地址），无需 API Key 即可接入本地模型，适合隐私敏感或离线场景。
+If Ollama is already running on the machine, choose the `ollama` preset (its default `base_url` is a local address) to use local models without an API Key — well suited to privacy-sensitive or offline scenarios.
 
-如果 Ollama 把模型存在非默认目录（例如从系统盘改到其它磁盘），在供应商设置里填写 **模型下载目录** 后保存。Octop 会按该路径识别已下载模型，并在启动本地 Ollama 服务时设置 `OLLAMA_MODELS`。
-
-### 4.7 图片与视频生成模型
-
-具备云模型管理权限的用户可以打开 **设置 → 模型 → 生成模型**，为所有 Agent
-配置火山方舟图片与视频生成能力：
-
-1. 在[火山方舟控制台](https://console.volcengine.com/ark)开通所需的 Seedream、Seedance 模型。
-2. 在 [API Key 管理](https://console.volcengine.com/ark/region:ark+cn-beijing/apikey)创建方舟 API Key。
-3. 启用媒体生成，并分别选择或填写图片、视频模型 ID。
-4. 先验证方舟凭证；需要时再执行图片或视频模型测试。
-5. 保存配置。系统会加密保存 API Key，并自动重载运行中的 Agent。
-
-> 模型测试会向火山方舟提交真实生成请求，可能产生少量费用。视频测试在任务创建成功后会立即请求取消。
+If Ollama stores models in a non-default directory (for example on a different disk than the system drive), enter the **model download directory** in the provider settings and save. Octop will identify already-downloaded models by that path and set `OLLAMA_MODELS` when starting the local Ollama service.
 
 ---
 
-## 五、基本使用
+## 5. Basic usage
 
-### 5.1 登录
+### 5.1 Login
 
-打开 **http://127.0.0.1:8088**，使用向导创建的账号登录。
+Open **http://127.0.0.1:8088** and sign in with the account created by the wizard.
 
-> ⚠️ **安全提醒**：Docker 首次初始化若未设置 `OCTOP_DEFAULT_PASSWORD`，会自动生成随机管理员密码（写入 `/data/.octop/credential.txt`，可用 `docker exec <容器> cat /data/.octop/credential.txt` 查看）。无论哪种方式，都请尽快在 **个人设置 → 修改密码** 中更换，避免服务暴露到公网时被未授权访问。
+> ⚠️ **Security reminder**: if Docker initialization does not set `OCTOP_DEFAULT_PASSWORD`, it auto-generates a random admin password (written to `/data/.octop/credential.txt`, viewable with `docker exec <container> cat /data/.octop/credential.txt`). Either way, change it promptly under **Personal settings → Change password** to avoid unauthorized access when the service is exposed to the public internet.
 
-![图 5.1 — 登录页面](assets/use-01-login.png)
+![Figure 5.1 — Login page](assets/use-01-login.png)
 
-### 5.2 对话（Chat）
+### 5.2 Chat
 
-- 进入 **对话** 页面，选择当前 Agent 即可开始实时聊天。
-- 支持多轮对话、附件上传、工具调用展示。
-- 可在对话中通过斜杠命令（slash）触发特定能力。
+- Open the **Chat** page and select the current agent to start chatting in real time.
+- Multi-turn conversation, attachment uploads, and tool-call display are supported.
+- You can trigger specific capabilities in chat via slash commands.
 
-![图 5.2 — 对话主界面](assets/use-02-chat.png)
+![Figure 5.2 — Chat main screen](assets/use-02-chat.png)
 
-### 5.3 创建 Agent（专家库 / MBTI 人格）
+### 5.3 Creating agents (expert library / MBTI personas)
 
-- 进入 **Agent → 专家** 页面，从专家库模板中选择专业角色（如写作、编程、数据分析），一键创建。
-- 选择 **MBTI 人格** 模板为 Agent 赋予性格（也可做人格测试自动生成）。
-- 为该 Agent 指定 **供应商与模型**、工作区后端。
+- Open the **Agent → Experts** page and pick a professional role from the expert library templates (such as writing, coding, or data analysis) to create one in a click.
+- Choose an **MBTI persona** template to give an agent a character (or take the personality quiz to auto-generate one).
+- Assign that agent a **provider and model**, and a workspace backend.
 
-![图 5.3 — 专家库（创建 Agent）](assets/use-03-agent.png)
+![Figure 5.3 — Expert library (creating an agent)](assets/use-03-agent.png)
 
-### 5.4 连接器（Connectors）
+### 5.4 Connectors
 
-- 进入 **Connectors** 页面，配置 OAuth 应用与 MCP 网关。
-- 通过连接器接入外部服务（如腾讯文档、微博、新闻等），扩展 Agent 的资源边界。
+- Open the **Connectors** page to configure OAuth apps and MCP gateways.
+- Use connectors to bring in external services (such as Notion, OpenAlex, and Dify) and extend an agent's reach.
 
-### 5.5 通道（Channels / IM）
+### 5.5 Channels (IM)
 
-- 进入 **通道** 页面，安装并配置 IM 平台：飞书、钉钉、QQ、Discord、企业微信等。
-- 各通道所需凭证见下表：
+- Open the **Channels** page to install and configure IM platforms: Telegram, Discord, MQTT, and more.
+- The credentials required for each channel are listed below:
 
-| 通道 | 所需凭证 |
+| Channel | Credentials |
 |------|----------|
-| 飞书 | App ID、App Secret |
-| 钉钉 | App Key、App Secret |
-| QQ | Bot AppID、Token |
+| Telegram | Bot Token |
 | Discord | Bot Token |
-| 企业微信 | Corp ID、Agent Secret |
-| Web 控制台 | 默认启用 |
+| MQTT | Broker URL, Topic |
+| Web console | Enabled by default |
 
-![图 5.4 — 通道配置](assets/use-04-channels.png)
+![Figure 5.4 — Channel configuration](assets/use-04-channels.png)
 
-### 5.6 定时任务（Cron）
+### 5.6 Scheduled tasks (Cron)
 
-- 进入 **定时任务** 页面，可视化创建 Cron 任务。
-- 支持自然语言或斜杠命令触发，让 Agent 按时推送或执行任务。
+- Open the **Scheduled tasks** page to create Cron jobs visually.
+- Trigger them with natural language or slash commands so agents can push or run tasks on schedule.
 
-![图 5.5 — 定时任务管理](assets/use-05-cron.png)
+![Figure 5.5 — Scheduled task management](assets/use-05-cron.png)
 
-### 5.7 ACP（与 IDE / 编码 Agent 协作）
+### 5.7 ACP (working with IDEs / coding agents)
 
-Octop 支持两个方向的 ACP 集成：
+Octop supports ACP integration in two directions:
 
-1. **入站** —— 让外部工具（Zed、OpenCode 等）使用你的 Octop Agent：
+1. **Inbound** — let external tools (Zed, OpenCode, and so on) use your Octop agent:
 
    ```bash
    octop acp --agent main
    ```
 
-2. **出站** —— 在对话中把编码任务委派给外部 Agent（OpenCode、CodeBuddy、Claude Code、Codex）：
-   - 控制台 → **ACP**：配置 Runner（按用户全局）。
-   - 为 Agent 启用 `acp_runner`，然后在对话中委派。
+2. **Outbound** — delegate coding tasks to external agents (OpenCode, CodeBuddy, Claude Code, Codex) from chat:
+   - Console → **ACP**: configure runners (global per user).
+   - Enable `acp_runner` for an agent, then delegate in chat.
 
-完整配置见 [docs/acp.md](acp.md)。
+See [docs/acp.md](acp.md) for the full configuration.
 
-### 5.8 设置（用户 / 安全 / TLS / 系统）
+### 5.8 Settings (users / security / TLS / system)
 
-- **用户**：管理账号、角色、修改密码。
-- **安全**：工具审批、Shell 命令护栏（`~/.octop/security/tool_guard/`）。
-- **TLS**：配置 HTTPS（自签或 Let's Encrypt）。
-- **系统**：监听地址 / 端口、日志级别、定时任务时区等。
+- **Users**: manage accounts and roles, and change passwords.
+- **Security**: tool approval and shell command guardrails (`~/.octop/security/tool_guard/`).
+- **TLS**: configure HTTPS (self-signed or Let's Encrypt).
+- **System**: listen address / port, log level, cron timezone, and more.
 
-> 手动编辑配置文件：运行时参数保存在 `~/.octop/config.json`，可用环境变量覆盖（如 `OCTOP_PORT`、`OCTOP_BIND_HOST`）。详见 [docs/configuration.md](configuration.md)。
+> Manual configuration file edits: runtime parameters are stored in `~/.octop/config.json` and can be overridden with environment variables (such as `OCTOP_PORT`, `OCTOP_BIND_HOST`). See [docs/configuration.md](configuration.md).
 
-![图 5.6 — 设置页面](assets/use-06-settings.png)
+![Figure 5.6 — Settings page](assets/use-06-settings.png)
 
-### 5.9 远程桌面与浏览器 AI
+### 5.9 Remote desktop and Browser AI
 
-在 **控制台 → 控制（Control）** 页面中可使用：
+On the **Console → Control** page you can use:
 
-- **远程桌面**：实时查看屏幕并控制键鼠，支持 Linux / Windows / macOS；无图形的 Linux 可一键创建隔离桌面，适合远程办公与 GUI 软件操作。
+- **Remote desktop**: view the screen in real time and control keyboard and mouse, on Linux / Windows / macOS; a headless Linux host can create an isolated desktop in one click — ideal for remote work and GUI applications.
 
-![图 5.7 — 远程桌面](assets/use-07-remote-desktop.png)
+![Figure 5.7 — Remote desktop](assets/use-07-remote-desktop.png)
 
-- **浏览器 AI+**：基于 Chromium 的无头会话，支持网页自动化、截图与远程浏览，内置 AI 助手与技能录制。
+- **Browser AI+**: a Chromium-based headless session with web automation, screenshots, and remote browsing, plus a built-in AI assistant and skill recording.
 
-![图 5.8 — 浏览器 AI+](assets/use-08-browser-ai.png)
+![Figure 5.8 — Browser AI+](assets/use-08-browser-ai.png)
 
 ---
 
-## 六、常用命令速查
+## 6. Common command quick reference
 
-| 命令 | 说明 |
+| Command | Description |
 |------|------|
-| `octop run` | 前台启动 Octop |
-| `octop run --host 0.0.0.0 --port 8088` | 自定义监听地址与端口 |
-| `octop service start` | 安装并启动系统服务 |
-| `octop service stop` | 停止系统服务 |
-| `octop agent` | 创建、列出、启停 Agent |
-| `octop channel` | 安装与管理 IM 通道 |
-| `octop chats` | REPL 与会话管理 |
-| `octop acp` | 为 IDE 提供 stdio ACP 服务 |
-| `octop cron` | 管理定时任务 |
-| `octop models` | 供应商预设与模型解析 |
-| `octop provider list` | 列出已配置供应商 |
-| `octop skills` | 按 Agent 启用 / 禁用 Skill |
-| `octop user list` | 列出用户（管理员） |
-| `octop backup` | 导出 / 恢复备份 |
-| `octop update` | 检查并安装更新 |
+| `octop run` | Start Octop in the foreground |
+| `octop run --host 0.0.0.0 --port 8088` | Custom listen address and port |
+| `octop service start` | Install and start the system service |
+| `octop service stop` | Stop the system service |
+| `octop agent` | Create, list, start/stop agents |
+| `octop channel` | Install and manage IM channels |
+| `octop chats` | REPL and session management |
+| `octop acp` | Provide a stdio ACP service for IDEs |
+| `octop cron` | Manage scheduled tasks |
+| `octop models` | Provider presets and model resolution |
+| `octop provider list` | List configured providers |
+| `octop skills` | Enable / disable skills per agent |
+| `octop user list` | List users (admin) |
+| `octop backup` | Export / restore backups |
+| `octop update` | Check for and install updates |
 
-完整参考见 [docs/cli.md](cli.md)。
+See [docs/cli.md](cli.md) for the full reference.
 
 ---
 
-## 七、常见问题
+## 7. FAQ
 
-**Q：访问 http://127.0.0.1:8088 打不开？**
-- 确认已执行 `octop run` 且终端无报错。
-- 若改过端口，请访问对应地址（如 `http://127.0.0.1:8088` 或自定义端口）。
-- 用 `octop service status`（Linux / macOS）确认服务状态。
+**Q: I can't open http://127.0.0.1:8088.**
+- Make sure `octop run` is running and the terminal shows no errors.
+- If you changed the port, use the corresponding address (such as `http://127.0.0.1:8088` or your custom port).
+- Use `octop service status` (Linux / macOS) to check the service status.
 
-**Q：忘记管理员密码？**
-- 可通过 CLI 重置或重新初始化（注意：重置密码请使用用户管理相关命令 / 直接管理数据库）。
+**Q: I forgot the admin password.**
+- You can reset or re-initialize it via the CLI (note: use the user-management commands / manage the database directly to reset the password).
 
-**Q：模型测试连接失败？**
-- 检查 API Key、Base URL 是否正确，网络是否可访问该服务，账户是否有配额。
+**Q: The model test connection fails.**
+- Check whether the API Key and Base URL are correct, whether the network can reach the service, and whether the account has quota.
 
-**Q：如何修改监听地址让局域网访问？**
-- 启动时：`octop run --host 0.0.0.0 --port 8088`；或设置环境变量 `OCTOP_BIND_HOST=0.0.0.0`、`OCTOP_PORT=8088`。
+**Q: How do I change the listen address so the LAN can reach it?**
+- At startup: `octop run --host 0.0.0.0 --port 8088`; or set the environment variables `OCTOP_BIND_HOST=0.0.0.0` and `OCTOP_PORT=8088`.
 
-**Q：数据存放在哪里？**
-- 全部在 `~/.octop/`：
+**Q: Where is the data stored?**
+- Everything is under `~/.octop/`:
 
 ```
 ~/.octop/
-├── config.json              # 进程级配置（地址、端口、CORS、TLS、database …）
-├── octop.db                 # 默认 SQLite 控制面 — 用户、Agent、通道、定时任务 …
-├── secrets/                 # JWT 密钥、通道 Token
-├── agents/<agent_id>/       # 各 Agent 工作区（SOUL.md、skills …）
-├── security/tool_guard/     # Shell 命令允许 / 拒绝规则
-├── logs/                    # 运行日志
-└── bin/octop                # PATH 包装脚本 → venv/bin/octop
+├── config.json              # process-level config (address, port, CORS, TLS, database …)
+├── octop.db                 # default SQLite control plane — users, agents, channels, cron …
+├── secrets/                 # JWT secret, channel tokens
+├── agents/<agent_id>/       # per-agent workspace (SOUL.md, skills …)
+├── security/tool_guard/     # shell command allow / deny rules
+├── logs/                    # runtime logs
+└── bin/octop                # PATH wrapper → venv/bin/octop
 ```
 
-**Q：如何升级？**
-- `octop update`（若通过一键安装）；或从 PyPI / 源码重新安装后重启服务。
-
-**Q：如何加入客户企业微信服务群？**
-- 请扫描下方二维码加入：
-
-![客户企业微信服务群二维码](assets/qrcode.png)
-
-> 二维码有效期至 **2026-08-03**，过期后请联系管理员更新。
+**Q: How do I upgrade?**
+- `octop update` (if installed via the one-line installer); or reinstall from PyPI / source and restart the service.
 
 ---
 
-## 八、插图清单
+## 8. Figure index
 
-文档中的插图汇总如下（已放置在 `docs/assets/` 目录）：
+The figures used in this document are collected below (they live in the `docs/assets/` directory):
 
-| 编号 | 位置 | 文件名 | 状态 | 内容说明 |
+| No. | Location | File | Status | Description |
 |------|------|--------|------|----------|
-| 图 1.1 | 一、简介 | `overview.png` | ✅ 已就位 | Octop 品牌 Banner |
-| 图 3.1 | 3.2 向导步骤 | `setup-01-steps.png` | ✅ 已就位 | 向导步骤条（验证密码页） |
-| 图 3.2 | 3.2 管理员 | `setup-02-admin.png` | ✅ 已就位 | 创建管理员账号表单 |
-| 图 3.3 | 3.2 模型 | `setup-03-model.png` | ✅ 已就位 | 向导内预设供应商选择 |
-| 图 4.1 | 4.2 自定义 | `model-01-custom.png` | ✅ 已就位 | 自定义供应商弹窗 |
-| 图 4.2 | 4.4 管理 | `model-02-manage.png` | ✅ 已就位 | 控制台模型管理页（预设/自定义供应商列表） |
-| 图 5.1 | 5.1 登录 | `use-01-login.png` | ✅ 已就位 | 登录页面 |
-| 图 5.2 | 5.2 对话 | `use-02-chat.png` | ✅ 已就位 | 对话主界面（Welcome + 快捷卡片） |
-| 图 5.3 | 5.3 Agent | `use-03-agent.png` | ✅ 已就位 | 专家库模板列表 |
-| 图 5.4 | 5.5 通道 | `use-04-channels.png` | ✅ 已就位 | IM 通道开关列表 |
-| 图 5.5 | 5.6 Cron | `use-05-cron.png` | ✅ 已就位 | 创建定时任务弹窗 |
-| 图 5.6 | 5.8 设置 | `use-06-settings.png` | ✅ 已就位 | 应用设置页面 |
-| 图 5.7 | 5.9 远程桌面 | `use-07-remote-desktop.png` | ✅ 已就位 | 远程桌面连接页 |
-| 图 5.8 | 5.9 浏览器 AI | `use-08-browser-ai.png` | ✅ 已就位 | 浏览器 AI+ 会话页 |
-| 图 7.1 | 七、常见问题 | `qrcode.png` | ✅ 已就位 | 客户企业微信服务群二维码（有效期至 2026-08-03） |
+| Figure 1.1 | 1. Introduction | `overview.png` | ✅ In place | Octop brand banner |
+| Figure 3.1 | 3.2 Wizard steps | `setup-01-steps.png` | ✅ In place | Wizard step bar (password verification page) |
+| Figure 3.2 | 3.2 Admin | `setup-02-admin.png` | ✅ In place | Create-admin-account form |
+| Figure 3.3 | 3.2 Models | `setup-03-model.png` | ✅ In place | Preset provider selection in the wizard |
+| Figure 4.1 | 4.2 Custom | `model-01-custom.png` | ✅ In place | Custom provider dialog |
+| Figure 4.2 | 4.4 Manage | `model-02-manage.png` | ✅ In place | Console model-management page (preset/custom provider list) |
+| Figure 5.1 | 5.1 Login | `use-01-login.png` | ✅ In place | Login page |
+| Figure 5.2 | 5.2 Chat | `use-02-chat.png` | ✅ In place | Chat main screen (Welcome + quick cards) |
+| Figure 5.3 | 5.3 Agent | `use-03-agent.png` | ✅ In place | Expert-library template list |
+| Figure 5.4 | 5.5 Channels | `use-04-channels.png` | ✅ In place | IM channel toggle list |
+| Figure 5.5 | 5.6 Cron | `use-05-cron.png` | ✅ In place | Create-cron-job dialog |
+| Figure 5.6 | 5.8 Settings | `use-06-settings.png` | ✅ In place | Application settings page |
+| Figure 5.7 | 5.9 Remote desktop | `use-07-remote-desktop.png` | ✅ In place | Remote desktop connection page |
+| Figure 5.8 | 5.9 Browser AI | `use-08-browser-ai.png` | ✅ In place | Browser AI+ session page |

@@ -118,12 +118,12 @@ async def test_catalog_divisions_localized(env: Any) -> None:
     assert r.status_code == 200, r.text
     rows = r.json()
     engineering = next(d for d in rows if d["id"] == "engineering")
-    assert engineering["labels"]["zh"] == "工程"
+    assert engineering["labels"]["zh"] == "Engineering"
     assert engineering["labels"]["en"] == "Engineering"
     r_default = await c.get("/api/subagent-catalog/divisions", headers=auth)
     rows_default = r_default.json()
     engineering_default = next(d for d in rows_default if d["id"] == "engineering")
-    assert engineering_default["labels"]["zh"] == "工程"
+    assert engineering_default["labels"]["zh"] == "Engineering"
 
 
 async def test_catalog_divisions_accept_language_header(env: Any) -> None:
@@ -133,7 +133,7 @@ async def test_catalog_divisions_accept_language_header(env: Any) -> None:
     r = await c.get("/api/subagent-catalog/divisions", headers=headers)
     assert r.status_code == 200, r.text
     engineering = next(d for d in r.json() if d["id"] == "engineering")
-    assert engineering["labels"]["zh"] == "工程"
+    assert engineering["labels"]["zh"] == "Engineering"
     assert engineering["labels"]["en"] == "Engineering"
 
 

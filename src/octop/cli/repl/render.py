@@ -281,7 +281,7 @@ class ChunkRenderer:
         self._console.print()
 
 
-def format_cli_hitl_pause(chunk: dict[str, Any], *, locale: str = "zh") -> str:
+def format_cli_hitl_pause(chunk: dict[str, Any], *, locale: str = "en") -> str:
     """Render a ``hitl_required`` chunk as the same card IM users see."""
     from octop.infra.gateway.hitl.format import format_hitl_card, parse_action_requests
 
@@ -295,7 +295,7 @@ def format_cli_hitl_pause(chunk: dict[str, Any], *, locale: str = "zh") -> str:
     )
 
 
-def print_slash_help(*, locale: str = "zh", include_hitl_approval: bool = False) -> None:
+def print_slash_help(*, locale: str = "en", include_hitl_approval: bool = False) -> None:
     """Print slash commands visible to the CLI REPL."""
     import click
 

@@ -9,27 +9,27 @@ import httpx
 from octop_harness.plugins import PluginContext
 
 _WMO: dict[int, str] = {
-    0: "晴",
-    1: "晴间多云",
-    2: "多云",
-    3: "阴",
-    45: "雾",
-    48: "雾凇",
-    51: "小毛毛雨",
-    53: "毛毛雨",
-    55: "大毛毛雨",
-    61: "小雨",
-    63: "中雨",
-    65: "大雨",
-    71: "小雪",
-    73: "中雪",
-    75: "大雪",
-    80: "阵雨",
-    81: "强阵雨",
-    82: "暴雨",
-    95: "雷暴",
-    96: "雷暴伴冰雹",
-    99: "强雷暴伴冰雹",
+    0: "Clear",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Depositing rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    61: "Slight rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    71: "Slight snow",
+    73: "Moderate snow",
+    75: "Heavy snow",
+    80: "Rain showers",
+    81: "Heavy rain showers",
+    82: "Violent rain showers",
+    95: "Thunderstorm",
+    96: "Thunderstorm with slight hail",
+    99: "Thunderstorm with heavy hail",
 }
 
 
@@ -62,8 +62,8 @@ def _wmo_label(code: object) -> str:
     try:
         n = int(code)  # type: ignore[arg-type]
     except (TypeError, ValueError):
-        return "未知"
-    return _WMO.get(n, f"天气码 {n}")
+        return "Unknown"
+    return _WMO.get(n, f"weather code {n}")
 
 
 def _wmo_icon(code: object) -> str:
@@ -138,7 +138,7 @@ async def get_weather(city: str, days: int = 3) -> str:
         return _payload(
             "weather_card",
             {"error": "city is required"},
-            "请提供城市名称，例如「北京」或「Tokyo」。",
+            "Please provide a city name, e.g. \u201cBeijing\u201d or \u201cTokyo\u201d.",
         )
     day_n = max(1, min(int(days or 3), 7))
     try:
@@ -147,7 +147,7 @@ async def get_weather(city: str, days: int = 3) -> str:
             return _payload(
                 "weather_card",
                 {"city": city, "error": "city not found"},
-                f"未找到城市「{city}」。",
+                f"city not found: {city!r}.",
             )
         lat = float(place["latitude"])
         lon = float(place["longitude"])
@@ -156,7 +156,7 @@ async def get_weather(city: str, days: int = 3) -> str:
         return _payload(
             "weather_card",
             {"city": city, "error": str(exc)},
-            f"天气查询失败：{exc}",
+            f"weather lookup failed: {exc}",
         )
 
     current = raw.get("current") or {}
@@ -198,7 +198,7 @@ async def get_weather(city: str, days: int = 3) -> str:
     }
     text = f"{_wmo_icon(code)} {name} {country} · {cur_label} {temp}°C"
     if daily_rows:
-        text += "；" + "，".join(
+        text += "; " + ", ".join(
             f"{row['date'][5:]} {row['t_min']}~{row['t_max']}°C" for row in daily_rows[:3]
         )
     return _payload("weather_card", data, text)
@@ -209,7 +209,7 @@ def setup(ctx: PluginContext) -> None:
         "get_weather",
         get_weather,
         description=(
-            "查询城市当前天气与未来几天预报。参数 city 为城市名（如 北京、Shanghai），"
-            "days 为预报天数（1–7，默认 3）。"
+            "Look up a city\u2019s current weather and a multi-day forecast. city is the city name (e.g. Beijing, Shanghai), "
+            "days is the forecast length (1–7, default 3)."
         ),
     )

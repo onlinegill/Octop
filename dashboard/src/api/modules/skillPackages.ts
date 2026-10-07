@@ -61,18 +61,6 @@ export const skillPackagesApi = {
       body: JSON.stringify(body),
     }),
 
-  fromSkillHub: (body: {
-    slug: string;
-    name?: string;
-    description?: string;
-    icon_name?: string;
-    icon_url?: string;
-  }) =>
-    request<SkillPackageDetail>("/skill-packages/from-skillhub", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-
   update: (packageId: string, body: UpdateSkillPackageBody) =>
     request<SkillPackageDetail>(`/skill-packages/${packageId}`, {
       method: "PATCH",

@@ -1,4 +1,9 @@
-"""Instance-wide media-generation settings for harness agents."""
+"""Instance-wide media-generation settings for harness agents.
+
+This build ships no bundled media-generation provider adapters, so the feature
+degrades to a "no provider configured" state: the catalog is empty, stored
+configurations are ignored, and ``harness_config()`` returns ``None``.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +12,7 @@ import re
 from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -19,21 +24,16 @@ from octop.infra.errors import ErrorCode, OctopError
 if TYPE_CHECKING:
     from octop_harness import MediaGenerationConfig
 
-MediaProviderName = Literal["volcengine", "dashscope", "minimax"]
+MediaProviderName = str
 MediaTestKind = Literal["image", "video"]
-
-DEFAULT_PROVIDER_ID = "volcengine-default"
-DEFAULT_ARK_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3"
-DEFAULT_IMAGE_MODEL = "doubao-seedream-5-0-lite-260128"
-DEFAULT_VIDEO_MODEL = "doubao-seedance-2-0-mini-260615"
 
 _PROVIDER_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
 _MAX_PROVIDERS = 8
 _KEY_CONFIG = "media_generation_config_v2"
 _SECRET_CREDENTIALS_V2 = "media_generation_credentials_v2"
 
-# Legacy single-provider keys. They remain read-only so existing installations
-# become a named Volcengine provider without a database migration.
+# Legacy single-provider keys. They remain read-only for compatibility with
+# earlier installations that stored a single provider configuration.
 _KEY_ENABLED = "media_generation_enabled"
 _KEY_IMAGE_ENABLED = "media_generation_image_enabled"
 _KEY_VIDEO_ENABLED = "media_generation_video_enabled"
@@ -61,51 +61,8 @@ class MediaProviderPreset:
         return self.video_models[0]
 
 
-MEDIA_PROVIDER_PRESETS: dict[MediaProviderName, MediaProviderPreset] = {
-    "volcengine": MediaProviderPreset(
-        provider="volcengine",
-        display_name="Volcengine Ark",
-        base_url=DEFAULT_ARK_BASE_URL,
-        image_models=(
-            DEFAULT_IMAGE_MODEL,
-            "doubao-seedream-5-0-pro-260628",
-            "doubao-seedream-5-0-260128",
-        ),
-        video_models=(
-            DEFAULT_VIDEO_MODEL,
-            "doubao-seedance-2-5-260628",
-            "doubao-seedance-2-0-fast-260128",
-            "doubao-seedance-2-0-260128",
-        ),
-    ),
-    "dashscope": MediaProviderPreset(
-        provider="dashscope",
-        display_name="Alibaba Cloud Model Studio",
-        base_url="https://dashscope.aliyuncs.com/api/v1",
-        image_models=(
-            "wan2.7-image-pro",
-            "wan2.7-image",
-            "qwen-image-3.0-pro",
-            "qwen-image-3.0",
-            "wan2.6-image",
-            "wan2.6-t2i",
-        ),
-        video_models=(
-            "wan3.0-video-prime",
-            "wan3.0-video",
-            "wan2.7-t2v",
-            "wan2.7-i2v",
-            "wan2.7-r2v",
-        ),
-    ),
-    "minimax": MediaProviderPreset(
-        provider="minimax",
-        display_name="MiniMax",
-        base_url="https://api.minimax.cn",
-        image_models=("image-01", "image-01-live"),
-        video_models=("MiniMax-H3", "MiniMax-H3-Max"),
-    ),
-}
+# No bundled providers are shipped in this build.
+MEDIA_PROVIDER_PRESETS: dict[MediaProviderName, MediaProviderPreset] = {}
 
 
 @dataclass(frozen=True)
@@ -222,12 +179,8 @@ def _validate_provider(item: MediaProviderUpdate) -> None:
 
 
 def _probe_url(provider: MediaProviderName, base_url: str) -> str:
+    del provider
     base = base_url.rstrip("/")
-    if provider == "volcengine":
-        parsed = urlsplit(base)
-        return urlunsplit((parsed.scheme, parsed.netloc, "/ping", "", ""))
-    if provider == "dashscope":
-        return f"{base}/models?page_no=1&page_size=1"
     return f"{base}/models" if base.endswith("/v1") else f"{base}/v1/models"
 
 
@@ -238,7 +191,7 @@ async def verify_media_credentials(
     base_url: str,
     client: httpx.AsyncClient | None = None,
 ) -> dict[str, object]:
-    """Run a non-generation authenticated probe for one built-in provider."""
+    """Run a non-generation authenticated probe for one provider."""
 
     async def _request(http: httpx.AsyncClient) -> httpx.Response:
         return await http.get(
@@ -265,16 +218,6 @@ async def verify_media_credentials(
     with suppress(ValueError):
         payload = response.json()
         if isinstance(payload, dict):
-            base_resp = payload.get("base_resp")
-            if isinstance(base_resp, dict) and base_resp.get("status_code") not in {
-                None,
-                0,
-                "0",
-            }:
-                return {
-                    "ok": False,
-                    "error": str(base_resp.get("status_msg") or base_resp),
-                }
             if payload.get("code") and payload.get("message"):
                 return {"ok": False, "error": str(payload["message"])}
     return {"ok": True}
@@ -390,26 +333,13 @@ class MediaGenerationSettingsStore:
         )
 
     def _load_legacy(self) -> MediaGenerationSettings:
-        credentials = self._credentials()
-        image_enabled = _stored_bool(self._settings, _KEY_IMAGE_ENABLED, default=True)
-        video_enabled = _stored_bool(self._settings, _KEY_VIDEO_ENABLED, default=True)
-        provider = MediaProviderSettings(
-            id=DEFAULT_PROVIDER_ID,
-            provider="volcengine",
-            display_name=MEDIA_PROVIDER_PRESETS["volcengine"].display_name,
-            enabled=True,
-            base_url=DEFAULT_ARK_BASE_URL,
-            image_enabled=image_enabled,
-            video_enabled=video_enabled,
-            image_model=(self._settings.get(_KEY_IMAGE_MODEL) or DEFAULT_IMAGE_MODEL).strip(),
-            video_model=(self._settings.get(_KEY_VIDEO_MODEL) or DEFAULT_VIDEO_MODEL).strip(),
-            api_key_set=bool(credentials.get(DEFAULT_PROVIDER_ID)),
-        )
+        # No bundled providers: legacy single-provider installs degrade to an
+        # empty, disabled configuration.
         return MediaGenerationSettings(
             enabled=_stored_bool(self._settings, _KEY_ENABLED, default=False),
-            providers=(provider,),
-            default_image_provider=DEFAULT_PROVIDER_ID if image_enabled else None,
-            default_video_provider=DEFAULT_PROVIDER_ID if video_enabled else None,
+            providers=(),
+            default_image_provider=None,
+            default_video_provider=None,
         )
 
     def save(
@@ -525,12 +455,7 @@ class MediaGenerationSettingsStore:
             if isinstance(raw, dict):
                 return {str(key): str(value) for key, value in raw.items() if str(value).strip()}
             return {}
-
-        legacy = self._secrets.get(_SECRET_CREDENTIALS)
-        if legacy is None:
-            return {}
-        value = decrypt_credentials(self._secrets, legacy).get("api_key")
-        return {DEFAULT_PROVIDER_ID: str(value)} if value else {}
+        return {}
 
     def api_key(self, provider_id: str) -> str | None:
         return self._credentials().get(provider_id)
@@ -612,10 +537,6 @@ def _optional_string(value: object) -> str | None:
 
 
 __all__ = [
-    "DEFAULT_ARK_BASE_URL",
-    "DEFAULT_IMAGE_MODEL",
-    "DEFAULT_PROVIDER_ID",
-    "DEFAULT_VIDEO_MODEL",
     "MEDIA_PROVIDER_PRESETS",
     "MediaGenerationSettings",
     "MediaGenerationSettingsStore",

@@ -6,7 +6,7 @@ function MiniGameCard(props) {
   const dark = theme === "dark";
   const d = props.data && typeof props.data === "object" ? props.data : {};
   if (d.kind === "guess") {
-    const hintMap = { start: "开始猜吧", low: "再大一点", high: "再小一点", equal: "猜中了！" };
+    const hintMap = { start: "Take a guess", low: "Higher", high: "Lower", equal: "Correct!" };
     const tone = d.hint === "equal" ? "#16a34a" : d.hint === "start" ? "#2563eb" : "#ea580c";
     return _jsxs("div", {
       style: {
@@ -22,10 +22,10 @@ function MiniGameCard(props) {
       "data-octop-plugin-ui": "mini-games",
       children: [
         _jsx("div", { style: { fontSize: 22 }, children: "🎯" }),
-        _jsx("div", { style: { fontWeight: 800, marginTop: 4 }, children: "猜数字" }),
+        _jsx("div", { style: { fontWeight: 800, marginTop: 4 }, children: "Guess the Number" }),
         _jsx("div", { style: { fontSize: 40, fontWeight: 800, margin: "8px 0", color: tone }, children: d.guess ?? "?" }),
         _jsx("div", { style: { fontWeight: 700 }, children: hintMap[d.hint] || "" }),
-        _jsx("div", { style: { opacity: 0.6, marginTop: 6, fontSize: 12 }, children: `范围 ${d.low ?? 1} – ${d.high ?? 100}` }),
+        _jsx("div", { style: { opacity: 0.6, marginTop: 6, fontSize: 12 }, children: `Range ${d.low ?? 1} – ${d.high ?? 100}` }),
       ],
     });
   }
@@ -50,7 +50,7 @@ function MiniGameCard(props) {
     },
     "data-octop-plugin-ui": "mini-games",
     children: [
-      _jsx("div", { style: { fontWeight: 800, marginBottom: 10 }, children: "⭕ 井字棋" }),
+      _jsx("div", { style: { fontWeight: 800, marginBottom: 10 }, children: "⭕ Tic-tac-toe" }),
       _jsx("div", {
         style: { display: "grid", gridTemplateColumns: "repeat(3, 64px)", gap: 8, justifyContent: "center" },
         children: cells.map((ch, idx) =>
@@ -79,8 +79,8 @@ function MiniGameCard(props) {
         ),
       }),
       result
-        ? _jsx("div", { style: { marginTop: 10, fontWeight: 800 }, children: result === "draw" ? "平局" : `${result} 获胜` })
-        : _jsx("div", { style: { marginTop: 10, opacity: 0.65, fontSize: 12 }, children: "点格子预览，把新棋盘发给我才算落子" }),
+        ? _jsx("div", { style: { marginTop: 10, fontWeight: 800 }, children: result === "draw" ? "Draw" : `${result} wins` })
+        : _jsx("div", { style: { marginTop: 10, opacity: 0.65, fontSize: 12 }, children: "Tap a cell to preview, then send the new board to move" }),
     ],
   });
 }

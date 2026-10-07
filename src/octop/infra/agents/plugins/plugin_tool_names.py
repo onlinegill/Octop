@@ -1,16 +1,16 @@
 """Sanitize plugin tool names for strict LLM tool-name APIs.
 
-Plugin authors register tools with ``ctx.tool("中文名", fn, ...)``; the harness
+Plugin authors register tools with ``ctx.tool("<any-name>", fn, ...)``; the harness
 passes that name straight into the function-calling schema, but most LLM APIs
 only accept ``^[a-zA-Z0-9_-]{1,64}$``. Mirroring the MCP-side fix
 (``octop_harness.mcp.sanitize_llm_tool_name``) this module rewrites non-conforming
 plugin tool names to legal ASCII names:
 
-- CJK characters are transliterated to pinyin (``天气查询`` -> ``tianqichaxun``)
-  when :mod:`pypinyin` is importable; otherwise every illegal character becomes
-  ``_``.
-- The original name is kept in a ``[原名: ...]`` description prefix so the model
-  and the user can still map the sanitized name back.
+- CJK characters are transliterated to pinyin (for example a CJK tool name is
+  romanized) when :mod:`pypinyin` is importable; otherwise every illegal character
+  becomes ``_``.
+- The original name is kept in a ``[original name: ...]`` description prefix so the
+  model and the user can still map the sanitized name back.
 - Collisions get ``_2``/``_3`` suffixes and results are truncated to 64 chars.
 
 Routing is unaffected: ``ToolNode`` matches the exposed name and the underlying
@@ -27,8 +27,8 @@ _LLM_TOOL_NAME_RE = re.compile(r"^[a-zA-Z0-9_-]{1,64}$")
 _ILLEGAL_CHARS_RE = re.compile(r"[^a-zA-Z0-9_-]+")
 _MAX_NAME_LEN = 64
 
-_ORIGINAL_NAME_PREFIX = "[原名: {name}] "
-_ORIGINAL_NAME_RE = re.compile(r"^\[原名:\s*(.+?)\]\s")
+_ORIGINAL_NAME_PREFIX = "[original name: {name}] "
+_ORIGINAL_NAME_RE = re.compile(r"^\[original name:\s*(.+?)\]\s")
 
 
 def extract_original_plugin_label(description: str) -> str | None:

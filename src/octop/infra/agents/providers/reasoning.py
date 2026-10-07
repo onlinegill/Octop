@@ -13,23 +13,10 @@ REASONING_ADAPTERS = frozenset(
         "openai_reasoning_effort",
         "anthropic_adaptive",
         "anthropic_budget",
-        "dashscope",
         "openrouter",
     }
 )
 EFFORT_TYPES = frozenset({"enum", "token_budget"})
-TOKEN_PLAN_REASONING_MODELS = frozenset(
-    {
-        "tc-code-latest",
-        "minimax-m2.5",
-        "minimax-m2.7",
-        "glm-5",
-        "glm-5.1",
-        "kimi-k2.5",
-        "deepseek-v4-flash-202605",
-        "deepseek-v4-pro-202606",
-    }
-)
 
 
 def _string_list(value: Any) -> list[str]:
@@ -40,17 +27,10 @@ def _string_list(value: Any) -> list[str]:
 
 def _legacy_adapter(model_id: str, *, base_url: str | None) -> str:
     """Choose a conservative adapter for legacy ``reasoning: true`` metadata."""
+    del model_id
     url = (base_url or "").lower()
     if "openrouter.ai" in url:
         return "openrouter"
-    if "dashscope" in url or "maas.aliyuncs.com" in url:
-        return "dashscope"
-    if model_id.startswith("deepseek-v4-") and any(
-        host in url for host in ("lkeap.cloud.tencent.com", "tencentmaas.com")
-    ):
-        return "thinking_nested_effort"
-    if any(host in url for host in ("deepseek.com", "bigmodel.cn", "z.ai", "moonshot")):
-        return "thinking"
     if any(host in url for host in ("openai.com", "generativelanguage.googleapis.com", "groq.com")):
         return "openai_reasoning_effort"
     # Existing Octop metadata historically meant an OpenAI-compatible model
@@ -69,38 +49,15 @@ def reasoning_capability(
     options = model.get("options")
     thinking_option = options.get("thinking") if isinstance(options, dict) else None
     model_id = str(model.get("id") or "").strip().lower()
-    known_token_plan_model = model_id in TOKEN_PLAN_REASONING_MODELS
     if not isinstance(raw, dict):
-        if not legacy and not isinstance(thinking_option, dict) and not known_token_plan_model:
+        if not legacy and not isinstance(thinking_option, dict):
             return None
         raw = {
             "default_mode": thinking_option.get("type", "enabled")
             if isinstance(thinking_option, dict)
-            else "enabled"
-            if known_token_plan_model
             else "auto",
             "adapter": _legacy_adapter(model_id, base_url=base_url),
         }
-        if model_id in {"minimax-m2.5", "minimax-m2.7"}:
-            raw.update(
-                {
-                    "toggle": False,
-                    "default_mode": "enabled",
-                    "adapter": "status_only",
-                }
-            )
-        if model_id.startswith("deepseek-v4-"):
-            raw.update(
-                {
-                    "efforts": ["high", "max"],
-                    "adapter": "thinking_nested_effort"
-                    if any(
-                        host in (base_url or "").lower()
-                        for host in ("lkeap.cloud.tencent.com", "tencentmaas.com")
-                    )
-                    else "thinking",
-                }
-            )
 
     if raw.get("supported", True) is not True:
         return None
@@ -192,14 +149,6 @@ def reasoning_request_parameters(
             model_fields["thinking"] = {"type": "enabled", "budget_tokens": budget}
         elif selected_mode == "disabled":
             model_fields["thinking"] = None
-    elif adapter == "dashscope":
-        if selected_mode != "auto":
-            extra_body["enable_thinking"] = selected_mode == "enabled"
-        if selected_effort and selected_mode != "disabled":
-            if capability.get("effort_type") == "token_budget" and selected_effort.isdigit():
-                extra_body["thinking_budget"] = int(selected_effort)
-            else:
-                extra_body["reasoning_effort"] = selected_effort
     elif adapter == "openrouter":
         reasoning: dict[str, Any] = {}
         if selected_mode != "auto":

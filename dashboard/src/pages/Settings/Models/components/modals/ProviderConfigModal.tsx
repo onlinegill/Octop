@@ -1036,7 +1036,7 @@ export function ProviderConfigModal({
               ? t("models.defaultModelDownloadedOnly")
               : t(
                   "models.defaultModelExtra",
-                  "测试连接时使用此模型；留空则使用第一个已启用的模型",
+                  "Use this model when testing connections; leave blank to use the first enabled model",
                 )
           }
         >

@@ -245,9 +245,9 @@ async def test_cronjob_create_blank_name_uses_prompt_prefix(tmp_path: Path) -> N
         out = await create.ainvoke(
             {
                 "trigger": "interval:30",
-                "prompt": "该喝水了💧\n记得站起来活动一下",
+                "prompt": "Time to drink water💧\nRemember to stand up and move",
                 "name": "   ",
             }
         )
     data = json.loads(out)
-    assert data["name"] == "该喝水了💧"
+    assert data["name"] == "Time to drink water💧"

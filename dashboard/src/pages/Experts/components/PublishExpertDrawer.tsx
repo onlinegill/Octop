@@ -26,7 +26,6 @@ export interface PublishExpertDrawerProps {
 interface PublishFormValues {
   name: string;
   description?: string;
-  welcome_zh?: string;
   welcome_en?: string;
 }
 
@@ -62,7 +61,6 @@ export default function PublishExpertDrawer({
         form.setFieldsValue({
           name: baseName,
           description: baseDescription,
-          welcome_zh: pickLocale(welcome.welcome_message, "zh"),
           welcome_en: pickLocale(welcome.welcome_message, "en"),
         });
       } catch {
@@ -70,7 +68,6 @@ export default function PublishExpertDrawer({
         form.setFieldsValue({
           name: baseName,
           description: baseDescription,
-          welcome_zh: "",
           welcome_en: "",
         });
       } finally {
@@ -88,7 +85,6 @@ export default function PublishExpertDrawer({
     name: values.name.trim(),
     description: values.description?.trim() || "",
     welcome_message: {
-      zh: values.welcome_zh?.trim() || "",
       en: values.welcome_en?.trim() || "",
     },
   });
@@ -201,15 +197,6 @@ export default function PublishExpertDrawer({
             <Input.TextArea
               rows={3}
               placeholder={t("experts.table.description")}
-            />
-          </Form.Item>
-          <Form.Item
-            name="welcome_zh"
-            label={t("experts.published.fieldWelcomeZh")}
-          >
-            <Input.TextArea
-              rows={2}
-              placeholder={t("experts.published.fieldWelcomePlaceholder")}
             />
           </Form.Item>
           <Form.Item

@@ -107,7 +107,7 @@ def test_turn_tracker_keeps_streamed_tokens_and_error() -> None:
     tracker.observe(
         {
             "type": "error",
-            "message": "模型服务返回余额或额度不足。",
+            "message": "Model provider returned insufficient balance or quota.",
             "error_code": "TOKEN_QUOTA_EXCEEDED",
         }
     )
@@ -115,8 +115,8 @@ def test_turn_tracker_keeps_streamed_tokens_and_error() -> None:
     texts = [_wire_text(item) for item in tracker.inputs]
     assert any("continue this" in text for text in texts)
     assert "partial answer" in texts
-    assert any("余额或额度不足" in text for text in texts)
-    error = next(item for item in tracker.inputs if "余额或额度不足" in _wire_text(item))
+    assert any("insufficient balance" in text for text in texts)
+    error = next(item for item in tracker.inputs if "insufficient balance" in _wire_text(item))
     assert STREAM_ERROR_FLAG in error.message_json
 
 

@@ -64,5 +64,5 @@ def test_denied_octop_browser(tmp_path: Path) -> None:
 
 def test_file_url_windows_drive_decodes_unicode() -> None:
     """file:///C:/… must unquote and match native Path form (Windows CI)."""
-    url = "file:///C:/Users/me/out/%E4%BF%9D%E6%8A%A4.pptx"
-    assert file_url_to_abs_path(url) == str(Path("C:/Users/me/out/保护.pptx"))
+    url = "file:///C:/Users/me/out/caf%C3%A9.pptx"
+    assert file_url_to_abs_path(url) == str(Path("C:/Users/me/out/café.pptx"))

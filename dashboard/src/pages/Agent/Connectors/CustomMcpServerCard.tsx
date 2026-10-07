@@ -70,11 +70,11 @@ export function CustomMcpServerCard({
     modal.confirm({
       title: t("connectors.customMcp.deleteConfirm", {
         name: label,
-        defaultValue: `确定删除 MCP 服务器「${label}」？`,
+        defaultValue: `Confirm deletion MCP Server “${label}”?`,
       }),
       content: t(
         "connectors.customMcp.deleteConfirmHint",
-        "已保存的服务器将立即删除；尚未保存的配置只会从当前编辑中移除。",
+        "Saved servers will be deleted immediately; unsaved configurations will only be removed from the current edit.",
       ),
       okText: t("common.delete"),
       okButtonProps: { danger: true },
@@ -197,14 +197,14 @@ export function CustomMcpServerCard({
               }
               placeholder={t(
                 "connectors.customMcp.displayNamePlaceholder",
-                "例如：我的知识库",
+                "For example: My knowledge base",
               )}
               maxLength={64}
             />
             <div className={styles.customMcpFieldHint}>
               {t(
                 "connectors.customMcp.displayNameHint",
-                "在对话连接器选择中显示的名称，可使用中文。",
+                "The name shown in the dialog connector selection, can be used in Chinese.",
               )}
             </div>
           </div>
@@ -221,7 +221,7 @@ export function CustomMcpServerCard({
             <div className={styles.customMcpFieldHint}>
               {t(
                 "connectors.customMcp.serverIdHint",
-                "技术标识，仅支持字母、数字、下划线与连字符。",
+                "Technical identification, only supports letters, numbers, underscores and hyphens.",
               )}
             </div>
           </div>
@@ -253,7 +253,7 @@ export function CustomMcpServerCard({
                 <label>
                   {t(
                     "connectors.customMcp.headers",
-                    "Headers（每行 Key: Value，可选 Bearer）",
+                    "Headers(per line Key: Value, optional Bearer)",
                   )}
                 </label>
                 <Input.TextArea
@@ -325,7 +325,7 @@ export function CustomMcpServerCard({
               <span className={styles.customMcpFieldHint}>
                 {t(
                   "connectors.sharedHint",
-                  "共享后其他用户可以选择使用，但不能查看或修改配置。",
+                  "After sharing, other users can choose to use it, but they cannot view or modify the configuration.",
                 )}
               </span>
             </div>
@@ -349,14 +349,14 @@ export function CustomMcpServerCard({
                 <span className={styles.customMcpFieldHint}>
                   {t(
                     "connectors.customMcp.defaultOpenRequiresEnable",
-                    "需先启用连接器。",
+                    "The connector needs to be enabled first.",
                   )}
                 </span>
               ) : !card.defaultOpen ? (
                 <span className={styles.customMcpFieldHint}>
                   {t(
                     "connectors.customMcp.defaultOpenHint",
-                    "开启后，你的 Dashboard、IM 与 Cron（未手动选连接器时）会默认带上此 MCP。",
+                    "After turning it on, your Dashboard,IM With Cron(When the connector is not manually selected) this will be included by default MCP.",
                   )}
                 </span>
               ) : null}
@@ -367,7 +367,7 @@ export function CustomMcpServerCard({
                 showIcon
                 message={t(
                   "connectors.defaultOpenWarning",
-                  "开启后默认会在你的 Dashboard、IM 与 Cron（未特殊选连接器时）携带该工具（额外消耗 token）。Dashboard 可关本轮；Cron 若显式选择连接器则以选择为准。",
+                  "After turning it on, it will be in your Dashboard,IM With Cron(When no connector is specially selected) Carrying this tool (extra cost token).Dashboard Can close the epicycle;Cron If a connector is selected explicitly, the selection takes precedence.",
                 )}
               />
             ) : null}
@@ -379,7 +379,7 @@ export function CustomMcpServerCard({
               showIcon
               message={t(
                 "connectors.customMcp.oauthConfigured",
-                "已完成 OAuth 授权",
+                "Completed OAuth Authorize",
               )}
             />
           ) : null}
@@ -390,11 +390,11 @@ export function CustomMcpServerCard({
               showIcon
               message={t(
                 "connectors.customMcp.probeNeedsOAuth",
-                "此 MCP 需要 OAuth 授权才能访问",
+                "This MCP Need OAuth Only authorized to access",
               )}
               description={t(
                 "connectors.customMcp.oauthAuthorizeHint",
-                "点击「一键授权」完成登录；完成后我们会自动再次验证连接。",
+                "Click “One-click authorization” to complete the login; after completion, we will automatically verify the connection again.",
               )}
               action={
                 onAuthorize ? (
@@ -439,11 +439,11 @@ export function CustomMcpServerCard({
                     {probeTools.length > 0
                       ? t("connectors.probeToolsHint", {
                           count: probeTools.length,
-                          defaultValue: `连接正常，获取以下工具列表（共 ${probeTools.length} 个）`,
+                          defaultValue: `The connection is normal and the following tool list is obtained (total ${probeTools.length} )`,
                         })
                       : t(
                           "connectors.probeToolsEmpty",
-                          "连接正常，但未发现可用工具",
+                          "The connection is OK, but no available tools found",
                         )}
                   </div>
                 </div>

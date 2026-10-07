@@ -1,25 +1,25 @@
 name: Build Octop FPK
 
-# FnOS (飞牛 NAS) 安装包流水线。
+# FnOS NAS package pipeline.
 #
-# 触发：
-#   - Release 工作流在 GitHub Release（v*）创建成功后自动 dispatch（推荐）
-#   - 亦可手动 workflow_dispatch（需对应版本镜像已在 GHCR，且 v* Release 已存在）
+# Triggers:
+#   - The Release workflow dispatches this automatically after the GitHub Release (v*) is created (recommended)
+#   - It can also be run manually via workflow_dispatch (the matching version image must already be in GHCR, and the v* Release must already exist)
 #
-# 制品复用：
-#   - Docker 镜像：不再重建，等待 docker-publish 推送的
-#     ghcr.io/tencentcloud/octop:{version|latest}
-#   - Native wheel：优先从同版本 GitHub Release（v*）下载；
-#     缺失时再回退到本仓源码构建
-#   - fnpack：fpk / native 用 Actions cache 复用 .verify/fnpack（key 含 FNPACK_VERSION）
-#   - 产物挂到同一个 v* GitHub Release（与 wheel / 桌面包并列），不再单独打 fnos-* tag
+# Artifact reuse:
+#   - Docker image: not rebuilt here; waits for the one pushed by docker-publish,
+#     ghcr.io/onlinegill/octop:{version|latest}
+#   - Native wheel: downloaded preferentially from the same-version GitHub Release (v*);
+#     falls back to building from this repo's source if missing
+#   - fnpack: fpk / native reuse .verify/fnpack via the Actions cache (the key includes FNPACK_VERSION)
+#   - Artifacts are attached to the same v* GitHub Release (alongside the wheel / desktop package), instead of using a separate fnos-* tag
 #
-# Jobs：
-#   version → ensure-image → fpk（Docker 版 .fpk，仅打包 compose；镜像已是 amd64+arm64）
-#           ↘ native（x86_64 本地版 .fpk）
-#           ↘ native-arm64（ubuntu-24.04-arm 装 aarch64 site-packages）
-#             → native-arm64-pack（amd64 上用 fnpack 打 Octop-fnos-native-arm64-*.fpk）
-#           → release（把 .fpk 挂到已有的 v* GitHub Release）
+# Jobs:
+#   version → ensure-image → fpk (Docker .fpk, only packages compose; the image is already amd64+arm64)
+#           ↘ native (x86_64 local .fpk)
+#           ↘ native-arm64 (installs aarch64 site-packages on ubuntu-24.04-arm)
+#             → native-arm64-pack (builds Octop-fnos-native-arm64-*.fpk with fnpack on amd64)
+#           → release (attaches the .fpk to the existing v* GitHub Release)
 
 on:
   workflow_dispatch:
@@ -72,7 +72,7 @@ jobs:
           echo "pkg_ver=${VER}" >> "$GITHUB_OUTPUT"
           echo "[version] VER=$VER, TAG=v${VER}"
 
-  # 复用 docker-publish 已推送的镜像，不在此重新 build/push。
+  # Reuse the image already pushed by docker-publish; do not rebuild/push here.
   ensure-image:
     needs: version
     runs-on: ubuntu-latest
@@ -95,7 +95,7 @@ jobs:
           set -euo pipefail
           TAG="${IMAGE}:${VER}"
           echo "Waiting for ${TAG} (published by docker-publish)..."
-          # 多架构清单要等 amd64 + arm64 都推完再 merge，比单架构更久。
+          # The multi-arch manifest waits for both amd64 + arm64 to be pushed before merging, which takes longer than a single arch.
           for i in $(seq 1 120); do
             if docker buildx imagetools inspect "$TAG" >/dev/null 2>&1; then
               echo "Image ready: $TAG"
@@ -136,7 +136,7 @@ jobs:
           if-no-files-found: error
 
   native:
-    # 即使原生版构建失败也不阻塞整体发布：Docker 版（fpk）始终会发布。
+    # Even if the native build fails, the overall release is not blocked: the Docker (fpk) version is always published.
     continue-on-error: true
     needs: version
     runs-on: ubuntu-latest
@@ -261,7 +261,7 @@ jobs:
           path: native-install.log
           if-no-files-found: ignore
 
-  # 在 ARM runner 上安装 aarch64 扩展（.so），fnpack 只有 linux-amd64，打包放到下一 job。
+  # Install the aarch64 extensions (.so) on the ARM runner; fnpack is linux-amd64 only, so packaging happens in the next job.
   native-arm64:
     continue-on-error: true
     needs: version
@@ -419,7 +419,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    # 即使原生版失败（continue-on-error）也要发布 Docker 版。
+    # Publish the Docker version even if the native build failed (continue-on-error).
     if: always()
     needs: [fpk, native, native-arm64-pack, version]
     runs-on: ubuntu-latest
@@ -484,3 +484,4 @@ jobs:
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+}}

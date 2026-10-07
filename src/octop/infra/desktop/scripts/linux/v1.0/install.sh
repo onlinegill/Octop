@@ -410,9 +410,9 @@ write_panel_files() {
 Version=1.0
 Type=Application
 Name=Applications
-Name[zh_CN]=应用程序
+Name[zh_CN]=Applications
 Comment=Open the application finder
-Comment[zh_CN]=打开应用程序菜单
+Comment[zh_CN]=Open the application menu
 Exec=xfce4-appfinder
 Icon=${start_icon}
 Terminal=false
@@ -735,11 +735,11 @@ write_runtime_scripts() {
     <keybind key="Super_R">
       <action name="Execute"><command>xfce4-appfinder</command></action>
     </keybind>
-    <!-- Close focused window (matches desktop shortcut "关闭窗口"). -->
+    <!-- Close focused window (matches desktop shortcut "Close Window"). -->
     <keybind key="A-F4">
       <action name="Close"/>
     </keybind>
-    <!-- Toggle show desktop (matches desktop shortcut "进入桌面"). -->
+    <!-- Toggle show desktop (matches desktop shortcut "Show Desktop"). -->
     <keybind key="C-A-D">
       <action name="ToggleShowDesktop"/>
     </keybind>

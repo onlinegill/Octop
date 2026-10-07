@@ -287,7 +287,7 @@ async def test_download_document_file_returns_original_bytes(
     service = SimpleNamespace(
         resolve_document_file=lambda *_args, **_kwargs: (
             path,
-            "报告.pdf",
+            "café.pdf",
             "application/pdf",
         )
     )

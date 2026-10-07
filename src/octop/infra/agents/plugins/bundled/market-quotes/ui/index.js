@@ -1,7 +1,7 @@
 const React = window.__OCTOP_REACT__;
 const { jsx: _jsx, jsxs: _jsxs } = window.__OCTOP_JSX__;
 
-const TITLES = { forex: "💱 汇率", crypto: "🪙 加密货币", cn_stock: "📈 A股" };
+const TITLES = { forex: "💱 Forex", crypto: "🪙 Crypto", cn_stock: "📈 Stocks" };
 
 function changeColor(pct, kind) {
   if (pct == null || Number.isNaN(Number(pct))) return "inherit";
@@ -36,7 +36,7 @@ function QuotesCard(props) {
           fontWeight: 800,
           background: dark ? "#27272a" : "linear-gradient(90deg,#ecfdf5,#eff6ff)",
         },
-        children: TITLES[d.kind] || "行情",
+        children: TITLES[d.kind] || "Quotes",
       }),
       _jsx("table", {
         style: { width: "100%", borderCollapse: "collapse" },

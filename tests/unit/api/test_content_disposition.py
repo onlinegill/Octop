@@ -20,22 +20,22 @@ def test_quotes_escaped() -> None:
 
 
 def test_non_ascii_uses_rfc5987_with_download_ext_fallback() -> None:
-    value = content_disposition("1783510288_地球介绍.pptx")
+    value = content_disposition("1783510288_café.pptx")
     assert 'filename="download.pptx"' in value
     assert "filename*=UTF-8''" in value
-    assert "%E5%9C%B0%E7%90%83%E4%BB%8B%E7%BB%8D" in value
+    assert "%C3%A9" in value
     # Starlette/ASGI requires latin-1-encodable header values
     Response(content=b"x", headers={"Content-Disposition": value})
 
 
 def test_non_ascii_extension_only_keeps_suffix() -> None:
-    value = content_disposition("日本語.pdf")
+    value = content_disposition("café.pdf")
     assert 'filename="download.pdf"' in value
-    assert "%E6%97%A5%E6%9C%AC%E8%AA%9E" in value
+    assert "%C3%A9" in value
 
 
 def test_non_ascii_without_extension() -> None:
-    value = content_disposition("报告")
+    value = content_disposition("café")
     assert 'filename="download"' in value
     assert "filename*=UTF-8''" in value
 

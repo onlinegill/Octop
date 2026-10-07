@@ -6,17 +6,8 @@ export interface PresetGroup {
   presets: ProviderPreset[];
 }
 
-/** Preset brand card order (swap Tencent Cloud / Aliyun vs pure alphabetical). */
-const PRESET_GROUP_ORDER = [
-  "tencent",
-  "kimi",
-  "minimax",
-  "opencode",
-  "siliconflow",
-  "aliyun",
-  "volcengine",
-  "zhipu",
-] as const;
+/** Preset brand card order (OpenCode grouped ahead of pure alphabetical). */
+const PRESET_GROUP_ORDER = ["opencode"] as const;
 
 function comparePresetGroups(a: PresetGroup, b: PresetGroup): number {
   const ai = PRESET_GROUP_ORDER.indexOf(
@@ -32,20 +23,13 @@ function comparePresetGroups(a: PresetGroup, b: PresetGroup): number {
 }
 
 const VARIANT_LABELS: Record<string, string> = {
-  dashscope: "DashScope",
-  dashscope_intl: "Singapore",
-  dashscope_us: "US",
   open_platform: "Open Platform",
-  open_platform_cn: "China",
   open_platform_intl: "International",
   coding_plan: "Coding Plan",
-  coding_plan_cn: "Coding (CN)",
   coding_plan_intl: "Coding (Intl)",
   token_plan: "Token Plan",
-  token_plan_enterprise_cn: "Token Enterprise (CN)",
   token_plan_intl: "Token (Intl)",
   hy_token_plan: "Hy Token Plan",
-  hai: "HAI",
   china: "China",
   international: "International",
   zen_compatible: "Zen · Compatible",
@@ -125,7 +109,7 @@ export function isLocalPreset(preset: ProviderPreset): boolean {
   return LOCAL_PRESET_IDS.has(preset.id);
 }
 
-/** Presets / groups hidden behind "更多模型提供商" on admin Models (and setup). */
+/** Presets / groups hidden behind "More model providers" on admin Models (and setup). */
 const OVERSEAS_PRESET_IDS = new Set([
   "openai",
   "openai-codex",
@@ -150,9 +134,8 @@ export function isOverseasPreset(preset: ProviderPreset): boolean {
 }
 
 /**
- * Split cloud presets into default-visible (domestic / already configured)
- * and collapsed presets shown only after "更多模型提供商"
- * (overseas clouds + OpenCode).
+ * Split cloud presets into default-visible (already configured) and
+ * collapsed presets shown only after "More model providers" (OpenCode).
  */
 export function partitionCloudPresets(
   cloudPresets: ProviderPreset[],

@@ -6,10 +6,10 @@ from octop.i18n import channel_tool_hint_end, channel_tool_hint_start
 
 
 def test_channel_tool_hint_start_zh():
-    text = channel_tool_hint_start("读取文件", "zh")
+    text = channel_tool_hint_start("Read file", "zh")
     assert text.startswith("🔧")
-    assert "正在调用工具" in text
-    assert "读取文件" in text
+    assert "Calling tool" in text
+    assert "Read file" in text
 
 
 def test_channel_tool_hint_end_en():

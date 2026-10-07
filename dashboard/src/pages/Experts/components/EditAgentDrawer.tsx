@@ -447,7 +447,7 @@ function EditAgentDrawerBody({
 
       // Persist page config before PATCH. Workspace I/O survives the
       // background harness reload; skip when the editor is still loading
-      // or the user never touched 页面配置, so a name/model save cannot
+      // or the user never touched Page configuration, so a name/model save cannot
       // clobber bilingual copy or extra manifest keys.
       const welcomeSnap = welcomeConfigRef.current?.getSnapshot();
       if (

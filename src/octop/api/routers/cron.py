@@ -25,7 +25,7 @@ router = APIRouter()
 class CronCreateBody(BaseModel):
     name: str | None = None
     trigger: str = Field(
-        description="Examples: cron:0 9 * * *, interval:3600, date:2030-01-01T08:00:00, or agently:INSTANCE_ID for new mail events."
+        description="Examples: cron:0 9 * * *, interval:3600, date:2030-01-01T08:00:00."
     )
     prompt: str
     session_key: str | None = None
@@ -40,7 +40,7 @@ class CronPatchBody(BaseModel):
     name: str | None = None
     trigger: str | None = Field(
         default=None,
-        description="Time schedule or agently:INSTANCE_ID for new mail events.",
+        description="Time schedule for the job.",
     )
     prompt: str | None = None
     session_key: str | None = None

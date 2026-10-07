@@ -134,7 +134,7 @@ def test_serialize_history_message_includes_thinking_and_tools() -> None:
 
     stream_error = _serialize_history_message(
         AIMessage(
-            content="模型服务返回余额或额度不足。",
+            content="The model service reports insufficient balance or quota.",
             additional_kwargs={
                 "octop_stream_error": True,
                 "error_code": "TOKEN_QUOTA_EXCEEDED",
@@ -194,7 +194,7 @@ def test_llm_text_content_skips_thinking_blocks() -> None:
 
 
 def test_merge_adjacent_messages_keeps_user_turns_separate() -> None:
-    prompt = "每日星座提醒"
+    prompt = "Daily horoscope reminder"
     merged = _merge_adjacent_messages(
         [
             {"role": "user", "content": prompt},
@@ -227,7 +227,7 @@ def test_entry_matches_thread_by_thread_id() -> None:
 
 
 def test_entry_matches_thread_does_not_match_by_prompt_title() -> None:
-    prompt = "用户星座：双子座。请根据双子座今日运势"
+    prompt = "User sign: Gemini. Base it on today's Gemini horoscope"
     assert not _entry_matches_thread(
         {"role": "user", "content": prompt},
         thread_id="thr_new",
@@ -346,7 +346,7 @@ def test_is_offload_placeholder_block_rejects_unrelated_text() -> None:
 def test_serialize_history_message_drops_image_offload_placeholder_for_image_user() -> None:
     msg = HumanMessage(
         content=[
-            {"type": "text", "text": "用户发送了图片。"},
+            {"type": "text", "text": "The user sent an image."},
             {"type": "text", "text": _PLACEHOLDER_TEXT},
         ],
         additional_kwargs={
@@ -374,7 +374,7 @@ def test_serialize_history_message_drops_image_offload_placeholder_for_image_use
 def test_serialize_history_message_keeps_user_caption_alongside_image_placeholder() -> None:
     msg = HumanMessage(
         content=[
-            {"type": "text", "text": "请帮我看看这张图"},
+            {"type": "text", "text": "Please take a look at this image"},
             {"type": "text", "text": _PLACEHOLDER_TEXT},
         ],
         additional_kwargs={
@@ -393,7 +393,7 @@ def test_serialize_history_message_keeps_user_caption_alongside_image_placeholde
     assert entry is not None
     # Only the offload placeholder is dropped; the user-written caption
     # is preserved verbatim so the dashboard still shows it.
-    assert entry["content"] == [{"type": "text", "text": "请帮我看看这张图"}]
+    assert entry["content"] == [{"type": "text", "text": "Please take a look at this image"}]
 
 
 def test_serialize_history_message_keeps_placeholder_when_no_image_attachment() -> None:
@@ -433,7 +433,7 @@ def test_strip_image_only_text_blocks_without_user_skips_zh_default() -> None:
     """Locale falls back to ``zh`` when no user is supplied."""
     msg = HumanMessage(
         content=[
-            {"type": "text", "text": "用户发送了图片。"},
+            {"type": "text", "text": "The user sent an image."},
             {"type": "text", "text": _PLACEHOLDER_TEXT},
         ],
         additional_kwargs={
@@ -457,7 +457,7 @@ def test_strip_image_only_text_blocks_keeps_voice_caption() -> None:
     """Non-image attachments still strip LLM-only noise; keep the user caption."""
     msg = HumanMessage(
         content=[
-            {"type": "text", "text": "请听这段录音"},
+            {"type": "text", "text": "Please listen to this recording"},
             {"type": "text", "text": _PLACEHOLDER_TEXT},  # NOT real, but tests shape
         ],
         additional_kwargs={
@@ -474,18 +474,18 @@ def test_strip_image_only_text_blocks_keeps_voice_caption() -> None:
     entry = _serialize_history_message(msg, user=SimpleNamespace(locale="zh"))
     assert entry is not None
     # Offload placeholders are LLM-facing only once inbound_attachments exists.
-    assert entry["content"] == [{"type": "text", "text": "请听这段录音"}]
+    assert entry["content"] == [{"type": "text", "text": "Please listen to this recording"}]
 
 
 def test_serialize_history_message_drops_zip_path_hint() -> None:
     """Zip/file path hints must not appear as user-authored history text."""
     hint = (
-        "[附件] report.zip\n"
-        "工作区路径：/.octop/workspaces/JRK846/inbound/1_report.zip\n"
-        "MIME：application/zip"
+        "[Attachment] report.zip\n"
+        "Workspace path: /.octop/workspaces/JRK846/inbound/1_report.zip\n"
+        "MIME: application/zip"
     )
     msg = HumanMessage(
-        content=[{"type": "text", "text": f"请解压\n\n{hint}"}],
+        content=[{"type": "text", "text": f"Please extract it\n\n{hint}"}],
         additional_kwargs={
             "octop_inbound_attachments": [
                 {
@@ -499,7 +499,7 @@ def test_serialize_history_message_drops_zip_path_hint() -> None:
     )
     entry = _serialize_history_message(msg, user=SimpleNamespace(locale="zh"))
     assert entry is not None
-    assert entry["content"] == [{"type": "text", "text": "请解压"}]
+    assert entry["content"] == [{"type": "text", "text": "Please extract it"}]
     assert entry["inbound_attachments"][0]["filename"] == "report.zip"
 
 
@@ -507,7 +507,7 @@ def test_serialize_history_message_drops_workspace_image_ref() -> None:
     """Path-only vision refs are history noise when inbound_attachments is set."""
     msg = HumanMessage(
         content=[
-            {"type": "text", "text": "这是什么"},
+            {"type": "text", "text": "What is this"},
             {
                 "type": "image_url",
                 "workspace_path": "inbound/1_shot.png",
@@ -528,7 +528,7 @@ def test_serialize_history_message_drops_workspace_image_ref() -> None:
     )
     entry = _serialize_history_message(msg, user=SimpleNamespace(locale="zh"))
     assert entry is not None
-    assert entry["content"] == [{"type": "text", "text": "这是什么"}]
+    assert entry["content"] == [{"type": "text", "text": "What is this"}]
 
 
 def test_serialize_history_synthesizes_attachment_from_workspace_image_ref() -> None:
@@ -537,10 +537,10 @@ def test_serialize_history_synthesizes_attachment_from_workspace_image_ref() -> 
         content=[
             {
                 "type": "image_url",
-                "workspace_path": "inbound/1787231393_baidu_map.png",
+                "workspace_path": "inbound/1787231393_sample_map.png",
                 "mime_type": "image/png",
                 "image_url": {
-                    "url": "workspace://inbound/1787231393_baidu_map.png",
+                    "url": "workspace://inbound/1787231393_sample_map.png",
                 },
             }
         ],
@@ -550,56 +550,56 @@ def test_serialize_history_synthesizes_attachment_from_workspace_image_ref() -> 
     assert entry["content"] == []
     assert entry["inbound_attachments"] == [
         {
-            "filename": "1787231393_baidu_map.png",
+            "filename": "1787231393_sample_map.png",
             "media_type": "image/png",
             "kind": "image",
-            "workspace_path": "inbound/1787231393_baidu_map.png",
+            "workspace_path": "inbound/1787231393_sample_map.png",
         }
     ]
 
 
 def test_serialize_history_drops_dumped_image_ref_json_text() -> None:
     dumped = (
-        '{"type": "image_url", "workspace_path": "inbound/1787231393_baidu_map.png", '
+        '{"type": "image_url", "workspace_path": "inbound/1787231393_sample_map.png", '
         '"mime_type": "image/png", '
-        '"image_url": {"url": "workspace://inbound/1787231393_baidu_map.png"}}'
+        '"image_url": {"url": "workspace://inbound/1787231393_sample_map.png"}}'
     )
     msg = HumanMessage(content=[{"type": "text", "text": dumped}])
     entry = _serialize_history_message(msg, user=SimpleNamespace(locale="zh"))
     assert entry is not None
     assert entry["content"] == []
-    assert entry["inbound_attachments"][0]["workspace_path"] == ("inbound/1787231393_baidu_map.png")
+    assert entry["inbound_attachments"][0]["workspace_path"] == ("inbound/1787231393_sample_map.png")
 
 
 def test_serialize_history_splits_caption_from_stringified_image_ref() -> None:
     """Session JSONL joins caption + json.dumps(image_url) — must not show as text."""
     dumped = (
-        '{"type": "image_url", "workspace_path": "inbound/1787277960_baidu_map.png", '
+        '{"type": "image_url", "workspace_path": "inbound/1787277960_sample_map.png", '
         '"mime_type": "image/png", '
-        '"image_url": {"url": "workspace://inbound/1787277960_baidu_map.png"}}'
+        '"image_url": {"url": "workspace://inbound/1787277960_sample_map.png"}}'
     )
-    msg = HumanMessage(content=f"这图是啥\n{dumped}")
+    msg = HumanMessage(content=f"What is this image\n{dumped}")
     entry = _serialize_history_message(msg, user=SimpleNamespace(locale="zh"))
     assert entry is not None
-    assert entry["content"] == [{"type": "text", "text": "这图是啥"}]
+    assert entry["content"] == [{"type": "text", "text": "What is this image"}]
     assert entry["inbound_attachments"] == [
         {
-            "filename": "1787277960_baidu_map.png",
+            "filename": "1787277960_sample_map.png",
             "media_type": "image/png",
             "kind": "image",
-            "workspace_path": "inbound/1787277960_baidu_map.png",
+            "workspace_path": "inbound/1787277960_sample_map.png",
         }
     ]
 
 
 def test_strip_image_only_text_blocks_directly() -> None:
     blocks = [
-        {"type": "text", "text": "用户发送了图片。"},
+        {"type": "text", "text": "The user sent an image."},
         {"type": "text", "text": _PLACEHOLDER_TEXT},
-        {"type": "text", "text": "你好"},
+        {"type": "text", "text": "Hello"},
     ]
     out = _strip_image_only_text_blocks(blocks, locale="zh")
-    assert out == [{"type": "text", "text": "你好"}]
+    assert out == [{"type": "text", "text": "Hello"}]
 
 
 @pytest.mark.asyncio

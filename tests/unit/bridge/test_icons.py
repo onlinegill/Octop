@@ -17,7 +17,7 @@ def test_keeps_bundled_expert_avatars() -> None:
 
 
 def test_keeps_cdn_absolute_urls() -> None:
-    url = "https://cdn.skillhub.cn/icons/nursing.png"
+    url = "https://cdn.example.com/icons/nursing.png"
     assert (
         rewrite_remote_icon_url(
             url,

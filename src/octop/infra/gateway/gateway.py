@@ -650,10 +650,6 @@ class Gateway:
         lower = msg.lower()
         if "invalid appid or secret" in lower or "100016" in msg:
             return tr("channel.probe.invalid_credentials", locale)
-        if "feishu token refresh failed" in lower:
-            return tr(
-                "channel.probe.feishu_token_failed", locale, detail=msg.split(":", 1)[-1].strip()
-            )
         return msg
 
     def _set_runtime_status(

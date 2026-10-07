@@ -19,11 +19,11 @@ def db(tmp_path: Path) -> SqlitePool:
     return pool
 
 
-def test_users_table_has_locale_default_zh(db: SqlitePool):
+def test_users_table_has_locale_default_en(db: SqlitePool):
     uid = UserRepo(db).create(username="u", password_hash="h", role="user")
     row = UserRepo(db).get(uid)
     assert row is not None
-    assert row.locale == "zh"
+    assert row.locale == "en"
 
 
 def test_user_repo_create_accepts_explicit_locale(db: SqlitePool):
@@ -58,7 +58,7 @@ def test_legacy_users_table_gets_locale_column(tmp_path: Path):
     row = UserRepo(pool).get_by_username("legacy")
 
     assert row is not None
-    assert row.locale == "zh"
+    assert row.locale == "en"
 
 
 def test_set_locale_persists(db: SqlitePool):
@@ -71,10 +71,12 @@ def test_set_locale_persists(db: SqlitePool):
 
 
 def test_resolve_locale_prefers_user_setting():
-    assert resolve_locale(user_locale="en", channel_type="feishu") == "en"
-    assert resolve_locale(user_locale="zh", channel_type="telegram") == "zh"
+    # English-only fork: every input resolves to the English bundle.
+    assert resolve_locale(user_locale="en", channel_type="telegram") == "en"
+    assert resolve_locale(user_locale="zh", channel_type="telegram") == "en"
 
 
 def test_normalize_locale_bcp47():
-    assert normalize_locale("zh-CN") == "zh"
+    # English-only fork: non-English tags fall back to English.
+    assert normalize_locale("zh-CN") == "en"
     assert normalize_locale("en-US") == "en"

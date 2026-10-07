@@ -26,14 +26,14 @@ import {
 const PAGE_SIZE = 30;
 
 const ACTION_OPTIONS = [
-  { value: "", label: "全部记录" },
-  { value: "extract_run", label: "提取运行" },
-  { value: "promote", label: "采纳" },
-  { value: "reject", label: "忽略" },
-  { value: "deprecate", label: "弃用" },
-  { value: "create", label: "新建" },
-  { value: "user_edit", label: "编辑" },
-  { value: "page_regen", label: "刷新主题" },
+  { value: "", label: "All records" },
+  { value: "extract_run", label: "Extract run" },
+  { value: "promote", label: "Adopt" },
+  { value: "reject", label: "Ignore" },
+  { value: "deprecate", label: "Deprecated" },
+  { value: "create", label: "New" },
+  { value: "user_edit", label: "Edit" },
+  { value: "page_regen", label: "Refresh theme" },
 ];
 
 const ACTION_COLOR: Record<string, string> = {
@@ -108,7 +108,7 @@ export default function JournalList({ agentId }: Props) {
   return (
     <Card size="small">
       <Space style={{ marginBottom: 16 }} wrap>
-        <span style={{ color: "#595959" }}>筛选类型:</span>
+        <span style={{ color: "#595959" }}>Filter type:</span>
         <Select
           style={{ width: 180 }}
           value={action}
@@ -125,7 +125,7 @@ export default function JournalList({ agentId }: Props) {
       ) : items.length === 0 ? (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="暂无整理记录"
+          description="No record of sorting yet"
         />
       ) : (
         <div>
@@ -198,7 +198,7 @@ function DaySection({
       >
         {day.label}
         <span style={{ marginLeft: 8, fontWeight: 400 }}>
-          · {day.groups.length} 项
+          · {day.groups.length} Item
         </span>
       </div>
       <div style={{ position: "relative", paddingLeft: 16 }}>
@@ -419,20 +419,20 @@ function extractRunSummary(after: ExtractRunStats | null | undefined): string {
   const s = after ?? {};
   if (s.failure_reason) {
     if (/no llm|not configured|no model/i.test(s.failure_reason)) {
-      return "未配置提取模型，本次未运行";
+      return "The extraction model is not configured and has not been run this time.";
     }
-    return "本次提取失败";
+    return "This extraction failed";
   }
   const extracted = s.events_extracted ?? 0;
   if (extracted === 0) {
-    return `扫描 ${s.events_considered ?? 0} 段对话，无新增内容`;
+    return `Scan ${s.events_considered ?? 0} Dialogue, no new content`;
   }
   const promoted = s.promoted ?? 0;
   const candidates = s.candidates ?? 0;
   if (candidates === 0) {
-    return `处理 ${extracted} 段对话，未发现可记忆的内容`;
+    return `Process ${extracted} Conversation, no memorable content found`;
   }
-  return `处理 ${extracted} 段对话，生成 ${candidates} 条草稿，晋升 ${promoted} 条记忆`;
+  return `Process ${extracted} Dialogue, generate ${candidates} Draft, promotion ${promoted} Memory`;
 }
 
 /** Child row for each pipeline detail in the expanded state. */
@@ -483,9 +483,9 @@ function buildDays(items: JournalItem[], timeZone: string): DayBucket[] {
   for (const g of groups) {
     const diffDays = calendarDaysAgo(g.timestamp, timeZone);
     let label: string;
-    if (diffDays === 0) label = "今天";
-    else if (diffDays === 1) label = "昨天";
-    else if (diffDays > 1 && diffDays < 7) label = `${diffDays} 天前`;
+    if (diffDays === 0) label = "Today";
+    else if (diffDays === 1) label = "Yesterday";
+    else if (diffDays > 1 && diffDays < 7) label = `${diffDays} Days ago`;
     else label = formatServerYmd(g.timestamp, timeZone);
 
     const last = out[out.length - 1];
@@ -570,25 +570,25 @@ function pipelineSummary(items: JournalItem[]): PipelineSummary {
     else if (it.action === "extract") extractN++;
     else if (it.action === "page_regen") regenN++;
   }
-  let title = "整理了一段对话";
+  let title = "Organized a conversation";
   if (captureN > 0 && extractN === 0 && regenN === 0) {
-    title = `记录了 ${captureN} 段对话`;
+    title = `Recorded ${captureN} Dialogue`;
   } else if (captureN > 0 && extractN > 0 && regenN === 0) {
-    title = `处理了 ${captureN} 段对话，生成 ${extractN} 条记忆草稿`;
+    title = `Processed ${captureN} Dialogue, generate ${extractN} Memory draft`;
   } else if (captureN === 0 && extractN > 0 && regenN === 0) {
-    title = `生成了 ${extractN} 条记忆草稿`;
+    title = `Generated ${extractN} Memory draft`;
   } else if (regenN > 0 && extractN === 0 && captureN === 0) {
-    title = `刷新了 ${regenN} 个主题摘要`;
+    title = `Refreshed ${regenN} Topic summaries`;
   } else if (captureN > 0 && regenN > 0) {
-    title = `处理了 ${captureN} 段对话，并刷新了 ${regenN} 个主题摘要`;
+    title = `Processed ${captureN} Conversation and refreshed ${regenN} Topic summaries`;
   } else if (extractN > 0 && regenN > 0) {
-    title = `生成了 ${extractN} 条记忆草稿，并刷新了 ${regenN} 个主题摘要`;
+    title = `Generated ${extractN} Memory draft and refreshed ${regenN} Topic summaries`;
   }
   const tags: { text: string; color: string }[] = [];
   if (captureN > 0)
-    tags.push({ text: `📥 ${captureN} 段对话`, color: "default" });
-  if (extractN > 0) tags.push({ text: `📝 ${extractN} 条草稿`, color: "blue" });
-  if (regenN > 0) tags.push({ text: `🔄 ${regenN} 次刷新`, color: "geekblue" });
+    tags.push({ text: `📥 ${captureN} Dialogue`, color: "default" });
+  if (extractN > 0) tags.push({ text: `📝 ${extractN} Draft`, color: "blue" });
+  if (regenN > 0) tags.push({ text: `🔄 ${regenN} Refresh times`, color: "geekblue" });
   return { title, tags };
 }
 
@@ -616,45 +616,45 @@ function singleEventStory(item: JournalItem): { icon: string } {
 
 function targetText(j: JournalItem): string {
   // Backend-enriched target text lets us show the specific acted-on item; otherwise fall back to type.
-  if (j.target_summary) return `「${j.target_summary}」`;
-  if (j.target_atom_id) return "一条记忆";
-  if (j.target_entity_id) return "一个主题";
-  if (j.target_candidate_id) return "一条草稿";
+  if (j.target_summary) return `“${j.target_summary}”`;
+  if (j.target_atom_id) return "A memory";
+  if (j.target_entity_id) return "A theme";
+  if (j.target_candidate_id) return "A draft";
   return "";
 }
 
 function actionLabel(action: string): string {
   switch (action) {
     case "extract_run":
-      return "提取运行";
+      return "Extract run";
     case "capture":
-      return "记录对话";
+      return "Record conversation";
     case "extract":
-      return "生成草稿";
+      return "Generate draft";
     case "promote":
-      return "采纳";
+      return "Adopt";
     case "reject":
-      return "忽略";
+      return "Ignore";
     case "deprecate":
-      return "弃用";
+      return "Deprecated";
     case "page_regen":
-      return "刷新主题";
+      return "Refresh theme";
     case "create":
-      return "创建";
+      return "Create";
     case "update":
     case "user_edit":
-      return "更新";
+      return "Update";
     case "merge":
-      return "合并";
+      return "Merge";
     default:
       return action;
   }
 }
 
 /**
- * Convert backend notes, often English dev logs, into user-facing Chinese.
- * Known English patterns are translated, user-provided Chinese reasons are
- * preserved, and other dev logs return null to avoid mixed-language noise.
+ * Convert backend notes, often English dev logs, into user-facing English.
+ * Known patterns are translated, user-provided reasons are preserved, and
+ * other dev logs return null to avoid noise.
  */
 function noteToChinese(note: string | null | undefined): string | null {
   const s = (note ?? "").trim();
@@ -662,18 +662,15 @@ function noteToChinese(note: string | null | undefined): string | null {
 
   // Entity resolution during promotion: linked existing topic or created new topic.
   let m = /^entity resolved via alias ['"](.+)['"]$/i.exec(s);
-  if (m) return `关联到已有主题「${m[1]}」`;
+  if (m) return `Link to existing topic “${m[1]}”`;
   m = /^no existing entity matched ['"](.+)['"];?\s*will create$/i.exec(s);
-  if (m) return `新建主题「${m[1]}」`;
+  if (m) return `Create a new theme “${m[1]}”`;
 
   // Deprecation-related notes.
   if (/^atom deprecated without replacement/i.test(s))
-    return "弃用（无替代记忆）";
+    return "Deprecated (no replacement memory)";
   m = /^semantic duplicate; superseded by /i.exec(s);
-  if (m) return "语义重复，已被合并";
-
-  // Preserve user-provided Chinese reasons.
-  if (/[一-鿿]/.test(s)) return s;
+  if (m) return "Duplicate semantics, merged";
 
   // Hide other English dev logs.
   return null;

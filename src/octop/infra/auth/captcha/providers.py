@@ -42,7 +42,6 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from octop.infra.errors import ErrorCode, OctopError
-from octop.infra.utils.tencent_sign import tc3_headers
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +192,7 @@ class _RecaptchaV3Provider:
 
 @dataclass(frozen=True)
 class _GeetestV4Provider:
-    """GeeTest v4 (行为验 4.0) second validation.
+    """GeeTest v4 (behavioral captcha 4.0) second validation.
 
     The login token carries the frontend ``getValidate()`` result as a JSON
     object string (``lot_number`` / ``captcha_output`` / ``pass_token`` /
@@ -249,102 +248,6 @@ class _GeetestV4Provider:
             raise _failed()
 
 
-@dataclass(frozen=True)
-class _TencentProvider:
-    """Tencent Cloud Captcha ticket check (DescribeCaptchaResult, API 3.0).
-
-    The login token carries the frontend callback pair as ``ticket:randstr``;
-    ``site_key`` is the CaptchaAppId and ``secret`` is the AppSecretKey.
-    Ticket verification is signed with CAM API keys (``cam_id``/``cam_key``),
-    see https://cloud.tencent.com/document/product/1110/36926.
-    """
-
-    slug: str = "tencent"
-    requires_token: bool = True
-    siteverify_url: str | None = "https://captcha.tencentcloudapi.com/"
-    requires_score: bool = False
-    aliases: tuple[str, ...] = ("tcaptcha",)
-    listed: bool = True
-
-    def verify_call(
-        self,
-        *,
-        site_key: str,
-        secret: str,
-        token: str,
-        client_ip: str,
-        cam_id: str = "",
-        cam_key: str = "",
-    ) -> VerifyCall:
-        ticket, sep, randstr = token.partition(":")
-        if not sep or not ticket or not randstr:
-            raise _failed()
-        if not cam_id or not cam_key:
-            logger.warning(
-                "tencent captcha ticket verification needs CAM API keys "
-                "(captcha settings cam_secret_id/cam_secret or OCTOP_CAPTCHA_CAM_SECRET_*)"
-            )
-            raise _failed()
-        try:
-            app_id = int(site_key)
-        except ValueError:
-            logger.warning("tencent captcha site_key %r is not an integer CaptchaAppId", site_key)
-            raise _failed() from None
-        payload: dict[str, Any] = {
-            "CaptchaType": 9,
-            "Ticket": ticket,
-            "Randstr": randstr,
-            "UserIp": client_ip,
-            "CaptchaAppId": app_id,
-            "AppSecretKey": secret,
-        }
-        headers, _body = tc3_headers(
-            secret_id=cam_id,
-            secret_key=cam_key,
-            service="captcha",
-            host="captcha.tencentcloudapi.com",
-            action="DescribeCaptchaResult",
-            version="2019-07-22",
-            payload=payload,
-        )
-        # httpx sets Host from the request URL (same value the signature
-        # covers); sending it explicitly would let host-routing proxies
-        # intercept test/mock calls.
-        headers.pop("Host", None)
-        return VerifyCall(
-            method="POST",
-            url=self.siteverify_url or "",
-            headers=headers,
-            json_body=payload,
-        )
-
-    def interpret(self, body: dict[str, Any], *, min_score: float) -> None:
-        del min_score
-        response = body.get("Response")
-        if not isinstance(response, dict):
-            logger.warning("tencent captcha response has no Response object")
-            raise _failed()
-        if response.get("Error"):
-            err = response["Error"]
-            logger.warning(
-                "tencent captcha api error: code=%r message=%r",
-                err.get("Code"),
-                err.get("Message"),
-            )
-            raise _failed()
-        code = response.get("CaptchaCode")
-        evil = response.get("EvilLevel")
-        if code == 1 and evil != 100:
-            return
-        logger.warning(
-            "tencent captcha rejected: code=%r msg=%r evil_level=%r",
-            code,
-            response.get("CaptchaMsg"),
-            evil,
-        )
-        raise _failed()
-
-
 _TURNSTILE = _FormPostProvider(
     slug="turnstile",
     siteverify_url="https://challenges.cloudflare.com/turnstile/v0/siteverify",
@@ -361,7 +264,6 @@ _RECAPTCHA = _FormPostProvider(
     listed=False,
 )
 _RECAPTCHA_V3 = _RecaptchaV3Provider()
-_TENCENT = _TencentProvider()
 _GEETEST_V4 = _GeetestV4Provider()
 _SLIDER = _SliderProvider()
 
@@ -407,7 +309,6 @@ def parse_slug(raw: str) -> str:
 def _register_builtins() -> None:
     for provider in (
         _SLIDER,
-        _TENCENT,
         _TURNSTILE,
         _HCAPTCHA,
         _RECAPTCHA,

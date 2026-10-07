@@ -55,7 +55,7 @@ CREATE TABLE users_new (
   role                TEXT NOT NULL,
   display_name        TEXT,
   disabled            INTEGER NOT NULL DEFAULT 0,
-  locale              TEXT NOT NULL DEFAULT 'zh',
+  locale              TEXT NOT NULL DEFAULT 'en',
   created_at          INTEGER NOT NULL,
   login_failed_count  INTEGER NOT NULL DEFAULT 0,
   login_locked_until  INTEGER NOT NULL DEFAULT 0,

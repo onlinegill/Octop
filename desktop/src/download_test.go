@@ -54,7 +54,7 @@ func TestEnsurePortableUsesBundledPackage(t *testing.T) {
 	if !launchReady(portableDir()) {
 		t.Fatal("local package was not extracted into the portable directory")
 	}
-	if len(statuses) == 0 || statuses[0] != "首次启动，正在解压内置运行环境…" {
+	if len(statuses) == 0 || statuses[0] != "First launch: unpacking the bundled runtime…" {
 		t.Fatalf("unexpected statuses: %v", statuses)
 	}
 	if _, err := os.Stat(zipPath); err != nil {
@@ -92,8 +92,8 @@ func TestEnsurePortableReplacesOlderRuntime(t *testing.T) {
 		t.Fatalf("old runtime was not replaced: %v", err)
 	}
 	if len(statuses) < 2 ||
-		statuses[0] != "发现客户端新版 0.9.32，正在备份数据库…" ||
-		statuses[1] != "正在更新内置运行环境…" {
+		statuses[0] != "Desktop update 0.9.32 found. Backing up the database…" ||
+		statuses[1] != "Updating the bundled runtime…" {
 		t.Fatalf("unexpected statuses: %v", statuses)
 	}
 }
@@ -327,7 +327,7 @@ func TestEnsurePortableKeepsCurrentRuntimeWhenReplacementIsInvalid(t *testing.T)
 	if got := portableVersion(root); got != "0.9.31" {
 		t.Fatalf("portable version = %q, want 0.9.31", got)
 	}
-	if len(statuses) == 0 || statuses[len(statuses)-1] != "更新内置运行环境失败，继续使用已有运行环境…" {
+	if len(statuses) == 0 || statuses[len(statuses)-1] != "Runtime update failed; using the existing runtime…" {
 		t.Fatalf("unexpected statuses: %v", statuses)
 	}
 }
@@ -525,17 +525,17 @@ func TestLaunchReadyRejectsFlattenedPythonSymlink(t *testing.T) {
 	}
 }
 
-func TestFormatHealthWaitErrorIsActionableChinese(t *testing.T) {
+func TestFormatHealthWaitErrorIsActionable(t *testing.T) {
 	err := formatHealthWaitError(LocaleZH, "http://127.0.0.1:8088/", time.Minute, errors.New("connection refused"), 0)
 	if err == nil {
 		t.Fatal("expected an error")
 	}
 	msg := err.Error()
 	for _, needle := range []string{
-		"Octop 服务未在",
-		"1 分钟",
+		"Octop did not become ready within",
+		"1 minute",
 		"http://127.0.0.1:8088",
-		"请确认",
+		"make sure Octop is running",
 	} {
 		if !strings.Contains(msg, needle) {
 			t.Fatalf("friendly health error missing %q: %s", needle, msg)
@@ -561,14 +561,11 @@ func TestFormatHealthWaitErrorUsesEnglishWhenLocaleIsEn(t *testing.T) {
 			t.Fatalf("English health error missing %q: %s", needle, msg)
 		}
 	}
-	if strings.Contains(msg, "服务未在") || strings.Contains(msg, "请确认") {
-		t.Fatalf("English locale should not use Chinese splash copy: %s", msg)
-	}
 }
 
 func TestFormatHealthWaitErrorUsesServiceNotReadyHintOn5xx(t *testing.T) {
 	zh := formatHealthWaitError(LocaleZH, "http://127.0.0.1:8088", 2*time.Minute, nil, 503).Error()
-	if !strings.Contains(zh, "2 分钟") || !strings.Contains(zh, "尚未就绪") {
+	if !strings.Contains(zh, "2 minutes") || !strings.Contains(zh, "not ready yet") {
 		t.Fatalf("zh 5xx hint: %s", zh)
 	}
 	en := formatHealthWaitError(LocaleEN, "http://127.0.0.1:8088", 2*time.Minute, nil, 503).Error()

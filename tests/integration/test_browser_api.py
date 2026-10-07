@@ -172,13 +172,13 @@ async def test_harness_list_tabs_uses_sticky_target_id(monkeypatch) -> None:
                     "type": "page",
                     "id": "TAB-1",
                     "url": "https://www.bilibili.com/",
-                    "title": "B站",
+                    "title": "Video site",
                 },
                 {
                     "type": "page",
                     "id": "TAB-2",
                     "url": "https://weibo.com/",
-                    "title": "微博",
+                    "title": "Microblog",
                 },
             ]
 

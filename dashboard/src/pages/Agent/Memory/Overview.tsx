@@ -142,7 +142,7 @@ export default function Overview({
             <p>
               {t(
                 "memory.overview.dashboardSubtitle",
-                "快速了解 Agent 记住了什么，以及记忆处理是否正常。",
+                "Get to know quickly Agent What is remembered, and whether memory processing is normal.",
               )}
             </p>
           </div>
@@ -433,7 +433,7 @@ function PipelineCard({
   const atoms = counts.atoms ?? 0;
   const lastExtract = counts.last_extract_run?.timestamp;
   const lastExtractLabel = lastExtract
-    ? t("memory.pipeline.lastExtract", "上次整理 {{time}}", {
+    ? t("memory.pipeline.lastExtract", "Last organized {{time}}", {
         time: lastExtract.slice(0, 16).replace("T", " "),
       })
     : null;
@@ -441,17 +441,17 @@ function PipelineCard({
     raw === 0
       ? t(
           "memory.pipeline.hintNoRaw",
-          "开始对话后，系统会自动捕获素材并提炼记忆。",
+          "Once you start a conversation, the system automatically captures the footage and refines the memory.",
         )
       : atoms === 0
       ? t(
           "memory.pipeline.hintDistilling",
-          "已捕获 {{n}} 条对话记忆，首批长期记忆通常会在几轮对话后出现。",
+          "Captured {{n}} Conversation memories, the first long-term memories usually appear after a few rounds of conversation.",
           { n: raw },
         )
       : t(
           "memory.pipeline.hintNormal",
-          "对话记忆会自动提炼为候选内容，确认后成为可召回的长期记忆。",
+          "Dialogue memories are automatically refined into candidate content, which becomes recallable long-term memory after confirmation.",
         );
 
   return (

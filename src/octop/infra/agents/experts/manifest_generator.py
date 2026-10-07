@@ -30,8 +30,7 @@ _MAX_EXPERT_DESCRIPTION_CHARS = 220
 _MAX_PROMPT_CHARS = 180
 _MAX_TITLE_CHARS = 18
 _MAX_DESCRIPTION_CHARS = 36
-_MAX_WELCOME_CHARS_ZH = 40
-_MAX_WELCOME_CHARS_EN = 90
+_MAX_WELCOME_CHARS = 90
 _MAX_QUICK_PROMPTS = 6
 _MIN_QUICK_PROMPTS = 6
 _MIN_TASK_EXAMPLES = 3
@@ -136,17 +135,14 @@ async def generate_skillhub_manifest_assets(
 ) -> dict[str, Any]:
     """Call the internal generator skill and return normalized manifest fields."""
     system_prompt = await asyncio.to_thread(_SKILL_PATH.read_text, encoding="utf-8")
-    fallback_label_zh = _fallback_label_zh(item)
-    fallback_label_en = _fallback_label_en(item)
+    fallback_label = _fallback_label(item)
+    summary = getattr(item, "summary_en", "") or getattr(item, "summary", "")
     context = {
         "expert": {
             "slug": item.slug,
-            "name_zh": fallback_label_zh,
-            "name_en": fallback_label_en,
-            "source_name_zh": item.display_name or item.slug,
-            "source_name_en": item.display_name_en or "",
-            "summary_zh": item.summary,
-            "summary_en": item.summary_en or "",
+            "name": fallback_label,
+            "source_name": item.display_name or item.slug,
+            "summary": summary,
             "scene": item.scene,
             "sub_scene": item.sub_scene,
             "skill_slugs": skill_slugs,
@@ -154,9 +150,7 @@ async def generate_skillhub_manifest_assets(
         "workflow_prompt": _clip(skillset_prompt, _MAX_WORKFLOW_CHARS),
         "skills": skill_context,
         "target": {
-            "locale_fields": ["zh", "en"],
-            "welcome_max_chars_zh": _MAX_WELCOME_CHARS_ZH,
-            "welcome_max_chars_en": _MAX_WELCOME_CHARS_EN,
+            "welcome_max_chars": _MAX_WELCOME_CHARS,
             "quick_prompt_min": _MIN_QUICK_PROMPTS,
             "quick_prompt_max": _MAX_QUICK_PROMPTS,
             "task_example_min": _MIN_TASK_EXAMPLES,
@@ -176,10 +170,8 @@ async def generate_skillhub_manifest_assets(
     raw = parse_model_json(text)
     return normalize_manifest_assets(
         raw,
-        fallback_name_zh=fallback_label_zh,
-        fallback_name_en=fallback_label_en,
-        fallback_summary_zh=item.summary,
-        fallback_summary_en=item.summary_en or f"Expert workflow for {fallback_label_en}.",
+        fallback_name=fallback_label,
+        fallback_summary=summary,
     )
 
 
@@ -330,50 +322,36 @@ def parse_model_json(text: str) -> dict[str, Any]:
 def normalize_manifest_assets(
     payload: dict[str, Any],
     *,
-    fallback_name_zh: str,
-    fallback_name_en: str,
-    fallback_summary_zh: str = "",
-    fallback_summary_en: str = "",
+    fallback_name: str,
+    fallback_summary: str = "",
 ) -> dict[str, Any]:
     """Validate and trim generated manifest fields."""
     if isinstance(payload.get("manifest"), dict):
         payload = payload["manifest"]
-    label_zh, label_en = _localized_pair(
+    label = _localized_text(
         payload.get("label"),
-        fallback_zh=fallback_name_zh,
-        fallback_en=fallback_name_en,
+        fallback=fallback_name,
         max_chars=_MAX_LABEL_CHARS,
     )
-    label_zh = _ensure_zh_expert_label(label_zh)
-    label_en = _ensure_en_expert_label(label_en)
+    label = _ensure_expert_label(label)
 
-    expert_description_zh, expert_description_en = _localized_pair(
+    expert_description = _localized_text(
         payload.get("description"),
-        fallback_zh=fallback_summary_zh or f"围绕「{label_zh}」提供专家级工作流支持。",
-        fallback_en=fallback_summary_en or f"Expert workflow for {label_en}.",
+        fallback=fallback_summary or f"Expert workflow for {label}.",
         max_chars=_MAX_EXPERT_DESCRIPTION_CHARS,
     )
     welcome = payload.get("welcome_message")
     if isinstance(welcome, dict):
-        welcome_zh_raw = str(welcome.get("zh") or welcome.get("cn") or "")
-        welcome_en_raw = str(welcome.get("en") or "")
+        welcome_raw = str(welcome.get("en") or "")
     elif isinstance(welcome, str):
-        welcome_zh_raw, welcome_en_raw = welcome, ""
+        welcome_raw = welcome
     else:
-        welcome_zh_raw, welcome_en_raw = "", ""
-    welcome_zh_fallback = _capability_welcome_fallback_zh(expert_description_zh)
-    welcome_en_fallback = _capability_welcome_fallback_en(expert_description_en)
-    welcome_zh = _clip_welcome(
-        welcome_zh_raw.strip(),
-        _MAX_WELCOME_CHARS_ZH,
-        fallback=welcome_zh_fallback,
-        require_chinese=True,
-    )
-    welcome_en = _clip_welcome(
-        welcome_en_raw.strip(),
-        _MAX_WELCOME_CHARS_EN,
-        fallback=welcome_en_fallback,
-        require_chinese=False,
+        welcome_raw = ""
+    welcome_fallback = _capability_welcome_fallback(expert_description)
+    welcome_text = _clip_welcome(
+        welcome_raw.strip(),
+        _MAX_WELCOME_CHARS,
+        fallback=welcome_fallback,
     )
 
     raw_prompts = payload.get("quick_prompts")
@@ -384,31 +362,28 @@ def normalize_manifest_assets(
     for idx, raw in enumerate(raw_prompts):
         if not isinstance(raw, dict):
             continue
-        title_zh, title_en = _localized_pair(
+        title = _localized_text(
             raw.get("title"),
-            fallback_zh="开始处理",
-            fallback_en="Start work",
+            fallback="Start work",
             max_chars=_MAX_TITLE_CHARS,
         )
-        description_zh, description_en = _localized_pair(
+        description = _localized_text(
             raw.get("description"),
-            fallback_zh="描述目标、材料和期望结果",
-            fallback_en="Describe the goal, materials, and expected result",
+            fallback="Describe the goal, materials, and expected result",
             max_chars=_MAX_DESCRIPTION_CHARS,
         )
-        prompt_zh, prompt_en = _localized_pair(
+        prompt = _localized_text(
             raw.get("prompt"),
-            fallback_zh=f"请作为「{label_zh}」，帮我处理以下任务：\n\n",
-            fallback_en=f"As the {label_en}, help me with this task:\n\n",
+            fallback=f"As the {label}, help me with this task:\n\n",
             max_chars=_MAX_PROMPT_CHARS,
         )
-        if not (title_zh and title_en and prompt_zh and prompt_en):
+        if not (title and prompt):
             continue
         prompts.append(
             {
-                "title": {"zh": title_zh, "en": title_en},
-                "description": {"zh": description_zh, "en": description_en},
-                "prompt": {"zh": prompt_zh, "en": prompt_en},
+                "title": {"en": title},
+                "description": {"en": description},
+                "prompt": {"en": prompt},
                 "color": _normalize_color(raw.get("color"), idx),
                 "icon_name": _normalize_icon(raw.get("icon_name"), idx),
             },
@@ -416,11 +391,7 @@ def normalize_manifest_assets(
         if len(prompts) >= _MAX_QUICK_PROMPTS:
             break
 
-    task_examples = _normalize_task_examples(
-        payload.get("task_examples"),
-        label_zh=label_zh,
-        label_en=label_en,
-    )
+    task_examples = _normalize_task_examples(payload.get("task_examples"), label=label)
 
     if len(prompts) < 2:
         raise ExpertManifestGenerationError("model returned too few usable quick prompts")
@@ -428,18 +399,11 @@ def normalize_manifest_assets(
         idx = len(prompts)
         prompts.append(
             {
-                "title": {
-                    "zh": _clip(f"继续推进 {idx + 1}", _MAX_TITLE_CHARS),
-                    "en": _clip(f"Continue {idx + 1}", _MAX_TITLE_CHARS),
-                },
-                "description": {
-                    "zh": "补充目标与材料，继续专家工作流",
-                    "en": "Add context and continue the workflow",
-                },
+                "title": {"en": _clip(f"Continue {idx + 1}", _MAX_TITLE_CHARS)},
+                "description": {"en": "Add context and continue the workflow"},
                 "prompt": {
-                    "zh": f"请作为「{label_zh}」，帮我继续推进下一步。\n我的情况/目标/材料是：\n",
                     "en": (
-                        f"As the {label_en}, help me continue with the next step.\n"
+                        f"As the {label}, help me continue with the next step.\n"
                         "My context, goals, or materials are:\n"
                     ),
                 },
@@ -448,9 +412,9 @@ def normalize_manifest_assets(
             },
         )
     return {
-        "label": {"zh": label_zh, "en": label_en},
-        "description": {"zh": expert_description_zh, "en": expert_description_en},
-        "welcome_message": {"zh": welcome_zh, "en": welcome_en},
+        "label": {"en": label},
+        "description": {"en": expert_description},
+        "welcome_message": {"en": welcome_text},
         "quick_prompts": prompts[:_MAX_QUICK_PROMPTS],
         "task_examples": task_examples,
     }
@@ -459,20 +423,13 @@ def normalize_manifest_assets(
 def _normalize_task_examples(
     raw: Any,
     *,
-    label_zh: str,
-    label_en: str,
+    label: str,
 ) -> dict[str, list[str]]:
-    """Keep exactly 3 or 6 bilingual scheduled-task prompts."""
-    fallback = default_task_examples(label_zh, label_en)
+    """Keep exactly 3 or 6 scheduled-task prompts."""
+    fallback = default_task_examples(label)
     parsed = parse_task_examples({"task_examples": raw} if raw is not None else {})
-    zh = [_clip(item, _MAX_TASK_EXAMPLE_CHARS) for item in (parsed or {}).get("zh", [])]
     en = [_clip(item, _MAX_TASK_EXAMPLE_CHARS) for item in (parsed or {}).get("en", [])]
-    return snap_task_examples(
-        zh,
-        en,
-        fillers_zh=fallback["zh"],
-        fillers_en=fallback["en"],
-    )
+    return snap_task_examples(en, fillers_en=fallback["en"])
 
 
 def _manifest_skill_slugs(manifest: dict[str, Any]) -> list[str]:
@@ -507,20 +464,15 @@ def _frontmatter_text(value: Any) -> str:
     return str(value).strip()
 
 
-def _fallback_label_zh(item: Any) -> str:
-    name = str(getattr(item, "display_name", "") or getattr(item, "slug", "") or "").strip()
-    if not name:
-        return "专家"
-    return _ensure_zh_expert_label(name)
-
-
-def _fallback_label_en(item: Any) -> str:
+def _fallback_label(item: Any) -> str:
     raw = str(getattr(item, "display_name_en", "") or "").strip()
     if not raw:
         raw = _title_from_slug(str(getattr(item, "slug", "") or ""))
     if not raw:
+        raw = str(getattr(item, "display_name", "") or "").strip()
+    if not raw:
         raw = "Expert"
-    return _ensure_en_expert_label(raw)
+    return _ensure_expert_label(raw)
 
 
 def _title_from_slug(slug: str) -> str:
@@ -528,35 +480,26 @@ def _title_from_slug(slug: str) -> str:
     return " ".join(word[:1].upper() + word[1:] for word in words)
 
 
-def _ensure_zh_expert_label(name: str) -> str:
-    text = name.strip()
-    if not text:
-        return "专家"
-    return text if text.endswith("专家") else f"{text}专家"
-
-
-def _ensure_en_expert_label(name: str) -> str:
+def _ensure_expert_label(name: str) -> str:
     text = name.strip()
     if not text:
         return "Expert"
     return text if text.lower().endswith("expert") else f"{text} Expert"
 
 
-def _localized_pair(
+def _localized_text(
     node: Any,
     *,
-    fallback_zh: str,
-    fallback_en: str,
+    fallback: str,
     max_chars: int,
-) -> tuple[str, str]:
+) -> str:
     if isinstance(node, dict):
-        zh = str(node.get("zh") or node.get("cn") or fallback_zh)
-        en = str(node.get("en") or fallback_en)
+        text = str(node.get("en") or fallback)
     elif isinstance(node, str):
-        zh, en = node, fallback_en
+        text = node
     else:
-        zh, en = fallback_zh, fallback_en
-    return _clip(zh.strip(), max_chars), _clip(en.strip(), max_chars)
+        text = fallback
+    return _clip(text.strip(), max_chars)
 
 
 def _normalize_color(value: Any, idx: int) -> str:
@@ -586,16 +529,13 @@ def _clip_welcome(
     max_chars: int,
     *,
     fallback: str,
-    require_chinese: bool | None = None,
 ) -> str:
-    """Return one complete welcome line; never mid-sentence ellipsis."""
+    """Return one complete English welcome line; never mid-sentence ellipsis."""
     cleaned = " ".join((text or "").split())
-    if require_chinese is True and cleaned and not _looks_chinese(cleaned):
-        cleaned = ""
-    if require_chinese is False and cleaned and _looks_chinese(cleaned):
+    if cleaned and _looks_chinese(cleaned):
         cleaned = ""
     if cleaned:
-        for sep in ("。", "！", "？", ".", "!", "?"):
+        for sep in (".", "!", "?"):
             idx = cleaned.find(sep)
             if idx >= 6:
                 cleaned = cleaned[:idx].strip()
@@ -608,7 +548,7 @@ def _clip_welcome(
     if len(fb) <= max_chars:
         return fb
     # Fallbacks are authored short; keep a complete prefix without ellipsis marks.
-    for sep in ("，", ",", "、", " "):
+    for sep in (",", " "):
         idx = fb.rfind(sep, 0, max_chars + 1)
         if idx >= 6:
             return fb[:idx].strip()
@@ -622,22 +562,11 @@ def _looks_chinese(text: str) -> bool:
     return bool(_CJK_RE.search(text))
 
 
-def _capability_welcome_fallback_zh(description_zh: str) -> str:
+def _capability_welcome_fallback(description: str) -> str:
     line = _clip_welcome(
-        description_zh,
-        _MAX_WELCOME_CHARS_ZH,
-        fallback="提供专业、可落地的专家工作流支持",
-        require_chinese=True,
-    )
-    return line or "提供专业、可落地的专家工作流支持"
-
-
-def _capability_welcome_fallback_en(description_en: str) -> str:
-    line = _clip_welcome(
-        description_en,
-        _MAX_WELCOME_CHARS_EN,
+        description,
+        _MAX_WELCOME_CHARS,
         fallback="Practical expert workflow support for your goals",
-        require_chinese=False,
     )
     return line or "Practical expert workflow support for your goals"
 

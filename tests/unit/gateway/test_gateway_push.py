@@ -47,24 +47,24 @@ def gateway(tmp_path: Path) -> Gateway:
 
 @pytest.mark.asyncio
 async def test_push_to_session_im_delegates_to_channel_manager(gateway: Gateway) -> None:
-    sk = ThreadRegistry.make_key(agent_id="a1", channel_type="feishu", channel_subject_id="ou_1")
+    sk = ThreadRegistry.make_key(agent_id="a1", channel_type="slack", channel_subject_id="ou_1")
     gateway.thread_registry._threads.insert(
         thread_id="thr_im",
         agent_id="a1",
         user_id=1,
-        channel_type="feishu",
+        channel_type="slack",
         session_key=sk,
     )
     gateway.thread_registry._sessions.upsert(
         session_key=sk,
         agent_id="a1",
         user_id=1,
-        channel_type="feishu",
+        channel_type="slack",
         chat_type="dm",
         thread_id="thr_im",
         channel_subject_id="ou_1",
         channel_chat_type="dm",
-        channel_metadata={"channel_type": "feishu", "user_id": 1},
+        channel_metadata={"channel_type": "slack", "user_id": 1},
         channel_id="ch-1",
     )
 
@@ -112,13 +112,13 @@ async def test_push_text_strips_thinking_when_disabled(gateway: Gateway) -> None
     gateway._channel_manager.get_channel = MagicMock(return_value=channel)
 
     await gateway.push_text(
-        "feishu",
+        "slack",
         "ch-1",
         subject,
-        "<think>secret</think>\n可见回复",
+        "<think>secret</think>\nVisible reply",
     )
 
-    gateway._channel_manager.push_text.assert_awaited_once_with("ch-1", subject, "可见回复")
+    gateway._channel_manager.push_text.assert_awaited_once_with("ch-1", subject, "Visible reply")
 
 
 @pytest.mark.asyncio
@@ -133,15 +133,15 @@ async def test_push_text_formats_thinking_when_enabled(gateway: Gateway) -> None
     gateway._channel_manager.get_channel = MagicMock(return_value=channel)
 
     await gateway.push_text(
-        "feishu",
+        "slack",
         "ch-1",
         subject,
-        "<think>secret</think>\n可见回复",
+        "<think>secret</think>\nVisible reply",
     )
 
     gateway._channel_manager.push_text.assert_awaited_once()
     assert gateway._channel_manager.push_text.await_args.args[2] == (
-        "💭 Thinking: secret\n\n可见回复"
+        "💭 Thinking: secret\n\nVisible reply"
     )
 
 
@@ -149,7 +149,7 @@ async def test_push_text_formats_thinking_when_enabled(gateway: Gateway) -> None
 async def test_push_text_delegates_to_channel_manager(gateway: Gateway) -> None:
     subject = ChannelSubject(subject_id="ou_1", chat_type="dm", metadata={})
 
-    await gateway.push_text("feishu", "ch-1", subject, "ping")
+    await gateway.push_text("slack", "ch-1", subject, "ping")
 
     gateway._channel_manager.push_text.assert_awaited_once_with("ch-1", subject, "ping")
 
@@ -158,7 +158,7 @@ async def test_push_text_delegates_to_channel_manager(gateway: Gateway) -> None:
 async def test_push_text_from_session_im_preserves_subject(gateway: Gateway) -> None:
     sk = ThreadRegistry.make_key(
         agent_id="a1",
-        channel_type="qq",
+        channel_type="telegram",
         channel_subject_id="openid_1",
         channel_chat_type="dm",
     )
@@ -166,19 +166,19 @@ async def test_push_text_from_session_im_preserves_subject(gateway: Gateway) -> 
         thread_id="thr_qq",
         agent_id="a1",
         user_id=1,
-        channel_type="qq",
+        channel_type="telegram",
         session_key=sk,
     )
     gateway.thread_registry._sessions.upsert(
         session_key=sk,
         agent_id="a1",
         user_id=1,
-        channel_type="qq",
+        channel_type="telegram",
         chat_type="dm",
         thread_id="thr_qq",
         channel_subject_id="openid_1",
         channel_chat_type="dm",
-        channel_metadata={"channel_type": "qq"},
+        channel_metadata={"channel_type": "telegram"},
         channel_id="ch-1",
     )
 
@@ -197,7 +197,7 @@ async def test_push_text_from_qq_group_session_preserves_proactive_routing(
 ) -> None:
     sk = ThreadRegistry.make_key(
         agent_id="a1",
-        channel_type="qq",
+        channel_type="telegram",
         channel_subject_id="group-openid-1",
         channel_chat_type="group",
     )
@@ -205,20 +205,20 @@ async def test_push_text_from_qq_group_session_preserves_proactive_routing(
         thread_id="thr_qq_group",
         agent_id="a1",
         user_id=1,
-        channel_type="qq",
+        channel_type="telegram",
         session_key=sk,
     )
     gateway.thread_registry._sessions.upsert(
         session_key=sk,
         agent_id="a1",
         user_id=1,
-        channel_type="qq",
+        channel_type="telegram",
         chat_type="group",
         thread_id="thr_qq_group",
         channel_subject_id="group-openid-1",
         channel_chat_type="group",
         channel_metadata={
-            "channel_type": "qq",
+            "channel_type": "telegram",
             "msg_type": "group",
             "group_openid": "group-openid-1",
         },
@@ -261,7 +261,7 @@ def _insert_dashboard_session(gateway: Gateway, *, thread_id: str = "thr_dash") 
 @pytest.mark.asyncio
 async def test_push_text_from_session_dashboard_injects_thread_id(gateway: Gateway) -> None:
     sk = _insert_dashboard_session(gateway)
-    await gateway.push_text_from_session("a1", sk, "记得喝水")
+    await gateway.push_text_from_session("a1", sk, "Remember to drink water")
     row = gateway.thread_registry.get_session(sk)
     assert row is not None
     assert row.unread_count == 1
@@ -270,7 +270,7 @@ async def test_push_text_from_session_dashboard_injects_thread_id(gateway: Gatew
     assert args.args[0] == WS_CHANNEL_ID
     subject = args.args[1]
     assert subject.metadata["thread_id"] == "thr_dash"
-    assert args.args[2] == "记得喝水"
+    assert args.args[2] == "Remember to drink water"
 
 
 @pytest.mark.asyncio
@@ -284,19 +284,19 @@ async def test_push_text_from_session_dashboard_notifies_user(gateway: Gateway) 
     gateway.ws_hub.register("n1", capture, user_id=1)
     gateway._agent_manager.get_row.return_value = SimpleNamespace(name="Agent 1")
 
-    await gateway.push_text_from_session("a1", sk, "记得喝水")
+    await gateway.push_text_from_session("a1", sk, "Remember to drink water")
 
     assert len(frames) == 1
     frame = frames[0]
     assert frame["type"] == "dashboard_push"
     assert frame["agent_id"] == "a1"
     assert frame["thread_id"] == "thr_dash"
-    assert frame["text"] == "记得喝水"
+    assert frame["text"] == "Remember to drink water"
     assert frame["agent_name"] == "Agent 1"
 
 
 @pytest.mark.asyncio
 async def test_push_text_from_session_does_not_project_history(gateway: Gateway) -> None:
     sk = _insert_dashboard_session(gateway, thread_id="thr_text")
-    await gateway.push_text_from_session("a1", sk, "记得喝水")
+    await gateway.push_text_from_session("a1", sk, "Remember to drink water")
     gateway._repos.thread_message_repo.append_if_ready.assert_not_called()

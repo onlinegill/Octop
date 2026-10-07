@@ -420,7 +420,7 @@ def config_channels(agent_id: str | None, as_user: str | None) -> None:
     from octop.cli.support.offline_ops import create_channel_offline, patch_channel_offline
     from octop.infra.errors import OctopError
 
-    kinds = ["feishu", "wecom", "weixin", "qq", "dingtalk", "telegram", "yuanbao"]
+    kinds = ["wecom", "weixin", "qq", "telegram"]
     kind = _prompts.select("Channel kind:", choices=kinds)
     name = _prompts.text("Channel name:", default=kind)
     try:
@@ -447,21 +447,7 @@ def config_channels(agent_id: str | None, as_user: str | None) -> None:
                 ctx.invoke(bind_weixin, agent_id=aid, channel_id=cid, as_user=as_user)
         return
 
-    if kind == "feishu":
-        if _prompts.confirm("Run Feishu bot-creator (QR) instead of manual entry?", default=True):
-            ctx = click.get_current_context()
-            ctx.invoke(
-                feishu_setup,
-                agent_id=aid,
-                channel_id=cid,
-                platform="feishu",
-                as_user=as_user,
-            )
-            return
-        app_id = _prompts.text("Feishu App ID:")
-        app_secret = _prompts.password("Feishu App Secret:")
-        cfg = {"app_id": app_id, "app_secret": app_secret, "enabled": True}
-    elif kind == "qq":
+    if kind == "qq":
         app_id = _prompts.text("QQ App ID:")
         secret = _prompts.password("QQ Client Secret:")
         visibility = _prompts.select(
@@ -504,68 +490,3 @@ def config_channels(agent_id: str | None, as_user: str | None) -> None:
     except OctopError as exc:
         raise click.ClickException(exc.message) from exc
     click.echo("Channel configured.")
-
-
-@channel.command("feishu-setup")
-@click.option("--agent", "agent_id", default=None)
-@click.option("--channel-id", default=None, help="Update existing feishu channel.")
-@click.option("--platform", default="feishu", type=click.Choice(["feishu", "lark"]))
-@click.option("--user", "as_user", default=None)
-@click.option("--dry-run", is_flag=True, help="Print steps without starting bot-creator.")
-@click.option("--retries", default=1, show_default=True, help="Restart bot-creator on failure.")
-def feishu_setup(
-    agent_id: str | None,
-    channel_id: str | None,
-    platform: str,
-    as_user: str | None,
-    dry_run: bool,
-    retries: int,
-) -> None:
-    """Run Feishu scan-to-create (lark-oapi QR) and save app credentials."""
-    from octop.cli.support.feishu_creator import dry_run_feishu_setup, run_feishu_bot_creator
-    from octop.cli.support.offline_ops import create_channel_offline, patch_channel_offline
-    from octop.infra.errors import OctopError
-
-    aid = require_agent(agent_id)
-    user_id = _resolve_user(aid, as_user)
-
-    if dry_run:
-        dry_run_feishu_setup(agent_id=aid, platform=platform, channel_id=channel_id)
-        return
-
-    if retries < 1:
-        raise click.ClickException("--retries must be >= 1")
-
-    app_id = app_secret = None
-    last_err: Exception | None = None
-    for attempt in range(1, retries + 1):
-        if attempt > 1:
-            click.echo(click.style(f"Retry {attempt}/{retries}…", fg="yellow"))
-        try:
-            app_id, app_secret = run_feishu_bot_creator(platform=platform)
-            break
-        except click.ClickException as exc:
-            last_err = exc
-            if attempt >= retries:
-                raise
-    else:
-        if last_err:
-            raise last_err
-        raise click.ClickException("Feishu bot-creator failed")
-
-    cfg = {"app_id": app_id, "app_secret": app_secret, "enabled": True}
-    try:
-        if channel_id:
-            row = patch_channel_offline(aid, channel_id, config=cfg, enabled=True)
-        else:
-            row = create_channel_offline(
-                agent_id=aid,
-                user_id=user_id,
-                kind="feishu",
-                name="feishu",
-                config=cfg,
-            )
-    except OctopError as exc:
-        raise click.ClickException(exc.message) from exc
-    click.echo(click.style("Feishu channel configured.", fg="green"))
-    click.echo(_json.dumps(row, indent=2))

@@ -1,27 +1,27 @@
 [
     {
-        "stepTitle": "修改管理员密码",
+        "stepTitle": "Change administrator password",
         "items": [
             {
                 "type": "tips",
-                "helpText": "当前管理员账号：<b><octop-current-username></b><br>密码留空则保持不变。新密码至少 8 位，且必须同时包含字母和数字；两次须一致。<br>忘记密码时，打开飞牛「文件管理」，进入应用共享里的 Octop 数据目录，查看 <b>octop-login.txt</b>（只备份安装或本窗口改密时的密码，在网页改密后不会自动更新）。<br>当前目录：<b><octop-data-dir></b><br>模型 API Key、日志级别请在 Web 控制台「设置 → 模型」中配置。"
+                "helpText": "Current administrator account: <b><octop-current-username></b><br>Leave the password empty to keep it unchanged. The new password must be at least 8 characters long and must contain both letters and digits; both entries must match.<br>If you forget the password, open the FnOS \"File Manager\", go to the Octop data directory inside the app share, and check <b>octop-login.txt</b> (it only backs up the password set at installation time or when changing it in this window; it is not updated automatically after you change the password in the web UI).<br>Current directory: <b><octop-data-dir></b><br>Configure the model API Key and log level in the Web console under \"Settings → Models\"."
             },
             {
                 "type": "password",
                 "field": "wizard_admin_password",
-                "label": "新密码（留空表示不修改）",
+                "label": "New password (leave empty to keep unchanged)",
                 "initValue": ""
             },
             {
                 "type": "password",
                 "field": "wizard_admin_password_confirm",
-                "label": "确认新密码",
+                "label": "Confirm new password",
                 "initValue": "",
                 "rules": [
                     {
                         "sameAs": "wizard_admin_password",
                         "equal": "wizard_admin_password",
-                        "message": "两次输入的密码不一致"
+                        "message": "The two passwords do not match"
                     }
                 ]
             }

@@ -1130,9 +1130,7 @@ async def test_create_with_template_writes_files(tmp_path: Path) -> None:
         return_value=Expert(
             summary=ExpertSummary(
                 id="my-expert",
-                label_zh="测试",
                 label_en="Test",
-                description_zh="",
                 description_en="",
             ),
             files=["SOUL.md", "skills/my-skill/SKILL.md"],

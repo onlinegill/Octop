@@ -46,11 +46,11 @@ async def tic_tac_toe(board: str = ".........", play_as: str = "X") -> str:
     result = _winner(cleaned)
     data = {"kind": "tictactoe", "board": cleaned, "play_as": mark, "result": result}
     if result == "draw":
-        text = "井字棋：平局。"
+        text = "Tic-tac-toe: draw."
     elif result:
-        text = f"井字棋：{result} 获胜。"
+        text = f"Tic-tac-toe: {result} wins."
     else:
-        text = f"井字棋棋盘 {cleaned}，轮到 {mark}。"
+        text = f"Tic-tac-toe board {cleaned}, {mark} to move."
     return _payload(data, text)
 
 
@@ -69,18 +69,18 @@ async def guess_number(
     if guess is None:
         return _payload(
             {"kind": "guess", "low": lo, "high": hi, "hint": "start"},
-            f"我想了一个 {lo} 到 {hi} 之间的整数，请猜。",
+            f"I picked a number between {lo} and {hi}; take a guess.",
         )
     n = int(guess)
     if n < target:
         hint = "low"
-        text = f"{n} 太小了，再往大猜（{lo}–{hi}）。"
+        text = f"{n} is too small; guess higher ({lo}–{hi})."
     elif n > target:
         hint = "high"
-        text = f"{n} 太大了，再往小猜（{lo}–{hi}）。"
+        text = f"{n} is too large; guess lower ({lo}–{hi})."
     else:
         hint = "equal"
-        text = f"猜中了：{n}。"
+        text = f"Correct: {n}."
     return _payload(
         {"kind": "guess", "low": lo, "high": hi, "guess": n, "hint": hint},
         text,
@@ -92,15 +92,15 @@ def setup(ctx: PluginContext) -> None:
         "tic_tac_toe",
         tic_tac_toe,
         description=(
-            "井字棋。board 为 9 个字符（.XO），play_as 为 X 或 O。"
-            "用户下子后把更新后的 board 再传入。"
+            "Tic-tac-toe. board is 9 characters (.XO); play_as is X or O."
+            "After the user moves, pass the updated board back in."
         ),
     )
     ctx.tool(
         "guess_number",
         guess_number,
         description=(
-            "猜数字。先不传 guess 开始游戏；之后传入 guess。"
-            "请在多轮中自己记住 secret 并作为参数传入，不要把 secret 告诉用户。"
+            "Number guessing. Start without guess; then pass guess."
+            "Remember secret across turns and pass it as a parameter; never reveal secret to the user."
         ),
     )

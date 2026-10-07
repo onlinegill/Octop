@@ -52,7 +52,7 @@ async def github_trending(language: str = "", since: str = "daily", limit: int =
     except Exception as exc:
         return _payload(
             {"items": [], "error": str(exc), "since": since, "language": lang},
-            f"获取 GitHub 趋势失败：{exc}",
+            f"Failed to fetch GitHub trending: {exc}",
         )
     items: list[dict[str, Any]] = []
     for row in body.get("items") or []:
@@ -73,7 +73,7 @@ async def github_trending(language: str = "", since: str = "daily", limit: int =
     if not items:
         return _payload({"items": [], "silent": True, "since": since, "language": lang}, "")
     lines = [f"⭐ {r['stars']} {r['full_name']}" for r in items[:8]]
-    text = f"GitHub 趋势 ({since}) {len(items)} 个仓库\n" + "\n".join(lines)
+    text = f"GitHub trending ({since}) {len(items)} repositories\n" + "\n".join(lines)
     return _payload({"items": items, "since": since, "language": lang}, text)
 
 
@@ -82,7 +82,7 @@ def setup(ctx: PluginContext) -> None:
         "github_trending",
         github_trending,
         description=(
-            "GitHub 新星仓库排行。language 可选编程语言；since 为 daily/weekly/monthly；"
-            "limit 条数默认 10。"
+            "Ranking of rising GitHub repositories. language is an optional programming language; "
+            "since is daily/weekly/monthly; limit defaults to 10."
         ),
     )

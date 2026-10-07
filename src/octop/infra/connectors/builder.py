@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import secrets
 from typing import Any
-from urllib.parse import quote, urlsplit, urlunsplit
+from urllib.parse import quote
 
 from octop.config import OctopConfig
 from octop.infra.connectors.catalog import (
@@ -17,42 +17,12 @@ from octop.infra.connectors.catalog import (
 )
 from octop.infra.connectors.custom_mcp import validate_mcp_http_url
 from octop.infra.connectors.mail_servers import resolve_mail_servers
-from octop.infra.utils.ulid import new_ulid
 
 # MCP Streamable HTTP transport (Notion, etc.) requires both content types.
 _MCP_STREAMABLE_HTTP_ACCEPT = "application/json, text/event-stream"
 
-DIDI_MCP_BASE_URL = "https://mcp.didichuxing.com/mcp-servers"
-
-
 def _mcp_http_headers() -> dict[str, str]:
     return {"Accept": _MCP_STREAMABLE_HTTP_ACCEPT}
-
-
-def normalize_weiyun_mcp_token(raw: str) -> str:
-    """Extract MCP token from pasted env vars or WyHeader snippets."""
-    text = raw.strip().strip('"').strip("'")
-    if not text:
-        return ""
-    match = re.search(r"mcp_token=([^\s;,&\"']+)", text, re.IGNORECASE)
-    if match:
-        return match.group(1).strip()
-    match = re.search(r"WEIYUN_MCP_TOKEN\s*=\s*['\"]?([^'\"\s]+)", text, re.IGNORECASE)
-    if match:
-        return match.group(1).strip()
-    return text
-
-
-def normalize_weknora_base_url(raw: str) -> str:
-    """Normalize a WeKnora origin or API base to its `/api/v1` root."""
-    url = validate_mcp_http_url(raw)
-    parsed = urlsplit(url)
-    if parsed.query or parsed.fragment:
-        raise ValueError("base_url must not contain a query string or fragment")
-    path = parsed.path.rstrip("/")
-    if not path.endswith("/api/v1"):
-        path = f"{path}/api/v1"
-    return urlunsplit((parsed.scheme, parsed.netloc, path, "", ""))
 
 
 def mcp_server_name(kind: str, instance_id: str) -> str:
@@ -105,88 +75,12 @@ def build_http_mcp_spec(
 
 
 def _build_remote_spec(entry: ConnectorCatalogEntry, creds: dict[str, Any]) -> dict[str, Any]:
-    if entry.kind == "didi":
-        api_key = str(creds.get("api_key") or "").strip()
-        return {
-            "transport": "http",
-            "url": f"{DIDI_MCP_BASE_URL}?key={quote(api_key, safe='')}",
-            "headers": _mcp_http_headers(),
-        }
     if entry.kind == "dify":
         url = validate_mcp_http_url(str(creds.get("mcp_url") or ""))
         return {
             "transport": "http",
             "url": url,
             "headers": _mcp_http_headers(),
-        }
-    if entry.kind == "tencent-docs":
-        token = str(creds.get("token") or "")
-        spec: dict[str, Any] = {
-            "transport": "http",
-            "url": "https://docs.qq.com/openapi/mcp",
-            "headers": {"Authorization": token},
-        }
-        if entry.allowed_tools is not None:
-            spec["allowed_tools"] = list(entry.allowed_tools)
-        spec["tool_arg_aliases"] = {
-            "manage.search_file": {
-                "query": "search_key",
-                "keyword": "search_key",
-                "keywords": "search_key",
-            },
-        }
-        return spec
-    if entry.kind == "tencent-weiyun":
-        raw = str(creds.get("token") or creds.get("access_token") or "").strip()
-        token = normalize_weiyun_mcp_token(raw)
-        spec = {
-            "transport": "http",
-            "url": "https://www.weiyun.com/api/v3/mcpserver",
-            "headers": {
-                **_mcp_http_headers(),
-                "WyHeader": f"mcp_token={token}",
-            },
-        }
-        if entry.allowed_tools is not None:
-            spec["allowed_tools"] = list(entry.allowed_tools)
-        return spec
-    if entry.kind == "tencent-meeting":
-        token = str(creds.get("token") or "")
-        return {
-            "transport": "http",
-            "url": "https://mcp.meeting.tencent.com/mcp/wemeet-open/v1",
-            "headers": {
-                "X-Tencent-Meeting-Token": token,
-                "X-Skill-Version": "v1.0.1",
-            },
-        }
-    if entry.kind == "tencent-lexiang":
-        token = str(creds.get("api_key") or creds.get("token") or "").strip()
-        company_from = str(creds.get("company_from") or creds.get("client_id") or "").strip()
-        url = "https://mcp.lexiang-app.com/mcp?preset=meta"
-        if company_from:
-            url = (
-                "https://mcp.lexiang-app.com/mcp"
-                f"?company_from={quote(company_from, safe='')}&preset=meta"
-            )
-        return {
-            "transport": "http",
-            "url": url,
-            "headers": {
-                **_mcp_http_headers(),
-                "Authorization": f"Bearer {token}",
-            },
-        }
-    if entry.kind == "youdao-note":
-        api_key = str(
-            creds.get("token") or creds.get("api_key") or creds.get("access_token") or ""
-        ).strip()
-        return {
-            "transport": "sse",
-            "url": "https://open.mail.163.com/api/ynote/mcp/sse",
-            "headers": {
-                "x-api-key": api_key,
-            },
         }
     if is_mcp_oauth_remote(entry):
         access_token = str(creds.get("access_token") or creds.get("token") or "").strip()
@@ -243,20 +137,10 @@ def validate_create_credentials(
 
     if entry.auth_kind == "personal_token":
         raw = str(credentials.get("token") or credentials.get("access_token") or "").strip()
-        token = normalize_weiyun_mcp_token(raw) if entry.kind == "tencent-weiyun" else raw
+        token = raw
         if not token:
             raise ValueError("token is required")
         return {"token": token}
-
-    # QCC supports OAuth and API Key. Prefer an explicit api_key when no
-    # access_token is present (callers drop OAuth fields when switching modes).
-    if kind == "qcc":
-        api_key = str(credentials.get("api_key") or "").strip()
-        if api_key and not str(credentials.get("access_token") or "").strip():
-            return {
-                "api_key": api_key,
-                "internal_token": new_internal_token(),
-            }
 
     if entry.auth_kind == "oauth2":
         access_token = str(
@@ -300,77 +184,11 @@ def validate_create_credentials(
         raise ValueError("authorization code exchange failed or credentials missing")
 
     if entry.auth_kind == "api_key":
-        if entry.kind == "feishu-cli":
-            app_id = str(credentials.get("app_id") or credentials.get("client_id") or "").strip()
-            app_secret = str(
-                credentials.get("app_secret") or credentials.get("api_key") or ""
-            ).strip()
-            if not app_id:
-                raise ValueError("app_id is required for Feishu CLI")
-            if not app_secret:
-                raise ValueError("app_secret is required for Feishu CLI")
-            out = {
-                "app_id": app_id,
-                "app_secret": app_secret,
-                "internal_token": new_internal_token(),
-                "cli_config_key": str(credentials.get("cli_config_key") or "").strip()
-                or new_ulid(),
-            }
-            default_as = str(credentials.get("default_as") or "bot").strip().lower()
-            if default_as == "user":
-                out["default_as"] = "user"
-            return out
-        if entry.kind == "wecom-cli":
-            bot_id = str(credentials.get("bot_id") or credentials.get("client_id") or "").strip()
-            bot_secret = str(
-                credentials.get("bot_secret") or credentials.get("api_key") or ""
-            ).strip()
-            if not bot_id:
-                raise ValueError("bot_id is required for WeCom CLI")
-            if not bot_secret:
-                raise ValueError("bot_secret is required for WeCom CLI")
-            return {
-                "bot_id": bot_id,
-                "bot_secret": bot_secret,
-                "internal_token": new_internal_token(),
-                "cli_config_key": str(credentials.get("cli_config_key") or "").strip()
-                or new_ulid(),
-            }
         api_key = str(credentials.get("api_key") or "").strip()
         if not api_key:
             raise ValueError("api_key is required")
-        if entry.kind == "wechat-reading" and not api_key.startswith("wrk-"):
-            raise ValueError(
-                "微信读书需使用 wrk- 开头的 API Key，请登录 "
-                "https://weread.qq.com/r/weread-skills 获取"
-            )
-        if entry.kind == "qq-music" and not api_key.startswith("qmk-"):
-            raise ValueError(
-                "QQ 音乐需使用 qmk- 开头的 API Key，请登录 "
-                "https://y.qq.com/n/ryqq_v2/qqmusic_skills 获取"
-            )
-        if entry.kind == "yuandian" and not api_key.startswith("sk_"):
-            raise ValueError(
-                "元典需使用 sk_ 开头的 API Key，请登录 https://open.chineselaw.com/profile 获取"
-            )
-        if entry.kind == "didi":
-            return {"api_key": api_key}
         internal_token = new_internal_token()
-        out = {"api_key": api_key, "internal_token": internal_token}
-        if entry.kind == "tencent-ima":
-            client_id = str(credentials.get("client_id") or "").strip()
-            if not client_id:
-                raise ValueError("client_id is required for IMA")
-            out["client_id"] = client_id
-            return out
-        if entry.kind == "tencent-lexiang":
-            company_from = str(
-                credentials.get("company_from") or credentials.get("client_id") or ""
-            ).strip()
-            if not company_from:
-                raise ValueError("company_from is required for Lexiang")
-            return {"api_key": api_key, "company_from": company_from}
-        return out
+        return {"api_key": api_key, "internal_token": internal_token}
 
     if entry.auth_kind == "imap_app_password":
         email = str(credentials.get("email") or "").strip()
@@ -398,16 +216,7 @@ def validate_create_credentials(
         if not cookie:
             raise ValueError("cookie is required")
         internal_token = new_internal_token()
-        out = {"cookie": cookie, "internal_token": internal_token}
-        if entry.kind == "tencent-ima":
-            bkn = str(credentials.get("bkn") or credentials.get("ima_bkn") or "").strip()
-            if not bkn:
-                raise ValueError("bkn is required for IMA")
-            out["bkn"] = bkn
-            kbase = str(credentials.get("knowledge_base_id") or "").strip()
-            if kbase:
-                out["knowledge_base_id"] = kbase
-        return out
+        return {"cookie": cookie, "internal_token": internal_token}
 
     if entry.auth_kind == "api_credentials":
         app_id = str(credentials.get("app_id") or "").strip()
@@ -424,29 +233,6 @@ def validate_create_credentials(
         }
 
     if entry.auth_kind == "custom_fields":
-        if entry.kind == "agently-cli":
-            # A caller must never select another instance's CLI credential directory.
-            return {"internal_token": new_internal_token(), "cli_config_key": new_ulid()}
-        if entry.kind == "weknora":
-            base_url = normalize_weknora_base_url(str(credentials.get("base_url") or ""))
-            out = {
-                "base_url": base_url,
-                "internal_token": new_internal_token(),
-            }
-            api_key = str(credentials.get("api_key") or "").strip()
-            tenant_id = str(credentials.get("tenant_id") or "").strip()
-            raw_ids = credentials.get("knowledge_base_ids")
-            if api_key:
-                out["api_key"] = api_key
-            if tenant_id:
-                out["tenant_id"] = tenant_id
-            if isinstance(raw_ids, list):
-                ids = [str(item).strip() for item in raw_ids if str(item).strip()]
-            else:
-                ids = [part.strip() for part in str(raw_ids or "").split(",") if part.strip()]
-            if ids:
-                out["knowledge_base_ids"] = list(dict.fromkeys(ids))
-            return out
         if entry.kind == "dify":
             mcp_url = validate_mcp_http_url(str(credentials.get("mcp_url") or ""))
             if "/mcp/server/" not in mcp_url or not mcp_url.rstrip("/").endswith("/mcp"):
@@ -582,8 +368,8 @@ def gateway_mcp_server_names(*, connector_repo: Any, user_id: int) -> set[str]:
     """MCP server names of in-process gateway connectors for *user_id*.
 
     ``mcp_mode=gateway`` has no HTTP transport: tools are injected from Python
-    adapters. ``internal`` aggregators (e.g. QCC) are not included — harness
-    loads those via ``/api/internal/mcp``.
+    adapters. ``internal`` aggregators are not included — the harness loads
+    those via ``/api/internal/mcp``.
     """
     names: set[str] = set()
     for inst in connector_repo.list_visible(user_id):
@@ -655,11 +441,8 @@ def inject_missing_gateway_tools(
         )
         return
     agent.inject_mcp_tools(extra)
-    tool_set = mcp_tool_names(getattr(agent, "_mcp_tools", []))
-    ima_names = sorted(n for n in tool_set if n.startswith("tencent-ima__") or "_ima__" in n)
     logger.info(
-        "Injecting %d in-process gateway MCP tools for agent %s (HTTP load missed); ima_tools=%s",
+        "Injecting %d in-process gateway MCP tools for agent %s (HTTP load missed)",
         len(extra),
         agent_id,
-        ima_names,
     )

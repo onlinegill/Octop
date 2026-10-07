@@ -46,12 +46,12 @@ def _processor(*, thread: SimpleNamespace | None) -> GlobalProcessor:
 
 def test_overwrite_last_user_text_keeps_human_kwargs() -> None:
     request: dict[str, object] = {
-        "messages": [HumanMessage(content="执行", additional_kwargs={"composer": True})],
+        "messages": [HumanMessage(content="Execute", additional_kwargs={"composer": True})],
     }
-    _overwrite_last_user_text(request, "请按 plans/foo.md 执行")
+    _overwrite_last_user_text(request, "Follow plans/foo.md now")
     last = request["messages"][0]
     assert isinstance(last, HumanMessage)
-    assert last.content == "请按 plans/foo.md 执行"
+    assert last.content == "Follow plans/foo.md now"
     assert last.additional_kwargs == {"composer": True}
 
 
@@ -69,7 +69,7 @@ async def test_dashboard_execute_overwrites_user_text() -> None:
         channel_type="dashboard",
         tenant_id="agent-1",
         channel_subject=ChannelSubject(subject_id="1"),
-        content=[TextContent(text="按计划执行")],
+        content=[TextContent(text="Execute the plan")],
         metadata={},
     )
     request = await processor._build_dashboard_request(
@@ -80,7 +80,7 @@ async def test_dashboard_execute_overwrites_user_text() -> None:
         thread_id="thr",
         meta={},
     )
-    assert request["messages"][0]["content"] == "请按 plans/foo.md 执行"
+    assert request["messages"][0]["content"] == "Execute plans/foo.md"
     assert request["conversation_mode"] == "craft"
     processor._thread_registry.update_composer.assert_called_once_with(
         "thr",
@@ -103,7 +103,7 @@ async def test_dashboard_mode_switch_keeps_pending_plan() -> None:
         channel_type="dashboard",
         tenant_id="agent-1",
         channel_subject=ChannelSubject(subject_id="1"),
-        content=[TextContent(text="先问一句")],
+        content=[TextContent(text="Ask a quick question")],
         metadata={"conversation_mode": "ask"},
     )
     request = await processor._build_dashboard_request(
@@ -114,7 +114,7 @@ async def test_dashboard_mode_switch_keeps_pending_plan() -> None:
         thread_id="thr",
         meta={"conversation_mode": "ask"},
     )
-    assert request["messages"][0]["content"] == "先问一句"
+    assert request["messages"][0]["content"] == "Ask a quick question"
     assert request["conversation_mode"] == "ask"
     processor._thread_registry.update_composer.assert_called_once_with(
         "thr",

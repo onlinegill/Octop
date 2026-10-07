@@ -1,14 +1,14 @@
 # demo-ui-card
 
-前后端一体示例：
+Frontend + backend demo in one plugin:
 
-- **后端** `main.py`：注册工具 `demo_ui_card`，返回带 `octop_ui` 的 JSON
-- **前端** `ui/dist/index.js`：在聊天里渲染卡片，并用 `host.patchResult` 演示 L2 刷新
+- **Backend** `main.py`: registers the `demo_ui_card` tool, which returns JSON carrying `octop_ui`
+- **Frontend** `ui/dist/index.js`: renders a card in chat and demonstrates L2 refreshes with `host.patchResult`
 
-安装：
+Install:
 
 ```bash
 octop plugin install ./plugins/demo-ui-card --force
 ```
 
-然后在 Dashboard「工具管理」为 Agent 启用 `demo_ui_card`，在聊天中调用该工具即可看到卡片。
+Then enable `demo_ui_card` for an Agent in the Dashboard's "Tool management" and call the tool in chat to see the card.

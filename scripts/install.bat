@@ -8,7 +8,7 @@ if defined OCTOP_HOME (set "OCTOP_HOME=%OCTOP_HOME%") else (set "OCTOP_HOME=%USE
 set "OCTOP_VENV=%OCTOP_HOME%\venv"
 set "OCTOP_BIN=%OCTOP_HOME%\bin"
 set "PYTHON_VERSION=3.12"
-if defined OCTOP_REPO (set "OCTOP_REPO=%OCTOP_REPO%") else (set "OCTOP_REPO=https://github.com/TencentCloud/Octop.git")
+if defined OCTOP_REPO (set "OCTOP_REPO=%OCTOP_REPO%") else (set "OCTOP_REPO=https://github.com/onlinegill/Octop.git")
 
 set "ARG_VERSION="
 set "ARG_FROM_SOURCE=0"

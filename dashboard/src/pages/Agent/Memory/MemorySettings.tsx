@@ -147,7 +147,7 @@ export default function MemorySettings({ agentId }: Props) {
           <p>
             {t(
               "memory.settings.description",
-              "控制这个 Agent 是否使用记忆，以及对话内容何时被整理成长期记忆。",
+              "Control this Agent Whether memory is used, and when conversational content is organized into long-term memory.",
             )}
           </p>
         </div>
@@ -166,7 +166,7 @@ export default function MemorySettings({ agentId }: Props) {
               <div className={styles.settingDescription}>
                 {t(
                   "memory.settings.storageDescription",
-                  "允许 Agent 读取已有记忆，并从新对话中持续积累记忆。",
+                  "Allow Agent Read existing memories and continue to accumulate memories from new conversations.",
                 )}
               </div>
             </div>
@@ -190,11 +190,11 @@ export default function MemorySettings({ agentId }: Props) {
             showIcon
             message={t(
               "memory.settings.disabledTitle",
-              "关闭后 Agent 将不再使用记忆",
+              "After closing Agent Memory will no longer be used",
             )}
             description={t(
               "memory.settings.disabledDescription",
-              "Agent 不会读取已有记忆，也不会捕获或提炼新的记忆。已有记忆和对话记录不会被删除，重新开启后可以继续使用。",
+              "Agent No existing memories are read, and no new memories are captured or refined. Existing memories and conversation records will not be deleted and can continue to be used after reopening.",
             )}
           />
         ) : null}
@@ -216,7 +216,7 @@ export default function MemorySettings({ agentId }: Props) {
             <div className={styles.settingDescription}>
               {t(
                 "memory.settings.distillDescription",
-                "选择何时把对话记忆整理为可召回的长期记忆。",
+                "Choose when to organize conversational memories into recallable long-term memory.",
               )}
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function MemorySettings({ agentId }: Props) {
                 <Typography.Text type="secondary" className={styles.radioHint}>
                   {t(
                     "memory.extractConfig.modeIdleHint",
-                    "等对话安静一段时间再提炼，记忆质量最好（推荐）",
+                    "Wait for the conversation to be quiet for a while before refining it for the best memory quality (recommended)",
                   )}
                 </Typography.Text>
               </Radio>
@@ -248,7 +248,7 @@ export default function MemorySettings({ agentId }: Props) {
                 <Typography.Text type="secondary" className={styles.radioHint}>
                   {t(
                     "memory.extractConfig.modeIntervalHint",
-                    "按固定周期批量整理，可能包含尚未结束的对话",
+                    "Organized in batches on a fixed cycle basis, which may include conversations that have not yet ended",
                   )}
                 </Typography.Text>
               </Radio>
@@ -294,7 +294,7 @@ export default function MemorySettings({ agentId }: Props) {
               showIcon
               message={t(
                 "memory.extractConfig.intervalNote",
-                "固定间隔可能在会话尚未结束时运行；多数场景推荐使用“对话空闲后提炼”。",
+                "Fixed intervals may run before the session ends; recommended in most scenarios “Conversation refined after free time”.",
               )}
             />
           ) : null}
@@ -317,7 +317,7 @@ export default function MemorySettings({ agentId }: Props) {
             <div className={styles.settingDescription}>
               {t(
                 "memory.settings.extractModelDescription",
-                "提炼记忆时调用的模型。选择“自动”跟随对话使用的默认模型；也可以指定一个更便宜或更快的模型专门做提炼。",
+                "The model invoked when refining memories. choose “Automatic” The default model used by the conversation follows; it is also possible to specify a cheaper or faster model specifically for refining.",
               )}
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function MemorySettings({ agentId }: Props) {
         <span>
           {t(
             "memory.settings.reloadHint",
-            "保存后 Agent 会自动重载，当前对话不会被删除。",
+            "After saving Agent It will be automatically reloaded and the current conversation will not be deleted.",
           )}
         </span>
         <Button type="primary" loading={saving} onClick={handleSave}>

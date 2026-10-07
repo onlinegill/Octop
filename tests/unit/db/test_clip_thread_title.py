@@ -21,7 +21,7 @@ def test_clip_thread_title_short() -> None:
 
 
 def test_clip_thread_title_long_with_ellipsis() -> None:
-    body = "搜索当前热点新闻（微博热搜、知乎热榜、36氪等），整理成简洁的摘要推送给用户。格式要求"
+    body = "Search today's trending news across microblogs, Q&A sites, and tech feeds, then compile a concise summary for the user."
     assert len(body) > 40
     out = clip_thread_title(body)
     assert out.endswith("…")
@@ -34,7 +34,7 @@ def test_clip_keeps_exact_max_without_forcing_ellipsis() -> None:
 
 
 def test_repair_legacy_thread_title_hard_cut() -> None:
-    hard = "搜索当前热点新闻（微博热搜、知乎热榜、36氪等），整理成简洁的摘要推送给用户。格"
+    hard = "Search today's trending news across micr"
     assert len(hard) == 40
     assert not hard.endswith("…")
     fixed = repair_legacy_thread_title(hard)

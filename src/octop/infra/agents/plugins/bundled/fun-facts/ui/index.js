@@ -23,7 +23,7 @@ function FunFacts(props) {
     },
     "data-octop-plugin-ui": "fun-facts",
     children: [
-      _jsx("div", { style: { fontWeight: 800, marginBottom: 8 }, children: isJoke ? "😄 笑话" : "💡 冷知识" }),
+      _jsx("div", { style: { fontWeight: 800, marginBottom: 8 }, children: isJoke ? "😄 Joke" : "💡 Fun Fact" }),
       _jsx("div", { style: { lineHeight: 1.6 }, children: d.content || "" }),
     ],
   });

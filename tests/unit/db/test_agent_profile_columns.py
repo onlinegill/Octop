@@ -77,9 +77,9 @@ def test_welcome_from_row_requires_nonempty_text() -> None:
         last_error=None,
         created_at=0,
         updated_at=0,
-        welcome_message="你好",
+        welcome_message="Hello",
     )
-    assert welcome_from_row(filled) == "你好"
+    assert welcome_from_row(filled) == "Hello"
 
 
 def test_migration_007_backfills_profile_columns(tmp_path: Path) -> None:
@@ -107,7 +107,7 @@ def test_migration_007_backfills_profile_columns(tmp_path: Path) -> None:
                         "color": "#6366f1",
                         "skill_package_ids": ["PACK01"],
                         "published_expert_id": "pub1",
-                        "welcome_message": {"zh": "嗨", "en": "Hi"},
+                        "welcome_message": {"zh": "Hi there", "en": "Hi"},
                         "backend": {"type": "local_shell"},
                     }
                 ),
@@ -126,7 +126,7 @@ def test_migration_007_backfills_profile_columns(tmp_path: Path) -> None:
     assert row["color"] == "#6366f1"
     assert json.loads(row["skill_package_ids"]) == ["PACK01"]
     assert row["published_expert_id"] == "pub1"
-    assert row["welcome_message"] == "嗨"
+    assert row["welcome_message"] == "Hi there"
     cfg = json.loads(row["config_json"])
     assert "expert_id" not in cfg
     assert "icon_name" not in cfg
@@ -149,7 +149,7 @@ def test_legacy_zh_en_welcome_collapses_to_single_column(tmp_path: Path) -> None
             "INSERT INTO agents(agent_id, user_id, name, enabled, "
             "welcome_message_zh, welcome_message_en, created_at, updated_at) "
             "VALUES (?, NULL, ?, 1, ?, ?, 1, 1)",
-            ("ag1", "bot", "你好", "Hi"),
+            ("ag1", "bot", "Hello", "Hi"),
         )
 
     run_migrations(pool)
@@ -160,4 +160,4 @@ def test_legacy_zh_en_welcome_collapses_to_single_column(tmp_path: Path) -> None
     assert "welcome_message" in cols
     assert "welcome_message_zh" not in cols
     assert "welcome_message_en" not in cols
-    assert row["welcome_message"] == "你好"
+    assert row["welcome_message"] == "Hello"

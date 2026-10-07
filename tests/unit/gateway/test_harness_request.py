@@ -115,7 +115,7 @@ async def test_group_context_uses_anonymous_labels_instead_of_raw_ids() -> None:
         channel_id="qq-1",
         channel_type="qq",
         channel_subject=ChannelSubject(subject_id="group-1", chat_type="group"),
-        content=[TextContent(text="你怎么看？")],
+        content=[TextContent(text="What do you think?")],
         metadata={"sender_id": "BD55218924C37DB7472F18A7FC8F59DA"},
         group_context=GroupContext(
             conversation_id="group-1",
@@ -124,18 +124,18 @@ async def test_group_context_uses_anonymous_labels_instead_of_raw_ids() -> None:
             messages=[
                 GroupContextMessage(
                     sender_id="1468FCD7983CD809F783D645F791ECF2",
-                    text="这是之前的消息",
+                    text="previous message",
                 )
             ],
         ),
     )
 
-    content = await build_content_from_message(msg, locale="zh")
+    content = await build_content_from_message(msg, locale="en")
 
     assert isinstance(content, str)
-    assert "【群聊背景｜仅供参考】" in content
-    assert "[群成员1] 这是之前的消息" in content
-    assert "【当前群消息｜请回复这条消息】" in content
-    assert "[群成员2] 你怎么看？" in content
+    assert "[Group context | reference only]" in content
+    assert "[Group member 1] previous message" in content
+    assert "[Current group message | reply to this]" in content
+    assert "[Group member 2] What do you think?" in content
     assert "1468FCD" not in content
     assert "BD552189" not in content

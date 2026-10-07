@@ -43,11 +43,9 @@ def test_composer_patch_from_payload_roundtrip() -> None:
     patch = composer_patch_from_payload(
         file_overrides=[{"name": "AGENTS.md", "content": "hello"}],
         omit_files=["skills/old"],
-        hub_skills=[{"skill_name": "writer", "display_name": "Writer"}],
     )
     assert patch.file_overrides == (("AGENTS.md", "hello"),)
     assert patch.omit_files == ("skills/old",)
-    assert patch.hub_skills[0].skill_name == "writer"
     assert ComposerWorkspacePatch().is_empty()
     assert patch.is_empty() is False
 
@@ -116,7 +114,6 @@ async def test_apply_composer_workspace_patch_writes_and_omits() -> None:
         composer_patch_from_payload(
             file_overrides=[{"name": "AGENTS.md", "content": "new guide"}],
             omit_files=["skills/old"],
-            hub_skills=None,
         ),
     )
     assert workspace.files["AGENTS.md"] == b"new guide"
@@ -129,30 +126,6 @@ def test_composer_copies_from_payload_rejects_unsafe_source() -> None:
     assert exc.value.code == ErrorCode.SLASH_BAD_ARGS
 
 
-@pytest.mark.asyncio
-async def test_hub_skill_failure_is_reported_not_raised(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def boom(_name: str) -> list[tuple[str, bytes]]:
-        raise RuntimeError("marketplace down")
-
-    monkeypatch.setattr(
-        "octop.infra.skills.skillhub_market.download_skillhub_package",
-        boom,
-    )
-    workspace = _FakeWorkspace()
-    report = await apply_composer_workspace_patch(
-        workspace,
-        composer_patch_from_payload(
-            file_overrides=[{"name": "AGENTS.md", "content": "kept"}],
-            omit_files=None,
-            hub_skills=[{"skill_name": "writer"}],
-        ),
-    )
-    assert workspace.files["AGENTS.md"] == b"kept"
-    assert report.hub_skill_errors == ["writer"]
-    assert report.as_api_fields() == {"hub_skill_errors": ["writer"]}
-
-
-@pytest.mark.asyncio
 async def test_apply_copies_full_skill_directory() -> None:
     source = _FakeWorkspace(
         {

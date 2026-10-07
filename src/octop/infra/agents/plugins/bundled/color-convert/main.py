@@ -38,7 +38,7 @@ def _parse(value: str) -> tuple[int, int, int]:
     m = _RGB.match(raw) or _CSV.match(raw)
     if m:
         return _clamp(int(m.group(1))), _clamp(int(m.group(2))), _clamp(int(m.group(3)))
-    raise ValueError("无法解析颜色，支持 #RGB、#RRGGBB、rgb(r,g,b) 或 r,g,b")
+    raise ValueError("could not parse color; expected #RGB, #RRGGBB, rgb(r,g,b) or r,g,b")
 
 
 def _rgb_to_hex(r: int, g: int, b: int) -> str:
@@ -84,5 +84,5 @@ def setup(ctx: PluginContext) -> None:
     ctx.tool(
         "convert_color",
         convert_color,
-        description="颜色格式转换。value 可为 #RGB、#RRGGBB、rgb(r,g,b) 或 r,g,b。",
+        description="Convert color formats. value may be #RGB, #RRGGBB, rgb(r,g,b) or r,g,b.",
     )

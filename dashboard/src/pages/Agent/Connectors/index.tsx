@@ -41,10 +41,8 @@ import {
   type ConnectorCredentialsPreview,
   type ConnectorInstance,
   type ConnectorInstanceDetail,
-  type FeishuUserAuthStartResult,
 } from "../../../api/modules/connectors";
 import { ConnectorCard } from "./ConnectorCard";
-import { AgentlyAuth } from "./AgentlyAuth";
 import { ConnectorInstanceCard } from "./ConnectorInstanceCard";
 import { CustomMcpTab } from "./CustomMcpTab";
 import {
@@ -72,13 +70,6 @@ function buildCredentials(
     const token = String(values.token ?? "").trim();
     if (token) credentials.token = token;
   } else if (entry.auth_kind === "oauth2") {
-    if (entry.kind === "qcc") {
-      const api_key = String(values.api_key ?? "").trim();
-      if (api_key) {
-        credentials.api_key = api_key;
-        return credentials;
-      }
-    }
     const access_token = String(values.access_token ?? "").trim();
     if (access_token && access_token !== "__configured__") {
       credentials.access_token = access_token;
@@ -94,28 +85,8 @@ function buildCredentials(
     const code = String(values.auth_code ?? "").trim();
     if (code) credentials.code = code;
   } else if (entry.auth_kind === "api_key") {
-    if (entry.kind === "feishu-cli") {
-      if (values.app_id) credentials.app_id = String(values.app_id).trim();
-      const app_secret = String(values.app_secret ?? "").trim();
-      if (app_secret) credentials.app_secret = app_secret;
-      if (values.default_as === "user") credentials.default_as = "user";
-      if (values.cli_config_key) {
-        credentials.cli_config_key = String(values.cli_config_key).trim();
-      }
-    } else if (entry.kind === "wecom-cli") {
-      if (values.bot_id) credentials.bot_id = String(values.bot_id).trim();
-      const bot_secret = String(values.bot_secret ?? "").trim();
-      if (bot_secret) credentials.bot_secret = bot_secret;
-    } else {
-      const api_key = String(values.api_key ?? "").trim();
-      if (api_key) credentials.api_key = api_key;
-      if (entry.kind === "tencent-ima" && values.client_id) {
-        credentials.client_id = values.client_id;
-      }
-      if (entry.kind === "tencent-lexiang" && values.client_id) {
-        credentials.client_id = values.client_id;
-      }
-    }
+    const api_key = String(values.api_key ?? "").trim();
+    if (api_key) credentials.api_key = api_key;
   } else if (entry.auth_kind === "imap_app_password") {
     credentials.email = values.email;
     const password = String(values.password ?? "").trim();
@@ -156,7 +127,7 @@ function previewToFormValues(
     return {
       display_name: entry.name,
       description: entry.description,
-      mail_provider: "qq",
+      mail_provider: "gmail",
       default_open: false,
       shared: false,
     };
@@ -207,10 +178,6 @@ function hasFreshCredentialInput(
     return Boolean(String(values.token ?? "").trim());
   }
   if (entry.auth_kind === "oauth2") {
-    if (entry.kind === "qcc") {
-      const apiKey = String(values.api_key ?? "").trim();
-      if (apiKey) return true;
-    }
     const token = String(values.access_token ?? "").trim();
     return Boolean(token && token !== "__configured__");
   }
@@ -218,12 +185,6 @@ function hasFreshCredentialInput(
     return Boolean(String(values.auth_code ?? "").trim());
   }
   if (entry.auth_kind === "api_key") {
-    if (entry.kind === "feishu-cli") {
-      return Boolean(String(values.app_secret ?? "").trim());
-    }
-    if (entry.kind === "wecom-cli") {
-      return Boolean(String(values.bot_secret ?? "").trim());
-    }
     return Boolean(String(values.api_key ?? "").trim());
   }
   if (entry.auth_kind === "imap_app_password") {
@@ -259,22 +220,16 @@ function customCredentialConfigChanged(
 }
 
 function openAuthorizeLabel(
-  kind: string,
+  _kind: string,
   t: (key: string, fallback: string) => string,
 ): string {
-  if (kind === "tencent-ima") {
-    return t("connectors.openAuthorizePage", "Open authorization page");
-  }
   return t("connectors.openTokenPage", "Open auth page");
 }
 
 function authCodeGuideLabel(
-  kind: string,
+  _kind: string,
   t: (key: string, fallback: string) => string,
 ): string {
-  if (kind === "tencent-news") {
-    return t("connectors.newsAuthGuide", "How to get a Tencent News API Key");
-  }
   return t("connectors.authCodeDoc", "See how to get an authorization code");
 }
 
@@ -301,8 +256,10 @@ function configuredExtra(
 }
 
 function isHostCliConnector(kind: string): boolean {
-  return ["feishu-cli", "wecom-cli", "agently-cli"].includes(kind);
+  return HOST_CLI_CONNECTOR_KINDS.has(kind);
 }
+
+const HOST_CLI_CONNECTOR_KINDS = new Set<string>([]);
 
 function ConnectorConfigDrawer({
   open,
@@ -337,20 +294,10 @@ function ConnectorConfigDrawer({
     null,
   );
   const [installingCli, setInstallingCli] = useState(false);
-  const [detectingLocalWeKnora, setDetectingLocalWeKnora] = useState(false);
-  const [feishuUserAuth, setFeishuUserAuth] =
-    useState<FeishuUserAuthStartResult | null>(null);
-  const [feishuUserAuthBusy, setFeishuUserAuthBusy] = useState(false);
-  const [feishuUserReady, setFeishuUserReady] = useState(false);
-  const [feishuAuthNeedsReauth, setFeishuAuthNeedsReauth] = useState(false);
-  const [feishuRefreshExpiresAt, setFeishuRefreshExpiresAt] = useState<
-    string | null
-  >(null);
-
   const hasStoredCredentials = Boolean(
     instanceDetail?.has_credentials ?? instance?.has_credentials,
   );
-  const mailProvider = Form.useWatch("mail_provider", form) ?? "qq";
+  const mailProvider = Form.useWatch("mail_provider", form) ?? "gmail";
   const defaultOpen = Form.useWatch("default_open", form) === true;
   const selectedMailProvider = mailProviderById(String(mailProvider));
   const draftScope = entry
@@ -376,10 +323,6 @@ function ConnectorConfigDrawer({
     setInstanceDetail(null);
     setProbeResult(null);
     setCliInfo(null);
-    setFeishuUserAuth(null);
-    setFeishuUserReady(false);
-    setFeishuAuthNeedsReauth(false);
-    setFeishuRefreshExpiresAt(null);
     form.resetFields();
     form.setFieldsValue({
       display_name: entry.name,
@@ -421,16 +364,6 @@ function ConnectorConfigDrawer({
           if (detail.credentials_preview?.oauth_configured) {
             setShowManual(false);
           }
-          if (detail.credentials_preview?.user_auth_configured) {
-            const needs =
-              detail.credentials_preview.user_auth_needs_reauth === true ||
-              detail.credentials_preview.user_auth_valid === false;
-            setFeishuAuthNeedsReauth(needs);
-            setFeishuUserReady(!needs);
-            setFeishuRefreshExpiresAt(
-              detail.credentials_preview.user_refresh_expires_at ?? null,
-            );
-          }
           applyConnectorDraft();
         })
         .catch(() => {
@@ -450,42 +383,6 @@ function ConnectorConfigDrawer({
   const openUrl = (url: string | null | undefined) => {
     if (!url) return;
     window.open(url, "octop-connector-auth", "width=720,height=800");
-  };
-
-  /** Open sync under the click gesture so popup blockers don't swallow async opens. */
-  const openAuthPopupPlaceholder = (): Window | null => {
-    const popup = window.open(
-      "about:blank",
-      "octop-connector-auth",
-      "width=720,height=800",
-    );
-    if (popup) {
-      try {
-        popup.document.title = "Feishu Auth";
-        popup.document.body.innerHTML =
-          '<p style="font:14px/1.5 system-ui;padding:24px;color:#666">Loading…</p>';
-      } catch {
-        // Cross-origin / closed — ignore.
-      }
-    }
-    return popup;
-  };
-
-  const navigateAuthPopup = (
-    popup: Window | null,
-    url: string | null | undefined,
-  ) => {
-    if (!url) return;
-    if (popup && !popup.closed) {
-      try {
-        popup.location.replace(url);
-        popup.focus();
-        return;
-      } catch {
-        // Fall through to a fresh open.
-      }
-    }
-    openUrl(url);
   };
 
   const handleOpenAuthorize = async () => {
@@ -532,7 +429,7 @@ function ConnectorConfigDrawer({
         message.success(
           t("connectors.cliAlreadyInstalled", {
             binary: status.binary,
-            defaultValue: `${status.binary} 已安装`,
+            defaultValue: `${status.binary} Installed`,
           }),
         );
       }
@@ -563,11 +460,11 @@ function ConnectorConfigDrawer({
           result.already_installed
             ? t("connectors.cliAlreadyInstalled", {
                 binary: result.binary,
-                defaultValue: `${result.binary} 已安装`,
+                defaultValue: `${result.binary} Installed`,
               })
             : t("connectors.cliInstallSuccess", {
                 binary: result.binary,
-                defaultValue: `${result.binary} 安装成功`,
+                defaultValue: `${result.binary} Installation successful`,
               }),
         );
       } else {
@@ -586,139 +483,6 @@ function ConnectorConfigDrawer({
       );
     } finally {
       setInstallingCli(false);
-    }
-  };
-
-  const handleFeishuUserAuthStart = async () => {
-    if (!entry || entry.kind !== "feishu-cli" || feishuUserAuthBusy) return;
-    const popup = openAuthPopupPlaceholder();
-    setFeishuUserAuthBusy(true);
-    try {
-      let started: FeishuUserAuthStartResult;
-      if (instance?.instance_id && hasStoredCredentials) {
-        started = await connectorsApi.feishuUserAuthStartInstance(
-          instance.instance_id,
-        );
-      } else {
-        try {
-          await form.validateFields(["app_id", "app_secret"]);
-        } catch {
-          popup?.close();
-          message.warning(
-            t(
-              "connectors.feishuUserAuthNeedApp",
-              "请先填写 App ID 与 App Secret",
-            ),
-          );
-          return;
-        }
-        const values = form.getFieldsValue();
-        const app_id = String(values.app_id ?? "").trim();
-        const app_secret = String(values.app_secret ?? "").trim();
-        if (!app_id || !app_secret) {
-          popup?.close();
-          message.warning(
-            t(
-              "connectors.feishuUserAuthNeedApp",
-              "请先填写 App ID 与 App Secret",
-            ),
-          );
-          return;
-        }
-        started = await connectorsApi.feishuUserAuthStart({
-          app_id,
-          app_secret,
-          cli_config_key:
-            String(values.cli_config_key ?? "").trim() || undefined,
-        });
-      }
-      form.setFieldsValue({ cli_config_key: started.cli_config_key });
-      setFeishuUserAuth(started);
-      setFeishuUserReady(false);
-      navigateAuthPopup(popup, started.verification_url);
-      message.success(
-        t(
-          "connectors.feishuUserAuthStarted",
-          "已打开授权页，完成后点「我已授权」",
-        ),
-      );
-    } catch (e) {
-      popup?.close();
-      console.error(e);
-      message.error(
-        apiErrorMessage(e, t("connectors.feishuUserAuthFailed", "Authorization failed"), t),
-      );
-    } finally {
-      setFeishuUserAuthBusy(false);
-    }
-  };
-
-  const handleFeishuUserAuthComplete = async () => {
-    if (!entry || entry.kind !== "feishu-cli" || !feishuUserAuth) return;
-    setFeishuUserAuthBusy(true);
-    try {
-      let done;
-      if (instance?.instance_id && hasStoredCredentials) {
-        done = await connectorsApi.feishuUserAuthCompleteInstance(
-          instance.instance_id,
-          {
-            device_code: feishuUserAuth.device_code,
-            cli_config_key: feishuUserAuth.cli_config_key,
-          },
-        );
-      } else {
-        const values = form.getFieldsValue();
-        const app_id = String(values.app_id ?? "").trim();
-        const app_secret = String(values.app_secret ?? "").trim();
-        const cli_config_key = String(
-          values.cli_config_key ?? feishuUserAuth.cli_config_key ?? "",
-        ).trim();
-        if (!app_id || !app_secret || !cli_config_key) {
-          message.warning(
-            t(
-              "connectors.feishuUserAuthNeedApp",
-              "请先填写 App ID 与 App Secret",
-            ),
-          );
-          return;
-        }
-        done = await connectorsApi.feishuUserAuthComplete({
-          app_id,
-          app_secret,
-          device_code: feishuUserAuth.device_code,
-          cli_config_key,
-        });
-      }
-      form.setFieldsValue({
-        default_as: "user",
-        cli_config_key: done.cli_config_key,
-      });
-      setFeishuUserReady(true);
-      setFeishuAuthNeedsReauth(false);
-      setFeishuUserAuth(null);
-      const persisted = Boolean(instance?.instance_id) && hasStoredCredentials;
-      if (done.warning || done.search_docs_scope === false) {
-        message.warning(
-          done.warning ||
-            t(
-              "connectors.feishuUserAuthWarning",
-              "已登录，但文档搜索权限可能未开通，请检查开放平台权限后重新授权",
-            ),
-        );
-      } else {
-        message.success(
-          persisted
-            ? t("connectors.feishuUserAuthSuccessSaved", "Authorized")
-            : t("connectors.feishuUserAuthSuccess", "Authorized — save the connector"),
-        );
-      }
-    } catch (e) {
-      console.error(e);
-      message.error(
-        apiErrorMessage(e, t("connectors.feishuUserAuthFailed", "Authorization failed"), t),
-      );
-    } finally {
-      setFeishuUserAuthBusy(false);
     }
   };
 
@@ -804,7 +568,7 @@ function ConnectorConfigDrawer({
         message.warning(
           t(
             "connectors.difyMcpUrlInvalid",
-            "请粘贴 Dify 访问点提供的完整 MCP Server URL",
+            "Please paste Dify The access point provides the complete MCP Server URL",
           ),
         );
         return;
@@ -815,42 +579,6 @@ function ConnectorConfigDrawer({
     }
   };
 
-  const handleDetectLocalWeKnora = async () => {
-    if (detectingLocalWeKnora) return;
-    setDetectingLocalWeKnora(true);
-    try {
-      const result = await connectorsApi.detectLocalWeKnora();
-      if (!result.found || !result.base_url) {
-        message.warning(
-          t(
-            "connectors.weknoraNotFound",
-            "未在 OCTOP 主机的 127.0.0.1:8080 检测到 WeKnora",
-          ),
-        );
-        return;
-      }
-      form.setFieldValue("base_url", result.base_url);
-      saveFormDraft(
-        draftScope,
-        form.getFieldsValue() as Record<string, unknown>,
-      );
-      message.success(
-        t("connectors.weknoraFound", "Detected local WeKnora and filled in the URL"),
-      );
-    } catch (error) {
-      console.error(error);
-      message.error(
-        apiErrorMessage(
-          error,
-          t("connectors.weknoraDetectFailed", "Failed to detect local WeKnora"),
-          t,
-        ),
-      );
-    } finally {
-      setDetectingLocalWeKnora(false);
-    }
-  };
-
   const handleOAuth = async () => {
     if (!entry || authorizing) return;
     const popup = window.open("", "octop-oauth", "width=520,height=720");
@@ -858,7 +586,7 @@ function ConnectorConfigDrawer({
       message.error(
         t(
           "connectors.oauthPopupBlocked",
-          "授权窗口被浏览器拦截，请允许本站弹出窗口后重试",
+          "The authorization window is blocked by the browser. Please allow this site to pop up the window and try again.",
         ),
       );
       return;
@@ -1012,16 +740,6 @@ function ConnectorConfigDrawer({
     const values = form.getFieldsValue();
     const preview = instanceDetail?.credentials_preview ?? {};
     const freshSecret = hasFreshCredentialInput(entry, values);
-    const feishuAppIdChanged =
-      entry.kind === "feishu-cli" &&
-      Boolean(preview.app_id) &&
-      String(values.app_id ?? "").trim() !==
-        String(preview.app_id ?? "").trim();
-    const wecomBotIdChanged =
-      entry.kind === "wecom-cli" &&
-      Boolean(preview.bot_id) &&
-      String(values.bot_id ?? "").trim() !==
-        String(preview.bot_id ?? "").trim();
     const customConfigChanged = customCredentialConfigChanged(
       entry,
       values,
@@ -1030,28 +748,17 @@ function ConnectorConfigDrawer({
     const customHasStoredSecret = (entry.credential_fields ?? []).some(
       (field) => field.secret && preview[`${field.key}_configured`] === true,
     );
-    const identityChanged =
-      feishuAppIdChanged || wecomBotIdChanged || customConfigChanged;
+    const identityChanged = customConfigChanged;
     if (
       identityChanged &&
       !freshSecret &&
       (entry.auth_kind !== "custom_fields" || customHasStoredSecret)
     ) {
       message.warning(
-        entry.kind === "feishu-cli"
-          ? t(
-              "connectors.probeNeedSecretAfterAppIdChange",
-              "App ID 已修改，请填写 App Secret 后再探测",
-            )
-          : entry.kind === "wecom-cli"
-          ? t(
-              "connectors.probeNeedSecretAfterBotIdChange",
-              "Bot ID 已修改，请填写 Secret 后再探测",
-            )
-          : t(
-              "connectors.probeNeedSecretAfterConfigChange",
-              "连接配置已修改，请重新填写密钥后再探测",
-            ),
+        t(
+          "connectors.probeNeedSecretAfterConfigChange",
+          "The connection configuration has been modified. Please refill the key and try again.",
+        ),
       );
       return;
     }
@@ -1086,7 +793,7 @@ function ConnectorConfigDrawer({
           message.success(
             t(
               "connectors.probeUsedStoredCredentials",
-              "探测通过（使用已保存的凭证）",
+              "Probe passed (using saved credentials)",
             ),
           );
         }
@@ -1114,16 +821,9 @@ function ConnectorConfigDrawer({
     const values = form.getFieldsValue();
     if (entry.auth_kind === "oauth2") {
       const token = String(values.access_token ?? "").trim();
-      const apiKey =
-        entry.kind === "qcc" ? String(values.api_key ?? "").trim() : "";
-      if (!hasStoredCredentials && !token && !apiKey) {
+      if (!hasStoredCredentials && !token) {
         message.warning(
-          entry.kind === "qcc"
-            ? t(
-                "connectors.qccNeedAuthOrKey",
-                "请先完成一键授权，或填写 API Key",
-              )
-            : t("connectors.oauthNeedToken", "Complete authorization or paste a token first"),
+          t("connectors.oauthNeedToken", "Complete authorization or paste a token first"),
         );
         return;
       }
@@ -1140,7 +840,7 @@ function ConnectorConfigDrawer({
           shared: values.shared === true,
         });
       } else {
-        const created = await connectorsApi.createInstance({
+        await connectorsApi.createInstance({
           kind: entry.kind,
           display_name: values.display_name as string,
           description: values.description as string,
@@ -1148,12 +848,6 @@ function ConnectorConfigDrawer({
           default_open: values.default_open === true,
           shared: values.shared === true,
         });
-        if (entry.kind === "agently-cli") {
-          clearFormDraft(draftScope);
-          message.success(t("connectors.createSuccess", "Connector created"));
-          onSaved(created);
-          return;
-        }
       }
       message.success(
         instance
@@ -1184,13 +878,7 @@ function ConnectorConfigDrawer({
   const guideUrl = authInfo?.guide_url ?? entry.guide_url ?? entry.doc_url;
   const manualUrl = authInfo?.manual_url ?? entry.manual_url ?? guideUrl;
   const catalogAuthHint = authInfo?.auth_hint ?? entry.auth_hint;
-  const authHint =
-    entry.kind === "qcc" && !hasOAuthPopup
-      ? t(
-          "connectors.qccApiKeyOnlyHint",
-          "当前环境无法完成 OAuth 回调。请打开授权页获取 API Key，粘贴后探测并保存。",
-        )
-      : catalogAuthHint;
+  const authHint = catalogAuthHint;
   const guidedKind = isGuidedConnector(entry.kind) ? entry.kind : null;
 
   const preview = instanceDetail?.credentials_preview;
@@ -1211,11 +899,11 @@ function ConnectorConfigDrawer({
         instance
           ? t("connectors.editConnection", {
               name: entry.name,
-              defaultValue: `编辑 ${entry.name} 连接器`,
+              defaultValue: `Edit ${entry.name} Connector`,
             })
           : t("connectors.createConnection", {
               name: entry.name,
-              defaultValue: `创建 ${entry.name} 连接器`,
+              defaultValue: `Create ${entry.name} Connector`,
             })
       }
       open={open}
@@ -1228,7 +916,6 @@ function ConnectorConfigDrawer({
           <Button
             icon={<Activity size={14} />}
             loading={probing}
-            disabled={entry.kind === "agently-cli" && !hasStoredCredentials}
             onClick={() => void handleProbe()}
           >
             {t("connectors.probe", "Probe")}
@@ -1252,52 +939,11 @@ function ConnectorConfigDrawer({
 
         {authHint && <div className={styles.authHint}>{authHint}</div>}
 
-        {entry.kind === "agently-cli" && (
-          <>
-            <Alert
-              type="warning"
-              showIcon
-              message={t(
-                "connectors.agentlySafety",
-                "发送、回复、转发和删除邮件需先预览，再由用户确认执行。邮件正文与附件属于不可信外部内容，不能作为执行指令。",
-              )}
-            />
-            <p className={styles.authHint}>
-              {t(
-                "connectors.agentlyQuota",
-                "参考配额：每日发送 50 封、每小时 200 次请求、每分钟 10 次请求；附件最多 50 个、总容量 20 MB，此连接器单文件上限 10 MB。以账户实际配额及服务最新限制为准。可在任务页选择「Agent Mail 新邮件」触发任务。",
-              )}
-            </p>
-            <p className={styles.authHint}>
-              {t(
-                "connectors.agentlyInstanceHint",
-                "先保存连接器，再登录授权。每个实例独立保存邮箱授权，可为不同 Agent 选择不同实例。",
-              )}
-            </p>
-          </>
-        )}
-
         {guidedKind && (
           <div className={styles.guidedSetup}>
             <div className={styles.guidedSetupTitle}>
               {t("connectors.guidedSetup", "Quick setup")}
             </div>
-            {guidedKind === "weknora" ? (
-              <ol>
-                <li>
-                  {t("connectors.weknoraStep1", "Open WeKnora and create an API Key")}
-                </li>
-                <li>
-                  {t(
-                    "connectors.weknoraStep2",
-                    "检测本机服务，或手动填写部署地址",
-                  )}
-                </li>
-                <li>
-                  {t("connectors.guidedStepProbe", "Probe and save after pasting credentials")}
-                </li>
-              </ol>
-            ) : (
               <ol>
                 <li>
                   {t("connectors.difyStep1", "Publish the app or workflow in Dify")}
@@ -1305,44 +951,32 @@ function ConnectorConfigDrawer({
                 <li>
                   {t(
                     "connectors.difyStep2",
-                    "在访问点启用 MCP 并复制完整 Server URL",
+                    "Enable on access point MCP And copy the complete Server URL",
                   )}
                 </li>
                 <li>
                   {t("connectors.guidedStepProbe", "Probe and save after pasting credentials")}
                 </li>
               </ol>
+              </div>
             )}
-          </div>
-        )}
 
-        {guideUrl && !hideGuideLink && (
-          <div className={styles.guideLinks}>
-            <a href={guideUrl} target="_blank" rel="noreferrer">
-              {t("connectors.viewGuide", "View guide")}
-            </a>
-          </div>
-        )}
+            {guideUrl && !hideGuideLink && (
+              <div className={styles.guideLinks}>
+                <a href={guideUrl} target="_blank" rel="noreferrer">
+                  {t("connectors.viewGuide", "View guide")}
+                </a>
+              </div>
+            )}
 
-        <div className={styles.quickAuthBar}>
-          {guidedKind && (
-            <>
-              {guidedKind === "weknora" && (
-                <Button
-                  icon={<RefreshCw size={14} />}
-                  loading={detectingLocalWeKnora}
-                  onClick={() => void handleDetectLocalWeKnora()}
-                >
-                  {t("connectors.detectLocal", "Detect local service")}
-                </Button>
-              )}
+            <div className={styles.quickAuthBar}>
+              {guidedKind && (
+                <>
               <Button
                 icon={<ClipboardPaste size={14} />}
                 onClick={() => void handleGuidedPaste()}
               >
-                {guidedKind === "dify"
-                  ? t("connectors.pasteMcpUrl", "Paste MCP URL")
-                  : t("connectors.smartPaste", "Smart paste")}
+                {t("connectors.pasteMcpUrl", "Paste MCP URL")}
               </Button>
             </>
           )}
@@ -1376,25 +1010,18 @@ function ConnectorConfigDrawer({
                 </Button>
               )}
               {!canInstallCli && !cliInfo?.installed && (
-                <span className={styles.feishuUserAuthHint}>
+                <span className={styles.authHint}>
                   {t(
                     "connectors.cliInstallAdminOnly",
-                    "主机 CLI 需管理员安装；可复制命令交给管理员执行",
+                    "Host CLI Requires administrator installation; you can copy the command and give it to the administrator for execution",
                   )}
                 </span>
               )}
-              {(cliInfo?.install_command ||
-                entry.kind === "feishu-cli" ||
-                entry.kind === "wecom-cli") && (
+              {cliInfo?.install_command && (
                 <Button
                   icon={<Copy size={14} />}
                   onClick={() =>
-                    void handleCopyInstallCommand(
-                      cliInfo?.install_command ??
-                        (entry.kind === "feishu-cli"
-                          ? "npm install -g @larksuite/cli"
-                          : "npm install -g @wecom/cli"),
-                    )
+                    void handleCopyInstallCommand(cliInfo.install_command)
                   }
                 >
                   {t("connectors.copyInstallCommand", "Copy install command")}
@@ -1437,18 +1064,7 @@ function ConnectorConfigDrawer({
               loading={openingAuthorize}
               onClick={() => void handleOpenAuthorize()}
             >
-              {entry.kind === "qcc"
-                ? t("connectors.qccOpenKeyPage", "Open auth page")
-                : t("connectors.openAuthorizePage", "Open authorization page")}
-            </Button>
-          )}
-          {hasOAuthPopup && entry.kind === "qcc" && hasAuthorizeUrl && (
-            <Button
-              icon={<ExternalLink size={14} />}
-              loading={openingAuthorize}
-              onClick={() => void handleOpenAuthorize()}
-            >
-              {t("connectors.qccOpenKeyPage", "Open auth page")}
+              {t("connectors.openAuthorizePage", "Open authorization page")}
             </Button>
           )}
           {hasLoginUrl && !hideTopAuth && (
@@ -1472,9 +1088,7 @@ function ConnectorConfigDrawer({
             )}
           {(entry.auth_kind === "personal_token" ||
             entry.auth_kind === "auth_code" ||
-            (entry.auth_kind === "api_key" &&
-              entry.kind !== "feishu-cli" &&
-              entry.kind !== "wecom-cli")) && (
+            entry.auth_kind === "api_key") && (
             <Button
               icon={<ClipboardPaste size={14} />}
               onClick={() => void handlePasteToken()}
@@ -1498,8 +1112,8 @@ function ConnectorConfigDrawer({
                   binary: cliInfo.binary,
                   version: cliInfo.version ?? "",
                   defaultValue: cliInfo.version
-                    ? `主机已检测到 ${cliInfo.binary}（${cliInfo.version}）`
-                    : `主机已检测到 ${cliInfo.binary}`,
+                    ? `Host detected ${cliInfo.binary}(${cliInfo.version})`
+                    : `Host detected ${cliInfo.binary}`,
                 })}
               </div>
             ) : (
@@ -1507,7 +1121,7 @@ function ConnectorConfigDrawer({
                 {cliInfo.error ??
                   t(
                     "connectors.cliMissingHint",
-                    "主机尚未安装 CLI。可点击「安装 CLI」，或在 Octop 主机终端手动执行下方命令。",
+                    "CLI is not installed on the host. Click Install CLI, or run the command below on the Octop host.",
                   )}
               </div>
             )}
@@ -1540,27 +1154,6 @@ function ConnectorConfigDrawer({
               </div>
             )}
           </div>
-        )}
-
-        {open && entry.kind === "agently-cli" && instance && (
-          <AgentlyAuth
-            key={instance.instance_id}
-            instanceId={instance.instance_id}
-            installed={cliInfo?.installed === true}
-            onChanged={() => {
-              void connectorsApi
-                .getInstance(instance.instance_id)
-                .then((detail) =>
-                  setInstanceDetail((current) =>
-                    current?.instance_id === detail.instance_id
-                      ? detail
-                      : current,
-                  ),
-                )
-                .catch(() => undefined);
-              onSaved();
-            }}
-          />
         )}
 
         <Form
@@ -1631,7 +1224,7 @@ function ConnectorConfigDrawer({
                                     new Error(
                                       t(
                                         "connectors.difyMcpUrlInvalid",
-                                        "请粘贴 Dify 访问点提供的完整 MCP Server URL",
+                                        "Please paste Dify The access point provides the complete MCP Server URL",
                                       ),
                                     ),
                                   ),
@@ -1703,177 +1296,7 @@ function ConnectorConfigDrawer({
             </>
           )}
 
-          {entry.kind === "feishu-cli" && (
-            <>
-              <Form.Item name="default_as" hidden>
-                <Input />
-              </Form.Item>
-              <Form.Item name="cli_config_key" hidden>
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="app_id"
-                label={t("connectors.feishuAppId", "App ID")}
-                rules={[{ required: true }]}
-                extra={
-                  !hideFieldGuide && manualUrl ? (
-                    <a href={manualUrl} target="_blank" rel="noreferrer">
-                      {t(
-                        "connectors.feishuAppCredDoc",
-                        "在飞书开放平台创建应用并获取 App ID / App Secret",
-                      )}
-                    </a>
-                  ) : undefined
-                }
-              >
-                <Input
-                  placeholder={t(
-                    "connectors.feishuAppIdPlaceholder",
-                    "例如 cli_xxxxxxxx",
-                  )}
-                />
-              </Form.Item>
-              <Form.Item
-                name="app_secret"
-                label={t("connectors.feishuAppSecret", "App Secret")}
-                rules={secretFieldRules(secretRequired)}
-                extra={configuredExtra(preview, "app_secret_configured", t)}
-              >
-                <Input.Password
-                  placeholder={
-                    hasStoredCredentials
-                      ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
-                      : t(
-                          "connectors.feishuAppSecretPlaceholder",
-                          "飞书应用 App Secret",
-                        )
-                  }
-                />
-              </Form.Item>
-              <div className={styles.feishuUserAuthBox}>
-                <div className={styles.feishuUserAuthTitle}>
-                  {t("connectors.feishuUserAuthTitle", "Feishu account authorization")}
-                </div>
-                <p className={styles.feishuUserAuthWhy}>
-                  {t(
-                    "connectors.feishuUserAuthWhy",
-                    "上方 App ID / Secret 只代表应用（Bot）。文档搜索、访问你云空间里的个人文档和日程等，必须以你的飞书账号身份调用，因此需要额外授权一次。授权后 Agent 只能访问你本人有权限的内容。",
-                  )}
-                </p>
-                <div className={styles.feishuUserAuthHint}>
-                  {feishuAuthNeedsReauth
-                    ? t(
-                        "connectors.feishuUserAuthExpired",
-                        "用户授权已失效，请重新登录授权。",
-                      )
-                    : feishuUserReady
-                    ? t(
-                        "connectors.feishuUserAuthReady",
-                        "已授权，可搜索文档。",
-                      )
-                    : feishuUserAuth
-                    ? t(
-                        "connectors.feishuUserAuthPendingHint",
-                        "请在弹出的页面完成授权，然后点「我已授权」。",
-                      )
-                    : t(
-                        "connectors.feishuUserAuthHint",
-                        "点击登录授权，完成后点「我已授权」。",
-                      )}
-                </div>
-                {feishuUserReady && feishuRefreshExpiresAt && (
-                  <div className={styles.feishuUserAuthHint}>
-                    {t(
-                      "connectors.feishuUserAuthRefreshUntil",
-                      "刷新令牌约有效至 {{time}}（到期后需重新授权）",
-                      { time: feishuRefreshExpiresAt },
-                    )}
-                  </div>
-                )}
-                <div className={styles.quickAuthBar}>
-                  <Button
-                    type={
-                      feishuUserReady && !feishuAuthNeedsReauth
-                        ? "default"
-                        : "primary"
-                    }
-                    loading={feishuUserAuthBusy}
-                    onClick={() => void handleFeishuUserAuthStart()}
-                  >
-                    {feishuUserReady || feishuAuthNeedsReauth
-                      ? t("connectors.feishuUserAuthAgain", "Re-authorize")
-                      : t("connectors.feishuUserAuthStart", "Authorize")}
-                  </Button>
-                  {feishuUserAuth && (
-                    <Button
-                      type="primary"
-                      loading={feishuUserAuthBusy}
-                      onClick={() => void handleFeishuUserAuthComplete()}
-                    >
-                      {t("connectors.feishuUserAuthConfirm", "I have authorized")}
-                    </Button>
-                  )}
-                </div>
-                {feishuUserAuth && (
-                  <button
-                    type="button"
-                    className={styles.feishuUserAuthReopen}
-                    onClick={() => openUrl(feishuUserAuth.verification_url)}
-                  >
-                    {t("connectors.feishuUserAuthReopen", "Popup blocked? Open again")}
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-
-          {entry.kind === "wecom-cli" && (
-            <>
-              <Form.Item
-                name="bot_id"
-                label={t("connectors.wecomBotId", "Bot ID")}
-                rules={[{ required: true }]}
-                extra={
-                  !hideFieldGuide && manualUrl ? (
-                    <a href={manualUrl} target="_blank" rel="noreferrer">
-                      {t(
-                        "connectors.wecomBotCredDoc",
-                        "在企业微信开放平台获取智能机器人 Bot ID / Secret",
-                      )}
-                    </a>
-                  ) : undefined
-                }
-              >
-                <Input
-                  placeholder={t(
-                    "connectors.wecomBotIdPlaceholder",
-                    "企业微信智能机器人 Bot ID",
-                  )}
-                />
-              </Form.Item>
-              <Form.Item
-                name="bot_secret"
-                label={t("connectors.wecomBotSecret", "Secret")}
-                rules={secretFieldRules(secretRequired)}
-                extra={configuredExtra(preview, "bot_secret_configured", t)}
-              >
-                <Input.Password
-                  placeholder={
-                    hasStoredCredentials
-                      ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
-                      : t(
-                          "connectors.wecomBotSecretPlaceholder",
-                          "企业微信机器人 Secret",
-                        )
-                  }
-                />
-              </Form.Item>
-            </>
-          )}
-
-          {entry.auth_kind === "api_key" &&
-            entry.kind !== "feishu-cli" &&
-            entry.kind !== "wecom-cli" && (
+          {entry.auth_kind === "api_key" && (
               <>
                 <Form.Item
                   name="api_key"
@@ -1892,46 +1315,10 @@ function ConnectorConfigDrawer({
                     placeholder={
                       hasStoredCredentials
                         ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
-                        : entry.kind === "tencent-ima"
-                        ? t(
-                            "connectors.imaApiKeyPlaceholder",
-                            "从 IMA 配置页复制（仅展示一次）",
-                          )
                         : t("connectors.apiKeyPlaceholder", "Paste API Key")
                     }
                   />
                 </Form.Item>
-                {entry.kind === "tencent-ima" && (
-                  <Form.Item
-                    name="client_id"
-                    label="Client ID"
-                    rules={[{ required: true }]}
-                  >
-                    <Input
-                      placeholder={t(
-                        "connectors.imaClientIdPlaceholder",
-                        "从 IMA 配置页复制",
-                      )}
-                    />
-                  </Form.Item>
-                )}
-                {entry.kind === "tencent-lexiang" && (
-                  <Form.Item
-                    name="client_id"
-                    label={t(
-                      "connectors.lexiangCompanyFrom",
-                      "企业标识 (company_from)",
-                    )}
-                    rules={[{ required: true }]}
-                  >
-                    <Input
-                      placeholder={t(
-                        "connectors.lexiangCompanyFromPlaceholder",
-                        "从乐享凭证页复制",
-                      )}
-                    />
-                  </Form.Item>
-                )}
               </>
             )}
 
@@ -1955,61 +1342,27 @@ function ConnectorConfigDrawer({
               <Form.Item name="openid" hidden>
                 <Input />
               </Form.Item>
-              {preview?.oauth_configured && !showManual && (
-                <div className={styles.configuredBadge}>
-                  {t("connectors.oauthConfigured", "Authorized — probe or save now")}
-                </div>
-              )}
-              {entry.kind === "qcc" &&
-                preview?.api_key_configured &&
-                !showManual && (
+                {preview?.oauth_configured && !showManual && (
                   <div className={styles.configuredBadge}>
-                    {t(
-                      "connectors.qccApiKeyConfigured",
-                      "已配置 API Key，可直接探测或保存",
-                    )}
+                    {t("connectors.oauthConfigured", "Authorized — probe or save now")}
                   </div>
                 )}
-              {entry.oauth_ready &&
-                hasOAuthPopup &&
-                !preview?.oauth_configured &&
-                !(entry.kind === "qcc" && preview?.api_key_configured) && (
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: "var(--fn-text-tertiary)",
-                      marginBottom: 8,
-                    }}
-                  >
-                    {entry.kind === "qcc"
-                      ? t(
-                          "connectors.qccOauthHint",
-                          "点击「一键授权」完成登录后将自动保存；也可打开授权页获取 API Key 后粘贴",
-                        )
-                      : t(
-                          "connectors.oauthHint",
-                          "点击「一键授权」完成登录后将自动保存；也可手动粘贴 Token",
-                        )}
-                  </div>
-                )}
-              {entry.kind === "qcc" ? (
-                <Form.Item
-                  name="api_key"
-                  label={t("connectors.qccApiKey", "API Key")}
-                  extra={configuredExtra(preview, "api_key_configured", t)}
-                >
-                  <Input.Password
-                    placeholder={
-                      preview?.api_key_configured
-                        ? t("connectors.secretPlaceholder", "Leave blank to keep current value")
-                        : t(
-                            "connectors.qccApiKeyPlaceholder",
-                            "粘贴企查查 API Key",
-                          )
-                    }
-                  />
-                </Form.Item>
-              ) : (
+                {entry.oauth_ready &&
+                  hasOAuthPopup &&
+                  !preview?.oauth_configured && (
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "var(--fn-text-tertiary)",
+                        marginBottom: 8,
+                      }}
+                    >
+                      {t(
+                        "connectors.oauthHint",
+                        "Click “One-click Authorization” to complete the login and it will be automatically saved; you can also paste it manually. Token",
+                      )}
+                    </div>
+                  )}
                 <>
                   <div
                     className={styles.manualToggle}
@@ -2030,7 +1383,7 @@ function ConnectorConfigDrawer({
                           <a href={manualUrl} target="_blank" rel="noreferrer">
                             {t(
                               "connectors.manualTokenDoc",
-                              "手动获取 Token 文档",
+                              "Get manually Token Documentation",
                             )}
                           </a>
                         ) : undefined
@@ -2044,7 +1397,6 @@ function ConnectorConfigDrawer({
                     </Form.Item>
                   )}
                 </>
-              )}
             </>
           )}
 
@@ -2053,7 +1405,7 @@ function ConnectorConfigDrawer({
               <Form.Item
                 name="mail_provider"
                 label={t("connectors.mailProvider", "Mail provider")}
-                initialValue="qq"
+                initialValue="gmail"
               >
                 <Select
                   options={MAIL_PROVIDERS.map((item) => ({
@@ -2083,7 +1435,7 @@ function ConnectorConfigDrawer({
                     >
                       {t(
                         "connectors.personalMailAuthGuide",
-                        "如何获取邮箱授权码",
+                        "How to obtain email authorization code",
                       )}
                     </a>
                   ) : undefined)
@@ -2125,7 +1477,7 @@ function ConnectorConfigDrawer({
                 label="AppId"
                 rules={[{ required: true }]}
               >
-                <Input placeholder="企业 ID / AppId" />
+                <Input placeholder="Enterprise ID / AppId" />
               </Form.Item>
               <Form.Item
                 name="sdk_id"
@@ -2157,7 +1509,7 @@ function ConnectorConfigDrawer({
             valuePropName="checked"
             extra={t(
               "connectors.sharedHint",
-              "共享后其他用户可以选择使用，但不能查看或修改配置。",
+              "After sharing, other users can choose to use it, but they cannot view or modify the configuration.",
             )}
           >
             <Switch />
@@ -2172,7 +1524,7 @@ function ConnectorConfigDrawer({
                 ? undefined
                 : t(
                     "connectors.defaultOpenHint",
-                    "关闭时需在对话中手动勾选才会注入工具。",
+                    "When closed, you need to manually check it in the dialog to inject the tool.",
                   )
             }
           >
@@ -2185,7 +1537,7 @@ function ConnectorConfigDrawer({
               style={{ marginBottom: 16 }}
               message={t(
                 "connectors.defaultOpenWarning",
-                "开启后默认会在 Dashboard、IM 与 Cron（未特殊选连接器时）携带该工具（额外消耗 token）。Dashboard 可关本轮；Cron 若显式选择连接器则以选择为准。",
+                "By default it will be in Dashboard,IM With Cron(When no connector is specially selected) Carrying this tool (extra cost token).Dashboard Can close the epicycle;Cron If a connector is selected explicitly, the selection takes precedence.",
               )}
             />
           ) : null}
@@ -2207,11 +1559,11 @@ function ConnectorConfigDrawer({
                   {probeResult.length > 0
                     ? t("connectors.probeToolsHint", {
                         count: probeResult.length,
-                        defaultValue: `连接正常，获取以下工具列表（共 ${probeResult.length} 个）`,
+                        defaultValue: `The connection is normal and the following tool list is obtained (total ${probeResult.length} )`,
                       })
                     : t(
                         "connectors.probeToolsEmpty",
-                        "连接正常，但未发现可用工具",
+                        "The connection is OK, but no available tools found",
                       )}
                 </div>
               </div>
@@ -2394,7 +1746,7 @@ export default function ConnectorsPage() {
               <span className={styles.listToolbarMeta}>
                 {t("connectors.enabledSummary", {
                   count: instances.length,
-                  defaultValue: "已启用 {{count}} 个连接器实例",
+                  defaultValue: "Enabled {{count}} Connector instances",
                 })}
               </span>
               <Button
@@ -2436,7 +1788,7 @@ export default function ConnectorsPage() {
                 total: catalog.length,
                 configured: configuredCount,
                 defaultValue:
-                  "当前支持 {{total}} 个连接器，已配置 {{configured}} 个",
+                  "Currently supported {{total}} Connectors, configured {{configured}} A",
               })}
             </span>
             <Button

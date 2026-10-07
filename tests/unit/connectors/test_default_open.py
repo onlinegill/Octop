@@ -46,10 +46,10 @@ def test_build_instance_config_json_includes_when_true():
 
 def test_build_instance_config_json_includes_description():
     raw = build_instance_config_json(
-        kind="tencent-docs",
-        description="团队文档连接",
+        kind="dify",
+        description="Team docs connector",
     )
-    assert raw == '{"description": "团队文档连接"}'
+    assert raw == '{"description": "Team docs connector"}'
 
 
 def test_merge_mcp_servers_with_defaults_unions_and_dedupes():

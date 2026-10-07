@@ -55,7 +55,6 @@ def siteverify() -> tuple[str, type[_Siteverify]]:
     server.shutdown()
     server.server_close()
     set_test_siteverify_url("turnstile", None)
-    set_test_siteverify_url("tencent", None)
 
 
 @pytest.fixture
@@ -149,82 +148,6 @@ async def test_captcha_fail_does_not_increment_lockout(client: Any, siteverify: 
     assert int(row.login_failed_count or 0) == 0
 
 
-async def test_tencent_login_mocked_ok_returns_jwt(client: Any, siteverify: Any) -> None:
-    url, handler = siteverify
-    set_test_siteverify_url("tencent", url)
-    handler.payload = {"Response": {"CaptchaCode": 1, "CaptchaMsg": "OK", "EvilLevel": 0}}
-    c, srv, home = client
-    await bootstrap_admin(c, home, username="alice", password="TestPass12")
-    _enable_provider(
-        srv,
-        "tencent",
-        site_key="195642000",
-        secret="app-secret",
-        cam_id="AKIDcam",
-        cam_key="camkey",
-    )
-    pub = await c.get("/api/auth/captcha")
-    assert pub.json() == {"provider": "tencent", "site_key": "195642000"}
-    r = await c.post(
-        "/api/auth/login",
-        json={
-            "username": "alice",
-            "password": "TestPass12",
-            "captcha_token": "tr03ticket:@rand",
-        },
-    )
-    assert r.status_code == 200
-    assert r.json()["access_token"]
-    assert handler.hits == 1
-
-
-async def test_tencent_login_without_cam_keys_fails(client: Any, siteverify: Any) -> None:
-    url, handler = siteverify
-    set_test_siteverify_url("tencent", url)
-    handler.payload = {"Response": {"CaptchaCode": 1, "CaptchaMsg": "OK"}}
-    c, srv, home = client
-    await bootstrap_admin(c, home, username="alice", password="TestPass12")
-    _enable_provider(srv, "tencent", site_key="195642000", secret="app-secret")
-    r = await c.post(
-        "/api/auth/login",
-        json={
-            "username": "alice",
-            "password": "TestPass12",
-            "captcha_token": "tr03ticket:@rand",
-        },
-    )
-    assert r.status_code == 400
-    assert r.json()["error"]["code"] == "CAPTCHA_FAILED"
-    assert handler.hits == 0
-
-
-async def test_tencent_login_rejects_reused_ticket_code(client: Any, siteverify: Any) -> None:
-    url, handler = siteverify
-    set_test_siteverify_url("tencent", url)
-    handler.payload = {"Response": {"CaptchaCode": 9, "CaptchaMsg": "ticket reused"}}
-    c, srv, home = client
-    await bootstrap_admin(c, home, username="alice", password="TestPass12")
-    _enable_provider(
-        srv,
-        "tencent",
-        site_key="195642000",
-        secret="app-secret",
-        cam_id="AKIDcam",
-        cam_key="camkey",
-    )
-    r = await c.post(
-        "/api/auth/login",
-        json={
-            "username": "alice",
-            "password": "TestPass12",
-            "captcha_token": "tr03ticket:@rand",
-        },
-    )
-    assert r.status_code == 400
-    assert r.json()["error"]["code"] == "CAPTCHA_FAILED"
-    assert handler.hits == 1
-
-
 async def test_known_locked_user_skips_siteverify(client: Any, siteverify: Any) -> None:
     url, handler = siteverify
     set_test_siteverify_url("turnstile", url)
@@ -267,7 +190,6 @@ async def test_admin_captcha_get_put_and_null_delete(env: Any) -> None:
     assert body["active"] == "slider"
     assert body["available"] == [
         "slider",
-        "tencent",
         "turnstile",
         "hcaptcha",
         "recaptcha-v3",
@@ -306,26 +228,6 @@ async def test_admin_captcha_get_put_and_null_delete(env: Any) -> None:
     }
     assert "s3cret" not in str(saved)
     assert "secret_enc" not in str(saved)
-
-    r = await c.put(
-        "/api/settings/captcha",
-        headers=auth,
-        json={
-            "providers": {
-                "tencent": {
-                    "site_key": "195642000",
-                    "secret": "app-secret",
-                    "cam_secret_id": "AKIDcam",
-                    "cam_secret": "camkey",
-                }
-            },
-        },
-    )
-    assert r.status_code == 200
-    tencent_view = r.json()["providers"]["tencent"]
-    assert tencent_view["cam_secret_id"] == "AKIDcam"
-    assert tencent_view["has_cam_secret"] is True
-    assert "camkey" not in str(r.json())
 
     pub = await c.get("/api/auth/captcha")
     assert pub.json() == {"provider": "turnstile", "site_key": "0xsite"}

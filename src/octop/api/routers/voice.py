@@ -148,7 +148,6 @@ async def synthesize_speech(
         ):
             yield chunk
 
-    # Mimo streams a live WAV (24kHz PCM16LE); other providers stream MP3.
     return StreamingResponse(_stream(), media_type=mgr.media_type(body.provider))
 
 

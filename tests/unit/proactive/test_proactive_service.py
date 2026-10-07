@@ -63,17 +63,17 @@ def _make_episode(
     ep.id = ep_id
     ep.emotion = emotion
     ep.intensity = intensity
-    ep.people = people or ["老婆"]
-    ep.topics = ["家庭"]
+    ep.people = people or ["spouse"]
+    ep.topics = ["family"]
     ep.occurred_at = now - timedelta(days=days_ago)
-    ep.summary = f"用户发生了 {ep_id} 事件"
-    ep.verbatim_quote = f"原话 {ep_id}"
+    ep.summary = f"User experienced event {ep_id}"
+    ep.verbatim_quote = f"Verbatim quote {ep_id}"
     return ep
 
 
 def _make_agent(
     episodes: list,
-    llm_response: str = "最近辛苦了，注意休息！",
+    llm_response: str = "You have been working hard, take a rest!",
     soul_md: str = "",
     llm_raises: Exception | None = None,
 ) -> MagicMock:
@@ -113,7 +113,7 @@ def _make_gateway(push_success: bool = True) -> MagicMock:
     if push_success:
         gateway.push_text_from_session = AsyncMock(return_value=None)
     else:
-        gateway.push_text_from_session = AsyncMock(side_effect=RuntimeError("推送失败：网络错误"))
+        gateway.push_text_from_session = AsyncMock(side_effect=RuntimeError("push failed: network error"))
     return gateway
 
 
@@ -145,11 +145,11 @@ def _make_service(
 @pytest.mark.asyncio
 async def test_service_run_success(agent_id: str, care_push_repo: CarePushRepo):
     """Successful flow: episodes exist, LLM succeeds, push succeeds, dedup records are written."""
-    episodes = [_make_episode("ep1"), _make_episode("ep2", people=["老板"])]
-    agent = _make_agent(episodes, llm_response="最近辛苦了，注意休息！")
+    episodes = [_make_episode("ep1"), _make_episode("ep2", people=["manager"])]
+    agent = _make_agent(episodes, llm_response="You have been working hard, take a rest!")
     service = _make_service(agent, care_push_repo, push_success=True)
 
-    await service.run(agent_id, f"{agent_id}:wxwork:user123:dm")
+    await service.run(agent_id, f"{agent_id}:slack:user123:dm")
 
     # Verify dedup records were written.
     pushed = care_push_repo.list_pushed_episode_ids(agent_id)
@@ -168,7 +168,7 @@ async def test_service_run_no_episodes(agent_id: str, care_push_repo: CarePushRe
     agent = _make_agent([])
     service = _make_service(agent, care_push_repo)
 
-    await service.run(agent_id, f"{agent_id}:wxwork:user123:dm")
+    await service.run(agent_id, f"{agent_id}:slack:user123:dm")
 
     # Verify the LLM was not called.
     agent.get_aux_llm.assert_not_called()
@@ -186,11 +186,11 @@ async def test_service_run_no_episodes(agent_id: str, care_push_repo: CarePushRe
 async def test_service_run_llm_failure(agent_id: str, care_push_repo: CarePushRepo):
     """Should not push, write dedup records, or raise when the LLM call fails."""
     episodes = [_make_episode("ep1")]
-    agent = _make_agent(episodes, llm_raises=RuntimeError("LLM 服务不可用"))
+    agent = _make_agent(episodes, llm_raises=RuntimeError("LLM service unavailable"))
     service = _make_service(agent, care_push_repo)
 
     # Should not raise.
-    await service.run(agent_id, f"{agent_id}:wxwork:user123:dm")
+    await service.run(agent_id, f"{agent_id}:slack:user123:dm")
 
     # Verify no dedup records were written.
     pushed = care_push_repo.list_pushed_episode_ids(agent_id)
@@ -210,7 +210,7 @@ async def test_service_run_push_failure(agent_id: str, care_push_repo: CarePushR
     service = _make_service(agent, care_push_repo, push_success=False)
 
     # Should not raise.
-    await service.run(agent_id, f"{agent_id}:wxwork:user123:dm")
+    await service.run(agent_id, f"{agent_id}:slack:user123:dm")
 
     # Verify no dedup records were written.
     pushed = care_push_repo.list_pushed_episode_ids(agent_id)
@@ -225,7 +225,7 @@ async def test_service_run_push_failure(agent_id: str, care_push_repo: CarePushR
 @pytest.mark.asyncio
 async def test_service_run_truncates_long_text(agent_id: str, care_push_repo: CarePushRepo):
     """Care messages longer than 200 characters should be truncated."""
-    long_text = "关心" * 200  # 400 CJK characters.
+    long_text = "Care " * 200  # 1000 characters.
     episodes = [_make_episode("ep1")]
     agent = _make_agent(episodes, llm_response=long_text)
 
@@ -244,7 +244,7 @@ async def test_service_run_truncates_long_text(agent_id: str, care_push_repo: Ca
         agent_manager=agent_manager,
     )
 
-    await service.run(agent_id, f"{agent_id}:wxwork:user123:dm")
+    await service.run(agent_id, f"{agent_id}:slack:user123:dm")
 
     assert len(pushed_texts) == 1
     assert len(pushed_texts[0]) <= 200
@@ -268,7 +268,7 @@ async def test_service_run_soul_md_failure_uses_default_prompt(
     service = _make_service(agent, care_push_repo, push_success=True)
 
     # Should not raise, and push should complete normally.
-    await service.run(agent_id, f"{agent_id}:wxwork:user123:dm")
+    await service.run(agent_id, f"{agent_id}:slack:user123:dm")
 
     # Verify dedup records were written, which means push succeeded.
     pushed = care_push_repo.list_pushed_episode_ids(agent_id)
@@ -294,7 +294,7 @@ async def test_service_run_no_memory(agent_id: str, care_push_repo: CarePushRepo
     )
 
     # Should not raise.
-    await service.run(agent_id, f"{agent_id}:wxwork:user123:dm")
+    await service.run(agent_id, f"{agent_id}:slack:user123:dm")
 
     # Verify no dedup records were written.
     pushed = care_push_repo.list_pushed_episode_ids(agent_id)

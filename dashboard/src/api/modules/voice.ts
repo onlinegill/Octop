@@ -57,7 +57,7 @@ export const voiceApi = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
-  transcribe: (audio: Blob, language = "zh-CN", provider?: string) => {
+  transcribe: (audio: Blob, language = "en-US", provider?: string) => {
     const form = new FormData();
     form.append("audio", audio, recordingFilename(audio.type));
     form.append("language", language);
@@ -78,8 +78,8 @@ export const voiceApi = {
     }),
   /**
    * Streamed variant for low-latency playback. The server flushes chunks as
-   * they arrive (MiMo streams live WAV); other providers stream MP3, in
-   * which case the buffered `synthesize` path is used instead.
+   * they arrive for streamed-WAV providers; others stream MP3, in which case
+   * the buffered `synthesize` path is used instead.
    */
   synthesizeStream: (
     text: string,

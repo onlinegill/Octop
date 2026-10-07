@@ -28,31 +28,31 @@ def test_inbound_extension_from_filename() -> None:
     assert inbound_extension("report.pdf", "application/pdf") == ".pdf"
 
 
-def test_sanitize_inbound_filename_keeps_cjk() -> None:
-    assert sanitize_inbound_filename("我的报告.pdf") == "我的报告.pdf"
-    assert sanitize_inbound_filename(r"C:\Users\me\地球介绍.pptx") == "地球介绍.pptx"
+def test_sanitize_inbound_filename_keeps_non_ascii() -> None:
+    assert sanitize_inbound_filename("café.pdf") == "café.pdf"
+    assert sanitize_inbound_filename(r"C:\Users\me\café.pptx") == "café.pptx"
     assert sanitize_inbound_filename('say "hi".txt') == "say _hi_.txt"
     assert sanitize_inbound_filename("../evil.pdf") == "evil.pdf"
 
 
 def test_timestamped_name_and_display_roundtrip() -> None:
-    stored = build_timestamped_inbound_name("地球介绍.pptx", now=1783510288)
-    assert stored == "1783510288_地球介绍.pptx"
-    assert display_name_from_stored(stored) == "地球介绍.pptx"
+    stored = build_timestamped_inbound_name("café.pptx", now=1783510288)
+    assert stored == "1783510288_café.pptx"
+    assert display_name_from_stored(stored) == "café.pptx"
 
 
 @pytest.mark.asyncio
-async def test_write_inbound_uses_timestamp_prefix_keeps_chinese() -> None:
+async def test_write_inbound_uses_timestamp_prefix_keeps_non_ascii() -> None:
     with tempfile.TemporaryDirectory() as ws_dir:
         workspace = _workspace(ws_dir)
         stored = await write_inbound(
             workspace,
             b"%PDF-1.4",
-            filename="地球介绍.pdf",
+            filename="café.pdf",
             media_type="application/pdf",
         )
-        assert stored.filename == "地球介绍.pdf"
-        assert re.fullmatch(r"inbound/\d{10,}_地球介绍\.pdf", stored.path)
+        assert stored.filename == "café.pdf"
+        assert re.fullmatch(r"inbound/\d{10,}_café\.pdf", stored.path)
         on_disk = await read_inbound_bytes(workspace, stored.path)
         assert on_disk == b"%PDF-1.4"
 

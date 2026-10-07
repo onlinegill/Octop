@@ -13,7 +13,7 @@ async def start_tetris() -> str:
         {
             "octop_ui": {"renderer": "tetris_game", "version": 1},
             "data": {"kind": "tetris"},
-            "text": "俄罗斯方块已开始。点击卡片后用 ← → 移动、↑ 或空格旋转、↓ 加速、空格硬降。",
+            "text": "Tetris started. After clicking the card use ← → to move, ↑ or space to rotate, ↓ to soften-drop, space to hard-drop.",
         },
         ensure_ascii=False,
     )
@@ -24,7 +24,7 @@ def setup(ctx: PluginContext) -> None:
         "start_tetris",
         start_tetris,
         description=(
-            "在聊天中打开可玩的俄罗斯方块。用户说要玩俄罗斯方块、tetris、方块游戏时调用。"
-            "无需参数；游戏在卡片内进行，不必再调用工具。"
+            "Open a playable Tetris in chat. Call when the user asks to play Tetris or a block game. "
+            "Takes no arguments; the game runs inside the card, so no further tool calls are needed."
         ),
     )

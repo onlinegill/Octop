@@ -11,8 +11,8 @@ GREEN_RELEASE="${GREEN_ROOT}/release"
 # Pin a known-good python-build-standalone release (override with PBS_TAG / PBS_PY).
 PBS_TAG="${PBS_TAG:-20251209}"
 PBS_PY="${PBS_PY:-3.12.12}"
-# Prefer npmmirror mirror; override with PBS_BASE_URL for GitHub upstream.
-PBS_BASE_URL="${PBS_BASE_URL:-https://registry.npmmirror.com/-/binary/python-build-standalone/${PBS_TAG}}"
+# Use the official GitHub upstream (python-build-standalone releases); override with PBS_BASE_URL.
+PBS_BASE_URL="${PBS_BASE_URL:-https://github.com/astral-sh/python-build-standalone/releases/download/${PBS_TAG}}"
 
 ALL_PLATS=(
   darwin-arm64
@@ -108,7 +108,7 @@ host_plat() {
   # Git Bash / MSYS on windows-11-arm often is an x64 binary, so both
   # `uname -m` and PROCESSOR_ARCHITECTURE can look like amd64 while the
   # machine is ARM64. That falsely enables cross-assemble + --only-binary
-  # and breaks sdist-only pure-Python deps (e.g. aliyun-python-sdk-core).
+  # and breaks sdist-only pure-Python dependencies.
   if [[ "$os" == windows ]]; then
     if arch="$(python_machine_arch)"; then
       echo "${os}-${arch}"

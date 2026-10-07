@@ -9,11 +9,11 @@ import httpx
 from octop_harness.plugins import PluginContext
 
 _TEMPLATES: tuple[tuple[str, str, str], ...] = (
-    ("doge", "Doge", "经典柴犬"),
-    ("buzz", "Buzz Lightyear", "巴斯光年"),
-    ("drake", "Drake Hotline Bling", "德雷克二选一"),
-    ("success", "Success Kid", "成功小孩"),
-    ("distracted", "Distracted Boyfriend", "分心男友"),
+    ("doge", "Doge", "classic Shiba Inu"),
+    ("buzz", "Buzz Lightyear", "Buzz Lightyear"),
+    ("drake", "Drake Hotline Bling", "Drake two-choice meme"),
+    ("success", "Success Kid", "Success Kid"),
+    ("distracted", "Distracted Boyfriend", "Distracted Boyfriend"),
 )
 
 
@@ -63,12 +63,12 @@ async def make_meme(template: str = "doge", top: str = "", bottom: str = "") -> 
             if resp.status_code >= 400:
                 return _payload(
                     {"error": f"HTTP {resp.status_code}", "template": tpl},
-                    f"模板「{tpl}」可能不存在。",
+                    f"template {tpl!r} may not exist.",
                 )
     except Exception as exc:
-        return _payload({"error": str(exc), "template": tpl}, f"梗图生成失败：{exc}")
+        return _payload({"error": str(exc), "template": tpl}, f"meme generation failed: {exc}")
     data = {"template": tpl, "top": top, "bottom": bottom, "image_url": image_url}
-    return _payload(data, f"梗图 {tpl}：{image_url}")
+    return _payload(data, f"meme {tpl}: {image_url}")
 
 
 async def list_meme_templates() -> str:
@@ -76,17 +76,17 @@ async def list_meme_templates() -> str:
     items = [{"id": t[0], "name": t[1], "hint": t[2]} for t in _TEMPLATES]
     data = {"items": items}
     lines = [f"{r['id']} — {r['name']}" for r in items]
-    return _payload(data, "可用模板：\n" + "\n".join(lines), renderer="meme_templates_list")
+    return _payload(data, "Available templates:\n" + "\n".join(lines), renderer="meme_templates_list")
 
 
 def setup(ctx: PluginContext) -> None:
     ctx.tool(
         "make_meme",
         make_meme,
-        description="生成梗图。template 如 doge/drake；top/bottom 为上下文案。",
+        description="Generate a meme. template such as doge/drake; top/bottom are the captions.",
     )
     ctx.tool(
         "list_meme_templates",
         list_meme_templates,
-        description="列出内置 memegen 模板 id。",
+        description="List the built-in memegen template ids.",
     )

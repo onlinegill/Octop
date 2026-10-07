@@ -89,13 +89,13 @@ def _plugin_tool_label(
         original = extract_original_plugin_label(description)
         if original:
             return original
-        # Drop a leading ``[原名: …]`` if present, then take the first phrase.
+        # Drop a leading ``[original name: …]`` if present, then take the first phrase.
         rest = description
-        if rest.startswith("[原名:"):
+        if rest.startswith("[original name:"):
             close = rest.find("]")
             if close >= 0:
                 rest = rest[close + 1 :].strip()
-        phrase = rest.split("，", 1)[0].split(",", 1)[0].split("。", 1)[0]
+        phrase = rest.split(",", 1)[0]
         phrase = phrase.split("!", 1)[0].split("?", 1)[0].split("\n", 1)[0].strip()
         if 2 <= len(phrase) <= 36:
             return phrase
@@ -108,7 +108,7 @@ def _list_plugin_tool_items(
     *,
     locale: str,
 ) -> list[ToolSettingsItem]:
-    """Plugin tools for Personalization → Tools → 插件工具 (and Experts)."""
+    """Plugin tools for Personalization → Tools → Plugin tools (and Experts)."""
     mgr = _plugin_manager(server)
     raw_plugins = agent_cfg.get("plugins")
     plugins_cfg: dict[str, Any] = raw_plugins if isinstance(raw_plugins, dict) else {}

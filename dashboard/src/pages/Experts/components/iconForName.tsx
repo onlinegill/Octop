@@ -118,7 +118,7 @@ export function iconForName(
   return fn ? fn(size) : <Layers size={size} />;
 }
 
-/** Prefer a remote ``icon_url`` (SkillHub / market) or uploaded avatar over Lucide. */
+/** Prefer a remote ``icon_url`` (market) or uploaded avatar over Lucide. */
 export function ExpertIcon({
   iconUrl,
   iconName,

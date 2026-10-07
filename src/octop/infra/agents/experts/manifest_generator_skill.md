@@ -1,6 +1,6 @@
 ---
 name: expert-manifest-generator
-description: Generate bilingual Octop expert manifest metadata from a SkillHub skillset package.
+description: Generate Octop expert manifest metadata from a SkillHub skillset package.
 ---
 
 # Expert Manifest Generator
@@ -19,7 +19,7 @@ trailing commas, or unquoted keys.
 
 The user message is JSON with:
 
-- `expert`: slug, Chinese/English names, Chinese/English summaries, scene, sub_scene.
+- `expert`: slug, name, summary, scene, sub_scene.
 - `workflow_prompt`: the normalized main skillset orchestration prompt saved as
   the skillset `SKILL.md`.
 - `skills`: included SkillHub skill packages with slug, name, description, and a short excerpt.
@@ -32,28 +32,24 @@ Return exactly this shape:
 ```json
 {
   "label": {
-    "zh": "string",
     "en": "string"
   },
   "description": {
-    "zh": "string",
     "en": "string"
   },
   "welcome_message": {
-    "zh": "string",
     "en": "string"
   },
   "quick_prompts": [
     {
-      "title": { "zh": "string", "en": "string" },
-      "description": { "zh": "string", "en": "string" },
-      "prompt": { "zh": "string", "en": "string" },
+      "title": { "en": "string" },
+      "description": { "en": "string" },
+      "prompt": { "en": "string" },
       "color": "#RRGGBB",
       "icon_name": "string"
     }
   ],
   "task_examples": {
-    "zh": ["string"],
     "en": ["string"]
   }
 }
@@ -61,26 +57,20 @@ Return exactly this shape:
 
 ## Requirements
 
-- Produce an expert role name in `label`.
-- `label.zh` must be a natural Chinese expert name ending with `专家`.
-- `label.en` must be a natural English expert name ending with `Expert`.
+- Produce an expert role name in `label.en`: a natural English expert name
+  ending with `Expert`.
 - If the source name is a task or domain name, convert it into an expert role
   name instead of copying it directly.
-- `description.zh` and `description.en` must summarize the expert's workflow
-  and value proposition in the corresponding language.
-- `welcome_message` must be one short capability summary only (about 12–36
-  Chinese characters / one brief English line under ~80 characters). It appears
-  next to `@ExpertName`, so do **not** restate the expert name, do **not** say
-  “I am…”, and do **not** tell users to pick quick-start cards. Summarize what
-  the expert helps with.
+- `description.en` must summarize the expert's workflow and value proposition.
+- `welcome_message` must be one short capability summary only (a brief English
+  line under ~80 characters). It appears next to `@ExpertName`, so do **not**
+  restate the expert name, do **not** say "I am…", and do **not** tell users to
+  pick quick-start cards. Summarize what the expert helps with.
   Prefer forms like:
-  - zh: `把灵感扩展成可长期连载的长篇大纲`
-  - en: `Expand ideas into serialization-ready outlines`
+  - `Expand ideas into serialization-ready outlines`
 - Keep `welcome_message` as one complete short phrase. Do not truncate with
-  ellipsis (`…` / `...`) and do not leave hanging connectors like “再到…”.
-- `welcome_message.zh` must be natural Simplified Chinese only.
-- `welcome_message.en` must be natural English only; never copy Chinese text into
-  `.en`, and never put English into `.zh`.
+  ellipsis (`…` / `...`) and do not leave hanging connectors like "and then…".
+- `welcome_message.en` must be natural English only; never include Chinese text.
 - Produce exactly 6 quick-start cards. If the workflow has fewer than 6 major
   operations, still produce 6 distinct entry points by covering adjacent tasks
   (plan, analyze, deliver, revise, ask clarifying questions, etc.).
@@ -88,34 +78,28 @@ Return exactly this shape:
 - The cards must be specific to the expert's domain and workflow, not generic.
 - Prefer concrete operations named by the workflow prompt.
 - Cover acquisition, analysis, and output/deliverable steps when present.
-- Keep card titles short enough for UI cards (about 8–16 Chinese characters).
-- Keep descriptions to one short line (about 12–28 Chinese characters).
+- Keep card titles short enough for UI cards (roughly 3–6 words).
+- Keep descriptions to one short line (roughly 6–14 words).
 - Make prompts short starter templates for the chat box: one clear ask plus a
   blank input cue. Do not include numbered step lists, long SOP instructions,
   or multi-paragraph guidance inside `prompt`.
 - Prefer forms like:
-  - zh: `请作为「…专家」，帮我完成「…」。\n我的情况/目标/材料是：\n`
-  - en: `As the … Expert, help me with: ….\nMy context, goals, or materials are:\n`
+  - `As the … Expert, help me with: ….\nMy context, goals, or materials are:\n`
 - Treat each quick prompt as a starter template for a real user. When the task
   requires project details, data, code, documents, goals, or constraints, end
-  `prompt.zh` with a final blank input cue line `我的情况/目标/材料是：` and end
-  `prompt.en` with `My context, goals, or materials are:`. Do not fill content
-  after those cue lines.
-- Keep each `prompt.zh` / `prompt.en` under roughly 120 characters excluding the
-  trailing blank cue line.
-- Include both Chinese and English for every localized field.
-- Every `.zh` field must be natural Simplified Chinese.
-- Every `.en` field must be natural English for an English-speaking user.
-- Never copy Chinese text, pinyin, mixed Chinese-English fragments, or raw Chinese
-  workflow headings into `.en` fields.
-- When the source workflow is Chinese, translate the workflow intent, actions,
-  and deliverables into concise professional English equivalents.
-- `prompt.zh` and `prompt.en` must express the same task intent, but each prompt
-  should be written natively in its own language.
-- `prompt.en` must be a short English chat starter for the same task; do not
-  expand it into a multi-step checklist.
+  `prompt.en` with the final blank input cue line `My context, goals, or materials are:`.
+  Do not fill content after that cue line.
+- Keep each `prompt.en` under roughly 120 characters excluding the trailing
+  blank cue line.
+- All text fields must be natural English for an English-speaking user.
+- Never copy Chinese text, pinyin, mixed Chinese-English fragments, or raw
+  workflow headings into any field.
+- When the source workflow is in another language, translate the workflow
+  intent, actions, and deliverables into concise professional English
+  equivalents.
 - If an exact domain translation is uncertain, choose a clear professional
-  English paraphrase grounded in the workflow; do not leave Chinese fragments.
+  English paraphrase grounded in the workflow; do not leave non-English
+  fragments.
 - Prefer professional, task-oriented wording.
 - Do not mention SkillHub, packages, JSON, schema, or internal implementation.
 - Do not invent unsupported abilities beyond the workflow prompt and skills.
@@ -124,13 +108,12 @@ Return exactly this shape:
   These are empty-state cards on the **tasks / cron** page: each string is a
   natural-language request that asks the expert to **create a scheduled job**.
 - Every task example must include a concrete schedule in quotes, for example
-  `每天「09:00」` / `every weekday at 18:00`, and should say to enable the job
+  `daily at 09:00` / `every weekday at 18:00`, and should say to enable the job
   after creation when that is the first card.
 - Domain-specific only — do not reuse generic drink-water / zodiac / tech-news
   examples. Cover daily patrol, weekly recap, and at least one deliverable push
   when the workflow supports it.
-- `task_examples.zh` and `task_examples.en` must be the same length and express
-  the same jobs. Keep each string under ~120 characters.
+- Keep each `task_examples.en` string under ~120 characters.
 
 Allowed `icon_name` values:
 

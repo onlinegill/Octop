@@ -11,7 +11,7 @@
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
 
-- **GitHub Security Advisory:** [Create advisory](https://github.com/TencentCloud/Octop/security/advisories/new)
+- **GitHub Security Advisory:** [Create advisory](https://github.com/onlinegill/Octop/security/advisories/new)
 - **Email:** jubaoliang@gmail.com
 
 We aim to acknowledge reports within **3 business days** and provide a fix timeline within **7 business days** for confirmed issues.

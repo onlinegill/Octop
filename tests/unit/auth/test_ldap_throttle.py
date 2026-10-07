@@ -50,7 +50,7 @@ def test_one_source_cannot_lock_an_account_for_everyone_else():
     throttle.record_failure("alice", "10.0.0.1")
     throttle.record_failure("alice", "10.0.0.1")
     assert throttle.retry_after("alice", "10.0.0.1") > 0
-    # Another office/网络 keeps working while the abusive source is blocked.
+    # Another office network keeps working while the abusive source is blocked.
     assert throttle.retry_after("alice", "10.0.0.9") == 0
 
 

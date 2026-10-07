@@ -150,11 +150,11 @@ def test_list_skill_summaries_localizes_octop_metadata(store: SkillPackageStore)
                     "metadata:\n"
                     "  octop:\n"
                     "    label:\n"
-                    "      zh: PDF 阅读\n"
-                    "      en: PDF Reader\n"
+                    "      zh: PDF Reader\n"
+                    "      en: PDF Document Reader\n"
                     "    summary:\n"
-                    "      zh: 读取 PDF\n"
-                    "      en: Read PDFs\n"
+                    "      zh: Read PDFs\n"
+                    "      en: Read PDF documents\n"
                     "---\n"
                 ).encode(),
             )
@@ -164,8 +164,8 @@ def test_list_skill_summaries_localizes_octop_metadata(store: SkillPackageStore)
     zh = store.list_skill_summaries(row.id, locale="zh")[0]
     en = store.list_skill_summaries(row.id, locale="en")[0]
 
-    assert (zh["name"], zh["description"]) == ("PDF 阅读", "读取 PDF")
-    assert (en["name"], en["description"]) == ("PDF Reader", "Read PDFs")
+    assert (zh["name"], zh["description"]) == ("PDF Reader", "Read PDFs")
+    assert (en["name"], en["description"]) == ("PDF Document Reader", "Read PDF documents")
 
 
 def test_skill_count_excludes_skills_hidden_from_summaries(store: SkillPackageStore) -> None:

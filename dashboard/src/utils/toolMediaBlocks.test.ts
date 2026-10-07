@@ -144,7 +144,7 @@ describe("parseStructuredToolOutput", () => {
         safe_to_resubmit: false,
       },
       remediation: { action: "configure_model" },
-      execution: { provider: "volcengine_ark", model: "seedream" },
+      execution: { provider: "example_media", model: "image-model-x" },
       images: [],
     });
 
@@ -159,8 +159,8 @@ describe("parseStructuredToolOutput", () => {
       action: "configure_model",
       retryable: false,
       safeToResubmit: false,
-      provider: "volcengine_ark",
-      model: "seedream",
+      provider: "example_media",
+      model: "image-model-x",
     });
   });
 

@@ -95,7 +95,7 @@ OPENAPI_TAGS: list[dict[str, str]] = [
     },
     {
         "name": "channels",
-        "description": "Instant-messaging bridges (WeCom, Feishu, Telegram, …) per agent.",
+        "description": "Instant-messaging bridges (Telegram, …) per agent.",
     },
     {
         "name": "cron",
@@ -111,7 +111,7 @@ OPENAPI_TAGS: list[dict[str, str]] = [
     },
     {
         "name": "search",
-        "description": "Web-search provider API key probes (Tavily, Brave, Google, Kimi).",
+        "description": "Web-search provider API key probes (Tavily, Brave, Google).",
     },
     {"name": "providers", "description": "LLM provider configuration and active model selection."},
     {"name": "voice", "description": "Speech-to-text and text-to-speech provider configuration."},

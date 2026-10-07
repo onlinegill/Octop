@@ -442,7 +442,7 @@ export default function Sidebar({
     [collapsed, onToggle, setMinimalPane],
   );
 
-  // Pane choice is user-controlled; do not flip 记录/设置 when the route changes.
+  // Pane choice is user-controlled; do not flip Record/Settings when the route changes.
   // Both records-open events map to the same pane switch in minimal mode.
   useEffect(() => {
     if (!isMinimal) return;

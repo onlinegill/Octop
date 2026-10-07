@@ -343,8 +343,8 @@ def sanitize_roles():
     if os.path.exists(migrate_path):
         with open(migrate_path, "r", encoding="utf-8") as f:
             c = f.read()
-        c = c.replace('("管理员", ts, ts)', '("Admin", ts, ts)')
-        c = c.replace('("用户", ts, ts)', '("User", ts, ts)')
+        c = c.replace('("\u7ba1\u7406\u5458", ts, ts)', '("Admin", ts, ts)')
+        c = c.replace('("\u7528\u6237", ts, ts)', '("User", ts, ts)')
         with open(migrate_path, "w", encoding="utf-8") as f:
             f.write(c)
 
@@ -352,7 +352,7 @@ def sanitize_roles():
     if os.path.exists(setup_path):
         with open(setup_path, "r", encoding="utf-8") as f:
             c = f.read()
-        c = c.replace('"管理员"', '"Admin"')
+        c = c.replace('"\u7ba1\u7406\u5458"', '"Admin"')
         with open(setup_path, "w", encoding="utf-8") as f:
             f.write(c)
     print("Sanitized role names in DB seeds")
@@ -404,17 +404,6 @@ def sanitize_manager_language():
         print("Sanitized manager.py language default")
 
 
-if __name__ == "__main__":
-    sanitize_locale_prefs()
-    sanitize_channels()
-    sanitize_channel_drawer()
-    sanitize_connectors()
-    sanitize_roles()
-    sanitize_subagents()
-    sanitize_tls_preflight()
-    sanitize_manager_language()
-    print("All sanitization completed successfully.")
-
 def sanitize_readme():
     path = os.path.join(ROOT, "README.md")
     if os.path.exists(path):
@@ -428,3 +417,16 @@ def sanitize_readme():
         with open(path, "w", encoding="utf-8") as f:
             f.write(c)
         print("Sanitized README.md")
+
+
+if __name__ == "__main__":
+    sanitize_locale_prefs()
+    sanitize_channels()
+    sanitize_channel_drawer()
+    sanitize_connectors()
+    sanitize_roles()
+    sanitize_subagents()
+    sanitize_tls_preflight()
+    sanitize_manager_language()
+    sanitize_readme()
+    print("All sanitization completed successfully.")

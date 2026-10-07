@@ -19,7 +19,7 @@ def _row(**overrides: Any) -> BridgeConnectionRow:
         "owner_user_id": 1,
         "peer_base_url": "https://peer.example",
         "peer_username": "alice",
-        "display_name": "云端",
+        "display_name": "cloud",
         "notes": None,
         "icon_name": None,
         "credential_blob": b"enc-pass",
@@ -49,7 +49,7 @@ def _mgr() -> BridgeManager:
 async def test_update_meta_only_skips_reauth(monkeypatch: pytest.MonkeyPatch) -> None:
     mgr = _mgr()
     row = _row()
-    updated = _row(display_name="新名", notes="n1")
+    updated = _row(display_name="new name", notes="n1")
     mgr.get_owned = MagicMock(return_value=row)  # type: ignore[method-assign]
     mgr._repo.find_by_display_name = MagicMock(return_value=None)
     mgr._repo.update_settings = MagicMock(return_value=updated)
@@ -59,14 +59,14 @@ async def test_update_meta_only_skips_reauth(monkeypatch: pytest.MonkeyPatch) ->
     out = await mgr.update_connection_meta(
         "cid1",
         owner_user_id=1,
-        display_name="新名",
+        display_name="new name",
         notes="n1",
         update_notes=True,
         peer_base_url="https://peer.example",
         peer_username="alice",
         password="",
     )
-    assert out.display_name == "新名"
+    assert out.display_name == "new name"
     login.assert_not_awaited()
     mgr._repo.update_settings.assert_called_once()
     assert mgr._repo.update_settings.call_args.kwargs.get("update_credentials") is not True
@@ -103,7 +103,7 @@ async def test_update_endpoint_reauths_and_reconnects(
     out = await mgr.update_connection_meta(
         "cid1",
         owner_user_id=1,
-        display_name="云端",
+        display_name="cloud",
         peer_base_url="https://other.example",
         peer_username="bob",
         password=None,
@@ -146,21 +146,21 @@ async def test_update_password_required_when_no_stored_secret() -> None:
 async def test_inbound_update_display_only() -> None:
     mgr = _mgr()
     row = _row(credential_blob=None, auto_reconnect=False)
-    updated = _row(credential_blob=None, display_name="对端机", notes="n")
+    updated = _row(credential_blob=None, display_name="peer host", notes="n")
     mgr.get_owned = MagicMock(return_value=row)  # type: ignore[method-assign]
     mgr._repo.find_by_display_name = MagicMock(return_value=None)
     mgr._repo.update_settings = MagicMock(return_value=updated)
     out = await mgr.update_connection_meta(
         "cid1",
         owner_user_id=1,
-        display_name="对端机",
+        display_name="peer host",
         notes="n",
         update_notes=True,
         peer_base_url=row.peer_base_url,
         peer_username=row.peer_username,
         password="",
     )
-    assert out.display_name == "对端机"
+    assert out.display_name == "peer host"
     mgr._repo.update_settings.assert_called_once()
 
 
@@ -246,18 +246,18 @@ def test_inbound_default_display_name_skips_url_and_id() -> None:
     assert (
         inbound_default_display_name(
             connection_id="cid1",
-            preferred_name="笔记本",
+            preferred_name="laptop",
             peer_username="alice",
             existing_name="https://peer.example",
         )
-        == "笔记本"
+        == "laptop"
     )
     assert (
         inbound_default_display_name(
             connection_id="cid1",
             preferred_name="new",
-            existing_name="我改过的名",
+            existing_name="my edited name",
         )
-        == "我改过的名"
+        == "my edited name"
     )
     assert inbound_default_display_name(connection_id="cid1") == "cid1"

@@ -197,7 +197,7 @@ async def test_cron_examples_reads_workspace_manifest(env: Any) -> None:
             {
                 "id": "demo",
                 "task_examples": {
-                    "zh": ["每天 09:00 巡检"],
+                    "zh": ["Inspect daily at 09:00"],
                     "en": ["Patrol daily at 09:00"],
                 },
             }
@@ -207,7 +207,7 @@ async def test_cron_examples_reads_workspace_manifest(env: Any) -> None:
     r = await c.get(f"/api/agents/{aid}/cron/examples", headers=alice_auth)
     assert r.status_code == 200, r.text
     assert r.json()["task_examples"] == {
-        "zh": ["每天 09:00 巡检"],
+        "zh": ["Inspect daily at 09:00"],
         "en": ["Patrol daily at 09:00"],
     }
     denied = await c.get(f"/api/agents/{aid}/cron/examples", headers=bob_auth)
@@ -224,7 +224,7 @@ async def test_cron_examples_display_normalizes_four_or_five_to_three(env: Any) 
             {
                 "id": "demo",
                 "task_examples": {
-                    "zh": ["一", "二", "三", "四", "五"],
+                    "zh": ["one", "two", "three", "four", "five"],
                     "en": ["a", "b", "c", "d", "e"],
                 },
             }
@@ -233,10 +233,10 @@ async def test_cron_examples_display_normalizes_four_or_five_to_three(env: Any) 
     )
     r = await c.get(f"/api/agents/{aid}/cron/examples", headers=alice_auth)
     assert r.status_code == 200, r.text
-    assert r.json()["task_examples"] == {"zh": ["一", "二", "三"], "en": ["a", "b", "c"]}
+    assert r.json()["task_examples"] == {"zh": ["one", "two", "three"], "en": ["a", "b", "c"]}
     welcome = await c.get(f"/api/agents/{aid}/chat/welcome", headers=alice_auth)
     assert welcome.status_code == 200, welcome.text
-    assert welcome.json()["task_examples"] == {"zh": ["一", "二", "三"], "en": ["a", "b", "c"]}
+    assert welcome.json()["task_examples"] == {"zh": ["one", "two", "three"], "en": ["a", "b", "c"]}
 
 
 async def test_settings_timezone_returns_default(env: Any) -> None:

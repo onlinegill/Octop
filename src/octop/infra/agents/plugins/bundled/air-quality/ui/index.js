@@ -1,7 +1,7 @@
 const React = window.__OCTOP_REACT__;
 const { jsx: _jsx, jsxs: _jsxs } = window.__OCTOP_JSX__;
 
-const LABEL_COLOR = { 优: "#22c55e", 良: "#84cc16", 轻度: "#eab308", 中度: "#f97316", 重度: "#ef4444" };
+const LABEL_COLOR = { Excellent: "#22c55e", Good: "#84cc16", Light: "#eab308", Moderate: "#f97316", Heavy: "#ef4444" };
 
 function AirQuality(props) {
   const theme = props.host.getToolContext().theme;
@@ -21,7 +21,7 @@ function AirQuality(props) {
     },
     "data-octop-plugin-ui": "air-quality",
     children: [
-      _jsx("div", { style: { fontWeight: 800 }, children: d.city || "空气质量" }),
+      _jsx("div", { style: { fontWeight: 800 }, children: d.city || "Air Quality" }),
       _jsxs("div", { style: { display: "flex", alignItems: "baseline", gap: 10, marginTop: 10 }, children: [
         _jsx("span", { style: { fontSize: 36, fontWeight: 800, color: accent }, children: d.aqi_label || "—" }),
         _jsxs("span", { style: { opacity: 0.7 }, children: ["AQI ", d.us_aqi ?? d.european_aqi ?? "—"] }),

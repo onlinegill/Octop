@@ -3,11 +3,11 @@
  *
  * Tab A: user's experts, shown as a card grid with start/stop/edit/delete.
  * Tab B: built-in expert templates, shown as a card grid with create-from-template drawer.
- * Tab C: SkillHub expert market, shown as remote skillset cards.
+ * Tab C: expert market, shown as remote skillset cards.
  *
  * API (all via request() which already prefixes /api):
  *   GET  /experts                         → ExpertSummary[]
- *   GET  /experts/hub                     → SkillHub market cards (+ scenes)
+ *   GET  /experts/hub                     → market cards (+ scenes)
  *   GET  /experts/hub/{slug}              → market detail + quick prompts
  *   POST /experts/hub/{slug}/install      → create agent from market
  *   GET  /agents                          → via AgentContext

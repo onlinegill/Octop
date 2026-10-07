@@ -17,12 +17,11 @@ ErrorType = Literal["auth_error", "timeout", "network_error", "invalid_config", 
 
 _TIMEOUT_S = 30.0
 _TEST_QUERY = "octop connectivity probe"
-_KNOWN: frozenset[str] = frozenset({"tavily", "brave", "google", "kimi"})
+_KNOWN: frozenset[str] = frozenset({"tavily", "brave", "google"})
 _REQUIRED: dict[str, tuple[str, ...]] = {
     "tavily": ("TAVILY_API_KEY",),
     "brave": ("BRAVE_API_KEY",),
     "google": ("GOOGLE_API_KEY", "GOOGLE_CSE_ID"),
-    "kimi": ("MOONSHOT_API_KEY",),
 }
 
 
@@ -80,7 +79,11 @@ async def _probe(provider_id: str, env_vars: Mapping[str, str]) -> dict[str, Any
             return await _brave(client, creds["BRAVE_API_KEY"])
         if provider_id == "google":
             return await _google(client, creds["GOOGLE_API_KEY"], creds["GOOGLE_CSE_ID"])
-        return await _kimi(client, creds["MOONSHOT_API_KEY"])
+        return {
+            "success": False,
+            "error": f"unsupported search provider: {provider_id}",
+            "error_type": "invalid_config",
+        }
 
 
 async def _tavily(client: httpx.AsyncClient, api_key: str) -> dict[str, Any]:
@@ -110,20 +113,6 @@ async def _google(client: httpx.AsyncClient, api_key: str, cse_id: str) -> dict[
         params={"key": api_key, "cx": cse_id, "q": _TEST_QUERY, "num": 1},
     )
     return _from_google(response)
-
-
-async def _kimi(client: httpx.AsyncClient, api_key: str) -> dict[str, Any]:
-    response = await client.post(
-        "https://api.moonshot.cn/v1/chat/completions",
-        headers={"Authorization": f"Bearer {api_key}"},
-        json={
-            "model": "moonshot-v1-128k",
-            "messages": [{"role": "user", "content": _TEST_QUERY}],
-            "tools": [{"type": "web_search"}],
-            "temperature": 0.3,
-        },
-    )
-    return _from_kimi(response)
 
 
 def _from_response(
@@ -185,25 +174,6 @@ def _from_google(response: httpx.Response) -> dict[str, Any]:
     }
 
 
-def _from_kimi(response: httpx.Response) -> dict[str, Any]:
-    fail = _http_failure(response)
-    if fail is not None:
-        return fail
-    try:
-        payload = response.json()
-    except ValueError:
-        return {"success": False, "error": "invalid JSON response", "error_type": "unknown"}
-    choices = payload.get("choices") if isinstance(payload, dict) else None
-    content = None
-    if isinstance(choices, list) and choices:
-        message = choices[0].get("message") if isinstance(choices[0], dict) else None
-        if isinstance(message, dict):
-            content = message.get("content")
-    return {
-        "success": True,
-        "result_count": 1 if content else 0,
-        "message": "Kimi search test successful",
-    }
 
 
 def _http_failure(response: httpx.Response) -> dict[str, Any] | None:

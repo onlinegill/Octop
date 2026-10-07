@@ -94,12 +94,12 @@ def _user_message_has_image_attachment(additional_kwargs: Any) -> bool:
 
 
 def _is_attachment_path_hint_text(text: str) -> bool:
-    """True when *text* is an LLM-only ``[Attachment]/`` / ``[附件]`` path hint."""
+    """True when *text* is an LLM-only ``[Attachment]/`` / ``[attachment]`` path hint."""
     stripped = text.strip()
     if not stripped:
         return False
     first = stripped.split("\n", 1)[0].strip()
-    return first.startswith("[Attachment] ") or first.startswith("[附件] ")
+    return first.startswith("[Attachment] ") or first.startswith("[attachment] ")
 
 
 def _strip_attachment_hints_from_text(text: str) -> str:
@@ -188,7 +188,7 @@ def _extract_dumped_image_refs_from_text(text: str) -> tuple[str, list[dict[str,
     ``json.dumps(image_url_block)`` with newlines. Session-log history
     therefore arrives as one string like::
 
-        这图是啥
+        What is this image?
         {"type": "image_url", "workspace_path": "inbound/…", …}
 
     Returns ``(cleaned_caption, image_ref_dicts)``.
@@ -261,7 +261,7 @@ def _strip_attachment_llm_noise(
     """Remove LLM-only attachment noise from history content blocks.
 
     Strips MediaOffload placeholders, optional empty-image sentinels, path-hint
-    text sections (``[附件]`` / ``[Attachment]``), dumped ``image_url`` JSON text,
+    text sections (``[attachment]`` / ``[Attachment]``), dumped ``image_url`` JSON text,
     and ``image_url`` blocks that the dashboard renders via ``inbound_attachments``.
     """
     empty_image = (
@@ -974,7 +974,7 @@ def _serialize_history_message(
     if role == "user":
         # Path-only vision refs (plan B) must become inbound_attachments for the
         # dashboard thumbnail UI — never leave the raw ``image_url`` JSON in
-        # history content (that looked like "流式输入" thumbnails before).
+        # history content (that looked like streaming-input thumbnails before).
         synthesized = _collect_inbound_from_blocks(blocks)
         if isinstance(raw_att, list) and raw_att:
             merged = [item for item in raw_att if isinstance(item, dict)]

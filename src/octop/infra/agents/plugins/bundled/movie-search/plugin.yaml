@@ -1,7 +1,7 @@
 id: movie-search
 version: 0.1.0
-name: 影视搜索
-description: 在 Bangumi 搜索动画与电影条目
+name: Movie Search
+description: Search anime and movie entries on Bangumi
 icon: icon.svg
 group: media
 kind: tool

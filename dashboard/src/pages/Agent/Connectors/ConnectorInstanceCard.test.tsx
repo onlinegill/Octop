@@ -5,7 +5,7 @@
  *   - long titles render via Typography ellipsis (tooltip shows the full
  *     title once the text actually truncates; jsdom cannot measure that,
  *     so we assert the ``*-typography-ellipsis`` hook class instead)
- *   - the "来自 X / 共享" tag sits on its own line inside the title column,
+ *   - the "From X / Share" tag sits on its own line inside the title column,
  *     NOT in the header-actions row next to the switch
  *   - non-shared instances render no tag
  */
@@ -17,7 +17,7 @@ import { App } from "antd";
 import type { ConnectorInstance } from "../../../api/modules/connectors";
 import { ConnectorInstanceCard } from "./ConnectorInstanceCard";
 
-const LONG_TITLE = "一个非常非常长的共享连接器名称用于验证标题截断与悬停提示";
+const LONG_TITLE = "A very, very long shared connector name is used to validate title truncation with hover hints";
 
 function makeInstance(
   overrides: Partial<ConnectorInstance> = {},
@@ -66,7 +66,7 @@ describe("<ConnectorInstanceCard />", () => {
     renderCard(makeInstance({ can_manage: true }));
 
     const title = screen.getByText(LONG_TITLE);
-    const tag = screen.getByText("来自 Admin");
+    const tag = screen.getByText("From Admin");
     const switchEl = document.querySelector("button.ant-switch");
     expect(switchEl).not.toBeNull();
 
@@ -79,7 +79,7 @@ describe("<ConnectorInstanceCard />", () => {
   it("renders no tag for non-shared instances", () => {
     renderCard(makeInstance({ shared: false }));
 
-    expect(screen.queryByText("来自 Admin")).not.toBeInTheDocument();
+    expect(screen.queryByText("From Admin")).not.toBeInTheDocument();
     expect(screen.getByText(LONG_TITLE).className).toContain(
       "typography-ellipsis",
     );

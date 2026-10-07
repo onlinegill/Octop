@@ -102,8 +102,8 @@ jobs:
             }
 
             const strongStarFarmPatterns = [
-              /刷\s*星|买\s*星|假\s*星|增\s*星|刷\s*star|假\s*star/i,
-              /star\s*造假|star\s*作弊|star\s*作假|star\s*异常/i,
+              /(buy|buying|fake|faking|boost|boosting|inflate|inflating)\s*stars?/i,
+              /star\s*(fraud|cheating|faking|anomaly|manipulation)/i,
               /star\s*farming|artificial\s*stars?|fake\s*stars?|bot\s*stars?/i,
               /star\s*boost|star\s*boosting|boosting\s*service/i,
               /bought\s*stars?|purchased\s*stars?|paid\s*stars?/i
@@ -111,53 +111,53 @@ jobs:
 
             const starContextPatterns = [
               /\bstars?\b|starred|stargazers?/i,
-              /Star\s*数|Star\s*数量|Star\s*数据|Star\s*列表/i,
-              /星标|颗星|个星|这么多\s*Star/i,
-              /人气|热度/
+              /star\s*(count|numbers?|data|list)/i,
+              /starred\s*(count|number)|so\s*many\s*stars?/i,
+              /popularity|hype|attention/
             ];
 
             const abnormalGrowthPatterns = [
-              /异常增长|突然增长|爆发式增长|快速增长|增长异常/i,
-              /暴增|飙升|猛增|激增|疯涨|刷到|涨到/i,
-              /过去\s*48\s*小时|48\s*小时|仅用了?\s*\d+\s*天|两天|2\s*天/i,
-              /新增了?\s*\d+|增加了?\s*\d+|从\s*\d+\s*飙升到\s*\d+/i,
-              /\d+\s*(颗|个)?\s*(Star|stars?|星)/i,
-              /创建时间集中|创建时间高度集中|注册时间高度集中/i
+              /abnormal\s*growth|sudden\s*growth|explosive\s*growth|rapid\s*growth|growth\s*anomaly/i,
+              /surge[ds]?|spiked?|soared?|skyrocket(ed)?|jumped\s*to|shot\s*up/i,
+              /(last|past)\s*48\s*hours|48\s*hours|in\s*(just\s*)?\d+\s*days?|two\s*days|2\s*days/i,
+              /added\s*\d+|increased\s*by\s*\d+|from\s*\d+\s*(soared|jumped|rose)\s*to\s*\d+/i,
+              /\d+\s*stars?/i,
+              /(creation|registration)\s*time\s*(is\s*)?(highly\s*)?concentrated|accounts?\s*(created|registered)\s*(at\s*)?the\s*same\s*time/i
             ];
 
             const suspiciousAccountPatterns = [
-              /注册日期集中|注册时间集中|创建日期集中|创建时间集中/i,
-              /集中在最近|最近\s*(两|2)\s*周|最近\s*\d+\s*天|7\s*天内|一周内/i,
-              /用户名像随机|随机字符串|随机生成/i,
-              /个人主页空空如也|主页空空如也|主页空|个人主页空/i,
-              /没有头像|无头像|没有仓库|无公开仓库|没有公开仓库/i,
-              /没有\s*followers?|没有\s*follower|无粉丝|零粉丝|no\s*followers?/i,
-              /空壳号|僵尸号|机器人账号|bot\s*accounts?/i,
-              /只\s*Star|只\s*star\s*不超过|Stargazer\s*列表|抽查了?\s*\d+\s*个账号/i
+              /(registration|creation)\s*(date|time)\s*(cluster(ed)?|concentrated)|accounts?\s*(created|registered)\s*(on\s*)?the\s*same\s*(day|date|time)/i,
+              /cluster(ed)?\s*(in|around)\s*the\s*(last|recent)|(in\s*the\s*)?(last|past)\s*(two|2)\s*weeks?|last\s*\d+\s*days?|within\s*7\s*days|within\s*a\s*week/i,
+              /random[\s-]*looking\s*usernames?|random\s*strings?|randomly\s*generated/i,
+              /(profile|homepage)\s*(is\s*)?(empty|blank)|nothing\s*on\s*(the\s*)?(profile|homepage)|empty\s*profile/i,
+              /no\s*avatar|no\s*(public\s*)?repos?(itory|itories)?|no\s*repos?\s*(at\s*all)?/i,
+              /no\s*followers?|zero\s*followers?/i,
+              /shell\s*accounts?|zombie\s*accounts?|bot\s*accounts?|throwaway\s*accounts?/i,
+              /only\s*star(red)?|stargazer\s*list|sampled\s*\d+\s*accounts?/i
             ];
 
             const reportThreatPatterns = [
-              /违规|举报|上报|报告给\s*GitHub|发往\s*GitHub/i,
-              /违规举报|举报到位|举报已递|举报已提交|举报交官方/i,
-              /违规流量|违规人气|清理人气|清除流量|流量清除/i,
-              /清零|清空|封禁|封禁项目|关闭项目|项目关停|项目关闭|项目下线/i,
-              /关停下线|入口关闭|归档备查|违规已定/i
+              /violation|report(ed|ing)?\s*(it\s*)?to\s*GitHub|file\s*a\s*report|reported\s*(to|for)\s*GitHub/i,
+              /report\s*(filed|submitted|sent|delivered)|reported\s*to\s*(the\s*)?authorities/i,
+              /illegitimate\s*(traffic|popularity)|clean(ing)?\s*up\s*(the\s*)?(traffic|popularity)|traffic\s*cleanup/i,
+              /wipe[ds]?\s*out|erase[ds]?|ban(ned)?|ban\s*the\s*(project|repo)|shut\s*down\s*the\s*(project|repo)|take\s*(the\s*)?(project|repo)\s*(down|offline)/i,
+              /shut\s*down|offline|archived\s*(for\s*)?(review|record)|violation\s*(confirmed|established)/i
             ];
 
             const metricMismatchPatterns = [
-              /(npm|pip|下载量).{0,80}(Star|stars?|星)/i,
-              /(Star|stars?|星).{0,80}(npm|pip|下载量)/i,
-              /(Issue|PR|Fork|贡献者|社区活跃|活跃指标|月均).{0,80}(不匹配|太低|很低|对比|同类项目)/i,
-              /(同类项目|类似项目|对比关键指标|关键指标|指标).{0,80}(Star|stars?|星)/i,
-              /只有\s*Star\s*高|其他指标都远低于同类/i,
-              /真实用户|真实反馈|真实内容|真实评价/i
+              /(npm|pip|downloads?).{0,80}stars?/i,
+              /stars?.{0,80}(npm|pip|downloads?)/i,
+              /(issue|PR|fork|contributors?|community\s*activity|activity\s*metrics?|monthly\s*average).{0,80}(mismatch|too\s*low|very\s*low|compared?|similar\s*projects?)/i,
+              /(similar\s*projects?|competing\s*projects?|key\s*metrics?|metrics?|benchmark).{0,80}stars?/i,
+              /only\s*stars?\s*(are\s*)?high|all\s*other\s*metrics\s*far\s*(below|lower\s*than)\s*(similar|comparable)/i,
+              /real\s*users?|genuine\s*(users?|feedback)|authentic\s*(feedback|content|reviews?)/i
             ];
 
             const reputationAttackPatterns = [
-              /诚信问题|诚信有问题|信任崩塌|失望|反面教材/i,
-              /简历|面试|候选人|找工作|pass\s*的|直接\s*pass/i,
-              /技术分享|教学案例|识别刷星项目/i,
-              /真实口碑|虚假热度|虚假的数字|真实用户的认可/i
+              /integrity\s*(issues?|problems?)|trust\s*collapse|disappoint(ing|ed)|cautionary\s*tale|negative\s*example/i,
+              /resume|interview|candidate|job\s*hunting|pass\s*on\s*it|rejected\s*outright/i,
+              /tech\s*(talk|sharing)|teaching\s*(case|example)|identify(ing)?\s*star[\s-]*farming\s*projects?/i,
+              /real\s*(reputation|word\s*of\s*mouth)|fake\s*(popularity|hype|numbers)|genuine\s*user\s*(recognition|approval)/i
             ];
 
             const strongKeywordHit = hit(strongStarFarmPatterns);
@@ -179,7 +179,7 @@ jobs:
             const coordinatedThreatWithoutStarHit =
               suspiciousAccountHit &&
               reportThreatHit &&
-              /注册日期集中|注册时间集中|创建时间集中|最近\s*(两|2)\s*周|随机字符串|空壳号|无公开仓库|没有仓库|无粉丝|没有\s*followers?/i.test(normalizedIssueText);
+              /(registration|creation)\s*(date|time)\s*(cluster(ed)?|concentrated)|(last|past)\s*(two|2)\s*weeks?|random\s*strings?|shell\s*accounts?|no\s*(public\s*)?repos?(itory|itories)?|zero\s*followers?|no\s*followers?/i.test(normalizedIssueText);
 
             const keywordHit =
               strongKeywordHit ||
@@ -279,10 +279,8 @@ jobs:
               "👋 This issue was automatically closed by an anti-spam guard because it was opened by a recently created GitHub account with **no prior activity in this repository**, and the issue content matches a recent pattern of repetitive star-farming accusations.",
               "",
               "If you are a real user with a genuine report, sorry for the friction — just **leave a comment below** explaining your situation and a maintainer will reopen it.",
-              "",
               "---",
-              "",
-              "本 Issue 由反刷屏自动规则关闭：提交账号为近期注册账号，且**从未与本仓库互动**，同时 Issue 内容匹配近期重复出现的刷星举报模式。如果你是真实用户，请在下方留言说明，维护者会重新开启。"
+              ""
             ].join("\n");
 
             await github.rest.issues.createComment({

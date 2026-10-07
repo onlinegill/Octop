@@ -30,12 +30,12 @@ async def _events(*events: MessageEvent) -> AsyncIterator[MessageEvent]:
 async def test_invoke_discards_progress_before_tool_and_emits_final_once() -> None:
     source = _events(
         MessageEvent.typing(),
-        MessageEvent.delta("我先查一下。"),
+        MessageEvent.delta("Let me check first."),
         MessageEvent.flush(),
         MessageEvent.tool_start("web_fetch"),
         MessageEvent.tool_end("web_fetch"),
-        MessageEvent.delta("这是"),
-        MessageEvent.delta("最终答案。"),
+        MessageEvent.delta("This is "),
+        MessageEvent.delta("the final answer."),
         MessageEvent.completed(),
     )
 
@@ -47,7 +47,7 @@ async def test_invoke_discards_progress_before_tool_and_emits_final_once() -> No
     ]
     text = result[0].content[0]
     assert isinstance(text, TextContent)
-    assert text.text == "这是最终答案。"
+    assert text.text == "This is the final answer."
 
 
 @pytest.mark.asyncio
@@ -56,7 +56,7 @@ async def test_invoke_strips_orphan_thinking_prefix_from_final_text() -> None:
         MessageEvent.delta("Let me inspect another source. "),
         MessageEvent.delta("This is internal reasoning."),
         MessageEvent.delta("</think>"),
-        MessageEvent.delta("【每日指南学习】最终内容"),
+        MessageEvent.delta("[Daily guide study] final content"),
         MessageEvent.completed(),
     )
 
@@ -68,7 +68,7 @@ async def test_invoke_strips_orphan_thinking_prefix_from_final_text() -> None:
     ]
     text = result[0].content[0]
     assert isinstance(text, TextContent)
-    assert text.text == "【每日指南学习】最终内容"
+    assert text.text == "[Daily guide study] final content"
 
 
 @pytest.mark.asyncio
@@ -78,7 +78,7 @@ async def test_invoke_preserves_tool_media_with_final_text() -> None:
         MessageEvent.tool_start("write_file"),
         MessageEvent.tool_end("write_file"),
         MessageEvent(type=MessageEventType.MESSAGE, content=[attachment]),
-        MessageEvent.delta("报告已生成。"),
+        MessageEvent.delta("The report is ready."),
         MessageEvent.completed(),
     )
 
@@ -108,9 +108,9 @@ async def test_invoke_forwards_error_without_partial_text() -> None:
 async def test_invoke_keeps_ask_agent_dispatch_narration() -> None:
     """Team hosts often narrate before ask_agent — keep that line on invoke IM."""
     source = _events(
-        MessageEvent.delta("我先请临床助手看一下。"),
-        MessageEvent.tool_start("咨询专家", tool_key="ask_agent"),
-        MessageEvent.tool_end("咨询专家"),
+        MessageEvent.delta("Let me ask the clinical assistant first."),
+        MessageEvent.tool_start("Consult expert", tool_key="ask_agent"),
+        MessageEvent.tool_end("Consult expert"),
         MessageEvent.completed(),
     )
 
@@ -122,23 +122,23 @@ async def test_invoke_keeps_ask_agent_dispatch_narration() -> None:
     ]
     text = result[0].content[0]
     assert isinstance(text, TextContent)
-    assert text.text == "我先请临床助手看一下。"
+    assert text.text == "Let me ask the clinical assistant first."
 
 
 @pytest.mark.asyncio
 async def test_invoke_still_discards_progress_before_other_tools() -> None:
     source = _events(
-        MessageEvent.delta("我先查一下。"),
+        MessageEvent.delta("Let me check first."),
         MessageEvent.tool_start("web_fetch", tool_key="web_fetch"),
         MessageEvent.tool_end("web_fetch"),
-        MessageEvent.delta("最终答案。"),
+        MessageEvent.delta("the final answer."),
         MessageEvent.completed(),
     )
 
     result = [event async for event in collapse_to_invoke_response(source)]
     text = result[0].content[0]
     assert isinstance(text, TextContent)
-    assert text.text == "最终答案。"
+    assert text.text == "the final answer."
 
 
 def test_response_mode_defaults_to_invoke_and_accepts_stream() -> None:

@@ -67,14 +67,6 @@ set -e
 # Alternatively, use the script at https://test.docker.com, which uses the test
 # channel as default.
 #
-# --mirror <Aliyun|AzureChinaCloud>
-#
-# Use the --mirror option to install from a mirror supported by this script.
-# Available mirrors are "Aliyun" (https://mirrors.aliyun.com/docker-ce), and
-# "AzureChinaCloud" (https://mirror.azure.cn/docker-ce), for example:
-#
-#   $ sudo sh install-docker.sh --mirror AzureChinaCloud
-#
 # --setup-repo
 #
 # Use the --setup-repo option to configure Docker's package repositories without
@@ -134,7 +126,6 @@ if [ -z "$REPO_FILE" ]; then
 	esac
 fi
 
-mirror=''
 DRY_RUN=${DRY_RUN:-}
 REPO_ONLY=${REPO_ONLY:-0}
 NO_AUTOSTART=${NO_AUTOSTART:-0}
@@ -146,7 +137,7 @@ SBX=${SBX:-0}
 usage() {
 	echo
 	echo "USAGE: "
-	echo "    ${0} [--channel <stable|test>] [--mirror <Aliyun|AzureChinaCloud>] [--version <VERSION>] [--setup-repo] [--no-autostart] [--dry-run] [--help]"
+	echo "    ${0} [--channel <stable|test>] [--version <VERSION>] [--setup-repo] [--no-autostart] [--dry-run] [--help]"
 	echo
 }
 
@@ -158,10 +149,6 @@ while [ $# -gt 0 ]; do
 			;;
 		--dry-run)
 			DRY_RUN=1
-			;;
-		--mirror)
-			mirror="$2"
-			shift
 			;;
 		--version)
 			VERSION="${2#v}"
@@ -186,21 +173,6 @@ while [ $# -gt 0 ]; do
 	esac
 	shift $(( $# > 0 ? 1 : 0 ))
 done
-
-case "$mirror" in
-	Aliyun)
-		DOWNLOAD_URL="https://mirrors.aliyun.com/docker-ce"
-		;;
-	AzureChinaCloud)
-		DOWNLOAD_URL="https://mirror.azure.cn/docker-ce"
-		;;
-	"")
-		;;
-	*)
-		>&2 echo "unknown mirror '$mirror': use either 'Aliyun', or 'AzureChinaCloud'."
-		exit 1
-		;;
-esac
 
 case "$CHANNEL" in
 	stable|test)
@@ -699,8 +671,8 @@ do_install() {
 					$sh_c "dnf config-manager --add-repo $repo_file_url"
 
 					if [ "$lsb_dist" = "tencentos" ] || [ "$lsb_dist" = "opencloudos" ]; then
-						# TencentOS / OpenCloudOS 的 $releasever 在 Docker 官方 centos 仓库中没有对应目录（如 tencentos 4 -> 404），
-						# 需映射到 ABI 兼容的 el 版本：TencentOS 3 -> el8 / 4 (glibc 2.38) -> el9；OpenCloudOS 8 -> el8 / 9 -> el9
+						# TencentOS / OpenCloudOS have no matching $releasever in the official Docker centos repo
+						# (e.g. tencentos 4 -> 404); map to an ABI-compatible el version: TencentOS 3 -> el8 / 4 (glibc 2.38) -> el9; OpenCloudOS 8 -> el8 / 9 -> el9
 						el_releasever=9
 						case "$lsb_dist" in
 							tencentos)
@@ -711,8 +683,8 @@ do_install() {
 								;;
 						esac
 						$sh_c "sed -i 's|\$releasever|$el_releasever|g' /etc/yum.repos.d/docker-ce.repo"
-						# 部分镜像站（如腾讯）提供的 repo 文件内部仍写死官方域名，
-						# 当下载源非官方时，同步替换 repo 内的域名，否则 makecache 仍会去访问官方源
+						# Some mirror sites provide repo files whose baseurl still hardcodes the official domain;
+						# when the download source is not official, rewrite it inside the repo too, or makecache still hits the official source
 						if [ "$DOWNLOAD_URL" != "$DEFAULT_DOWNLOAD_URL" ]; then
 							$sh_c "sed -i 's|https://download.docker.com|$DOWNLOAD_URL|g' /etc/yum.repos.d/docker-ce.repo"
 						fi
@@ -729,8 +701,8 @@ do_install() {
 					$sh_c "yum-config-manager --add-repo $repo_file_url"
 
 					if [ "$lsb_dist" = "tencentos" ] || [ "$lsb_dist" = "opencloudos" ]; then
-						# TencentOS / OpenCloudOS 的 $releasever 在 Docker 官方 centos 仓库中没有对应目录（如 tencentos 4 -> 404），
-						# 需映射到 ABI 兼容的 el 版本：TencentOS 3 -> el8 / 4 (glibc 2.38) -> el9；OpenCloudOS 8 -> el8 / 9 -> el9
+						# TencentOS / OpenCloudOS have no matching $releasever in the official Docker centos repo
+						# (e.g. tencentos 4 -> 404); map to an ABI-compatible el version: TencentOS 3 -> el8 / 4 (glibc 2.38) -> el9; OpenCloudOS 8 -> el8 / 9 -> el9
 						el_releasever=9
 						case "$lsb_dist" in
 							tencentos)
@@ -741,8 +713,8 @@ do_install() {
 								;;
 						esac
 						$sh_c "sed -i 's|\$releasever|$el_releasever|g' /etc/yum.repos.d/docker-ce.repo"
-						# 部分镜像站（如腾讯）提供的 repo 文件内部仍写死官方域名，
-						# 当下载源非官方时，同步替换 repo 内的域名，否则 makecache 仍会去访问官方源
+						# Some mirror sites provide repo files whose baseurl still hardcodes the official domain;
+						# when the download source is not official, rewrite it inside the repo too, or makecache still hits the official source
 						if [ "$DOWNLOAD_URL" != "$DEFAULT_DOWNLOAD_URL" ]; then
 							$sh_c "sed -i 's|https://download.docker.com|$DOWNLOAD_URL|g' /etc/yum.repos.d/docker-ce.repo"
 						fi

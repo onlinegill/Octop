@@ -53,7 +53,7 @@ describe("ChatInputActionsRow plus menu", () => {
 
     expect(screen.getByTestId("composer-plus")).toBeInTheDocument();
     expect(screen.getByTestId("hitl-policy-picker")).toBeInTheDocument();
-    expect(screen.getByLabelText("快捷指令")).toBeInTheDocument();
+    expect(screen.getByLabelText("Shortcut command")).toBeInTheDocument();
     expect(screen.getByLabelText("Upload attachment")).toBeInTheDocument();
     expect(
       screen.queryByTestId("conversation-mode-picker"),
@@ -68,7 +68,7 @@ describe("ChatInputActionsRow plus menu", () => {
     );
 
     expect(screen.queryByTestId("hitl-policy-picker")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("快捷指令")).toBeInTheDocument();
+    expect(screen.getByLabelText("Shortcut command")).toBeInTheDocument();
   });
 
   it("opens a flyout beside the plus menu instead of a window drawer", async () => {

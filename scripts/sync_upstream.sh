@@ -4,13 +4,13 @@ set -e
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_DIR"
 
-echo "=== Fetching upstream updates from TencentCloud/Octop ==="
-git remote add upstream https://github.com/TencentCloud/Octop.git 2>/dev/null || true
+echo "=== Fetching upstream updates from onlinegill/Octop ==="
+git remote add upstream https://github.com/onlinegill/Octop.git 2>/dev/null || true
 git fetch upstream main
 
 echo "=== Merging upstream main ==="
 git checkout main
-git merge upstream/main -m "chore(sync): merge upstream TencentCloud/Octop updates" --allow-unrelated-histories || {
+git merge upstream/main -m "chore(sync): merge upstream onlinegill/Octop updates" --allow-unrelated-histories || {
   echo "Conflict occurred during merge. Auto-resolving in favor of sanitization..."
   git checkout --ours README.md 2>/dev/null || true
   git checkout --ours dashboard/src/utils/localePrefs.ts 2>/dev/null || true

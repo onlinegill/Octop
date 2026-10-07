@@ -28,24 +28,19 @@ def test_plan_relpath_from_artifact() -> None:
     )
     assert plan_relpath_from_artifact("/workspace/plans/foo.md") == "plans/foo.md"
     assert plan_relpath_from_artifact("SOUL.md") == ""
-    assert plan_relpath_from_artifact("plans/中文.md") == ""
+    assert plan_relpath_from_artifact("plans/notes.txt") == ""
 
 
 def test_execute_user_message() -> None:
-    assert execute_user_message("plans/foo.md", "zh") == "请按 plans/foo.md 执行"
+    assert execute_user_message("plans/foo.md", "zh") == "Execute plans/foo.md"
     assert execute_user_message("plans/foo.md", "en") == "Execute plans/foo.md"
 
 
 def test_is_plan_execute_utterance() -> None:
-    assert is_plan_execute_utterance("按计划执行")
-    assert is_plan_execute_utterance("执行计划")
     assert is_plan_execute_utterance("execute the plan")
     assert is_plan_execute_utterance("start executing")
-    assert is_plan_execute_utterance("请按 plans/foo.md 执行")
     assert is_plan_execute_utterance("Execute plans/foo.md")
-    assert not is_plan_execute_utterance("执行")
     assert not is_plan_execute_utterance("execute")
-    assert not is_plan_execute_utterance("帮我看看这个计划写得对不对")
     assert not is_plan_execute_utterance("go")
     assert not is_plan_execute_utterance("start")
     assert not is_plan_execute_utterance("go on")

@@ -25,7 +25,7 @@ vi.mock("react-i18next", async (importOriginal) => {
   type TOptions = Record<string, unknown> & { defaultValue?: string };
 
   // Interpolate ``{{name}}`` placeholders like real i18next so tests can
-  // assert user-visible copy such as "已捕获 42 条对话记忆".
+  // assert user-visible copy such as "captured 42 conversation memories".
   const interpolate = (template: string, options?: TOptions): string => {
     if (!options) return template;
     return template.replace(/\{\{(\w+)\}\}/g, (match, name: string) =>
@@ -48,7 +48,7 @@ vi.mock("react-i18next", async (importOriginal) => {
         }
         return key;
       },
-      i18n: { language: "zh", changeLanguage: () => Promise.resolve() },
+      i18n: { language: "en", changeLanguage: () => Promise.resolve() },
     }),
     Trans: ({ children }: { children?: React.ReactNode }) => children,
   };
@@ -59,6 +59,16 @@ afterEach(() => {
 });
 
 if (typeof window !== "undefined") {
+  // Node >= 22 exposes a ``localStorage`` global that is ``undefined`` unless
+  // started with ``--localstorage-file``; it shadows jsdom's working storage.
+  // Re-expose jsdom's implementation so tests that persist preferences work.
+  if (!globalThis.localStorage && window.localStorage) {
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      get: () => window.localStorage,
+    });
+  }
+
   // matchMedia
   if (!window.matchMedia) {
     Object.defineProperty(window, "matchMedia", {

@@ -17,7 +17,7 @@ def test_en_and_zh_share_same_keys():
 
 def test_tr_fallback_to_en():
     assert tr("slash.help.title", "en") == "Available commands"
-    assert tr("slash.help.title", "zh") == "可用指令"
+    assert tr("slash.help.title", "zh") == "Available commands"
 
 
 def test_tr_interpolation():
@@ -38,4 +38,4 @@ def test_catalog_labels_match_json():
 
 def test_category_labels():
     assert category_label("core", "en") == "Core"
-    assert category_label("core", "zh") == "核心命令"
+    assert category_label("core", "zh") == "Core"

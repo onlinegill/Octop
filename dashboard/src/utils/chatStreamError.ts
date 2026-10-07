@@ -114,9 +114,9 @@ export function classifyChatStreamError(
     lower.includes("payment_required") ||
     lower.includes("billing_not_active") ||
     lower.includes("arrearage") ||
-    msg.includes("余额不足") ||
-    msg.includes("账户余额") ||
-    msg.includes("欠费")
+    msg.includes("Insufficient balance") ||
+    msg.includes("Account balance") ||
+    msg.includes("Arrears")
   ) {
     return "stream_errors.insufficient_balance";
   }

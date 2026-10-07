@@ -96,7 +96,7 @@ def siteverify() -> tuple[str, type[_Siteverify]]:
 @pytest.fixture(autouse=True)
 def _clear_test_urls() -> None:
     yield
-    for slug in ("turnstile", "hcaptcha", "recaptcha", "recaptcha-v3", "tencent", "geetest-v4"):
+    for slug in ("turnstile", "hcaptcha", "recaptcha", "recaptcha-v3", "geetest-v4"):
         set_test_siteverify_url(slug, None)
 
 
@@ -154,61 +154,6 @@ async def test_v3_score_and_action(siteverify: tuple[str, type[_Siteverify]]) ->
     with pytest.raises(OctopError) as exc2:
         await ensure_captcha(_effective("recaptcha-v3"), "tok")
     assert exc2.value.code is ErrorCode.CAPTCHA_FAILED
-
-
-@pytest.mark.asyncio
-async def test_tencent_ok_sends_ticket_pair_and_ip(
-    siteverify: tuple[str, type[_Siteverify]],
-) -> None:
-    url, handler = siteverify
-    handler.payload = {"Response": {"CaptchaCode": 1, "CaptchaMsg": "OK"}}
-    set_test_siteverify_url("tencent", url)
-    await ensure_captcha(
-        _effective(
-            "tencent",
-            site_key="195642000",
-            secret="app-secret",
-            cam_id="AKIDcam",
-            cam_key="camkey",
-        ),
-        "tr03ticket:@rand",
-        "203.0.113.7",
-    )
-    assert handler.last_body == {
-        "CaptchaType": 9,
-        "Ticket": "tr03ticket",
-        "Randstr": "@rand",
-        "UserIp": "203.0.113.7",
-        "CaptchaAppId": 195642000,
-        "AppSecretKey": "app-secret",
-    }
-
-
-@pytest.mark.asyncio
-async def test_tencent_rejected_response_fails(
-    siteverify: tuple[str, type[_Siteverify]],
-) -> None:
-    url, handler = siteverify
-    handler.payload = {"Response": {"CaptchaCode": 7, "CaptchaMsg": "captcha no match"}}
-    set_test_siteverify_url("tencent", url)
-    with pytest.raises(OctopError) as exc:
-        await ensure_captcha(
-            _effective("tencent", site_key="195642000", cam_id="AKIDcam", cam_key="camkey"),
-            "tr03ticket:@rand",
-        )
-    assert exc.value.code is ErrorCode.CAPTCHA_FAILED
-
-
-@pytest.mark.asyncio
-async def test_tencent_malformed_token_fails_before_http(
-    siteverify: tuple[str, type[_Siteverify]],
-) -> None:
-    url, handler = siteverify
-    set_test_siteverify_url("tencent", url)
-    with pytest.raises(OctopError) as exc:
-        await ensure_captcha(_effective("tencent"), "no-randstr")
-    assert exc.value.code is ErrorCode.CAPTCHA_FAILED
-    assert handler.last_query == {}
 
 
 @pytest.mark.asyncio

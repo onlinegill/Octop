@@ -1,7 +1,7 @@
 id: air-quality
 version: 0.1.0
-name: 空气质量
-description: 查询城市 PM2.5 与 AQI 指数
+name: Air Quality
+description: Query a city's PM2.5 and AQI index
 icon: icon.svg
 group: lifestyle
 kind: tool

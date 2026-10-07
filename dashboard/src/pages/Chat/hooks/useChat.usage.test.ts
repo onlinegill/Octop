@@ -47,14 +47,14 @@ describe("history token usage", () => {
       [
         {
           role: "user",
-          content: [{ type: "text", text: "这图是啥" }],
+          content: [{ type: "text", text: "What is this picture?" }],
           id: "u1",
           inbound_attachments: [
             {
-              filename: "1787277960_baidu_map.png",
+              filename: "1787277960_map.png",
               media_type: "image/png",
               kind: "image",
-              workspace_path: "inbound/1787277960_baidu_map.png",
+              workspace_path: "inbound/1787277960_map.png",
             },
           ],
         },
@@ -62,9 +62,9 @@ describe("history token usage", () => {
       "agent_1",
     );
     expect(messages).toHaveLength(1);
-    expect(messages[0]?.content).toBe("这图是啥");
+    expect(messages[0]?.content).toBe("What is this picture?");
     expect(messages[0]?.attachments?.[0]).toMatchObject({
-      workspacePath: "inbound/1787277960_baidu_map.png",
+      workspacePath: "inbound/1787277960_map.png",
       kind: "image",
     });
     expect(messages[0]?.attachments?.[0]?.url).toContain(
@@ -141,7 +141,7 @@ describe("history token usage", () => {
       { role: "assistant", content: "partial answer", id: "a1" },
       {
         role: "assistant",
-        content: "模型服务返回余额或额度不足。",
+        content: "The model service returns a balance or insufficient quota.",
         id: "a2",
         status: "error",
         error_code: "TOKEN_QUOTA_EXCEEDED",

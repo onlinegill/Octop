@@ -263,7 +263,7 @@ export default function AssistantTurnView({
         >
           {isWrapupTurn ? (
             <span className={styles.teamWrapupBadge}>
-              {t("chat.teamWrapupBadge", { defaultValue: "主持人总结" })}
+              {t("chat.teamWrapupBadge", { defaultValue: "Host summary" })}
             </span>
           ) : null}
           <MessageBubble
@@ -322,7 +322,7 @@ export default function AssistantTurnView({
             onClick={onEditFile}
             aria-label={t("chat.editFileCard", {
               count: Math.max(turnFileCount, 1),
-              defaultValue: "编辑了{{count}}个文件",
+              defaultValue: "Edited{{count}}Files",
             })}
           >
             <FilePen
@@ -334,7 +334,7 @@ export default function AssistantTurnView({
             <span>
               {t("chat.editFileCard", {
                 count: Math.max(turnFileCount, 1),
-                defaultValue: "编辑了{{count}}个文件",
+                defaultValue: "Edited{{count}}Files",
               })}
             </span>
             <ChevronRight

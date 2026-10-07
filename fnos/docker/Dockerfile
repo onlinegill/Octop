@@ -1,20 +1,23 @@
 # syntax=docker/dockerfile:1
 # =============================================================================
-# Octop — FnOS 专用构建（基于仓库源码，安装全部附加组件）
+# Octop — FnOS-specific build (from repository source, installs all addons)
 #
-# 与上游 docker/Dockerfile 一致，但显式安装 desktop extra：
-#   - desktop  （mss / pynput / pillow，桌面控制附加组件）
-# Playwright Chromium 不再预装，浏览器自动化可在控制台按需安装。
+# Same as the upstream docker/Dockerfile, but explicitly installs the
+# desktop extra:
+#   - desktop  (mss / pynput / pillow, desktop control addon)
+# Playwright Chromium is no longer preinstalled; browser automation can be
+# installed on demand from the console.
 #
-# 构建上下文必须为仓库根目录（fnpack / CI 中以仓库根为 context）：
-#   docker build -f fnos/docker/Dockerfile -t ghcr.io/tencentcloud/octop:latest .
+# The build context must be the repository root (fnpack / CI use the repo
+# root as context):
+#   docker build -f fnos/docker/Dockerfile -t ghcr.io/onlinegill/octop:latest .
 #
-# 国内加速（可选 build-arg）：
+# Optional acceleration build-args:
 #   PIP_INDEX_URL / PIP_TRUSTED_HOST / NPM_REGISTRY / APT_MIRROR
 # =============================================================================
 
 # ---------------------------------------------------------------------------
-# 阶段 1 — 前端构建（React / TypeScript → src/octop/dashboard）
+# Stage 1 — frontend build (React / TypeScript → src/octop/dashboard)
 # ---------------------------------------------------------------------------
 FROM node:20-slim AS frontend-builder
 
@@ -33,14 +36,14 @@ RUN mkdir -p ../src/octop/dashboard
 RUN NODE_ENV=production NODE_OPTIONS="--max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE}" npx vite build
 
 # ---------------------------------------------------------------------------
-# 阶段 2 — Python 运行时 + 预构建前端 + 全部附加组件
+# Stage 2 — Python runtime + prebuilt frontend + all addons
 # ---------------------------------------------------------------------------
 FROM python:3.12-slim AS runtime
 
-LABEL maintainer="TencentCloud"
+LABEL maintainer="onlinegill"
 LABEL org.opencontainers.image.title="Octop"
 LABEL org.opencontainers.image.description="Smarter self-hosted AI assistant — multi-user, multi-agent (FnOS build with all addons)."
-LABEL org.opencontainers.image.source="https://github.com/TencentCloud/Octop"
+LABEL org.opencontainers.image.source="https://github.com/onlinegill/Octop"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -52,8 +55,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON_DOWNLOADS=never \
-    PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple \
-    PIP_TRUSTED_HOST=mirrors.aliyun.com
+    PIP_INDEX_URL=https://pypi.org/simple
 
 ARG APT_MIRROR=
 
@@ -74,7 +76,8 @@ COPY --from=ghcr.io/astral-sh/uv:0.7 /uv /uvx /bin/
 
 WORKDIR /app
 
-# 仅改源码时可复用此层缓存（用 uv pip 安装，避免 uv.lock 冻结冲突）
+# This layer's cache is reused when only sources change (install with uv pip,
+# avoiding uv.lock freeze conflicts)
 COPY pyproject.toml README.md LICENSE ./
 COPY src/ ./src/
 COPY --from=frontend-builder /build/src/octop/dashboard/ ./src/octop/dashboard/
@@ -82,14 +85,14 @@ COPY --from=frontend-builder /build/src/octop/dashboard/ ./src/octop/dashboard/
 COPY docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 安装项目 + desktop 附加组件（Playwright Chromium 不预装，控制台可按需下载）
-# UV_INDEX_URL 首选阿里云镜像加速；UV_DEFAULT_INDEX 保留 PyPI 作为兜底，
-# 避免新发布的包（如 octop-harness 0.9.16）尚未同步到镜像时构建失败。
+# Install the project + desktop extra (Playwright Chromium is not preinstalled;
+# it can be downloaded on demand from the console).
+# UV_DEFAULT_INDEX points at PyPI; an alternative index can be supplied via
+# UV_INDEX_URL. Keeping PyPI as the fallback avoids build failures when a
+# freshly published package has not yet been synced to a mirror.
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv venv /app/.venv \
     && UV_DEFAULT_INDEX=https://pypi.org/simple \
-       UV_INDEX_URL=https://mirrors.aliyun.com/pypi/simple \
-       UV_INSECURE_HOST=mirrors.aliyun.com \
        uv pip install --python /app/.venv ".[desktop]" \
     && apt-get update && apt-get install -y --no-install-recommends fonts-noto-cjk \
     && apt-get purge -y --auto-remove build-essential \

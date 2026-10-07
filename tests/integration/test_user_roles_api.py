@@ -27,15 +27,15 @@ async def test_builtin_roles_invite_reads_role_at_redeem(env):
         "/api/users/roles",
         headers=auth,
         json={
-            "user_role_name": "分析师",
-            "description": "只读分析工作",
+            "user_role_name": "Analyst",
+            "description": "read-only analysis work",
             "permissions": ["browser"],
             "policies": [{"name": "token_quota", "value": "1000"}],
         },
     )
     assert created.status_code == 201, created.text
     role = created.json()
-    assert role["description"] == "只读分析工作"
+    assert role["description"] == "read-only analysis work"
     assert role["policies"] == [{"name": "token_quota", "value": "1000"}]
     assert role["workspace_root_dir"] is None
     assert role["max_agents"] is None
@@ -48,13 +48,13 @@ async def test_builtin_roles_invite_reads_role_at_redeem(env):
             "password": "TestPass12",
             "role": role["user_role_id"],
             "permissions": ["browser"],
-            "role_name": "分析师",
+            "role_name": "Analyst",
             "token_quota": 1000,
         },
     )
     assert user.status_code == 201, user.text
     assert user.json()["role"] == role["user_role_id"]
-    assert user.json()["role_name"] == "分析师"
+    assert user.json()["role_name"] == "Analyst"
     assert "user_role_id" not in user.json()
     uid = user.json()["id"]
 
@@ -62,14 +62,14 @@ async def test_builtin_roles_invite_reads_role_at_redeem(env):
         f"/api/users/roles/{role['user_role_id']}",
         headers=auth,
         json={
-            "user_role_name": "分析",
+            "user_role_name": "Analysis",
             "permissions": ["desktop"],
             "policies": [{"name": "token_quota", "value": "5"}],
         },
     )
     assert renamed.status_code == 200, renamed.text
     kept = await c.get(f"/api/users/{uid}", headers=auth)
-    assert kept.json()["role_name"] == "分析师"
+    assert kept.json()["role_name"] == "Analyst"
     assert kept.json()["permissions"] == ["browser"]
     assert kept.json()["token_quota"] == 1000
 
@@ -97,7 +97,7 @@ async def test_builtin_roles_invite_reads_role_at_redeem(env):
         json={"role": "user", "note": "later"},
     )
     assert invite.status_code == 201, invite.text
-    assert invite.json()["role_name"] == "用户"
+    assert invite.json()["role_name"]
     assert invite.json()["role"] == "user"
     assert "user_role_id" not in invite.json()
     assert "system_role" not in invite.json()
@@ -105,7 +105,7 @@ async def test_builtin_roles_invite_reads_role_at_redeem(env):
     patched = await c.patch(
         "/api/users/roles/user",
         headers=auth,
-        json={"user_role_name": "普通用户", "permissions": ["browser"]},
+        json={"user_role_name": "Standard user", "permissions": ["browser"]},
     )
     assert patched.status_code == 200, patched.text
 
@@ -124,14 +124,14 @@ async def test_builtin_roles_invite_reads_role_at_redeem(env):
     invited = await c.get("/api/users", headers=auth)
     row = next(item for item in invited.json() if item["username"] == "invited_one")
     assert row["role"] == "user"
-    assert row["role_name"] == "普通用户"
+    assert row["role_name"] == "Standard user"
     assert row["permissions"] == ["browser"]
 
     me = await c.get("/api/auth/me", headers=auth)
     admin_id = me.json()["id"]
     admin_row = next(item for item in invited.json() if item["id"] == admin_id)
     assert admin_row["role"] == "admin"
-    assert admin_row["role_name"] == "管理员"
+    assert admin_row["role_name"]
 
 
 async def test_role_patch_without_policies_keeps_existing_policies(env):
@@ -140,7 +140,7 @@ async def test_role_patch_without_policies_keeps_existing_policies(env):
         "/api/users/roles",
         headers=auth,
         json={
-            "user_role_name": "限额",
+            "user_role_name": "Quota",
             "permissions": ["browser"],
             "policies": [
                 {"name": "token_quota", "value": "1000"},
@@ -166,7 +166,7 @@ async def test_redeem_fails_when_named_role_is_gone(env):
     created = await c.post(
         "/api/users/roles",
         headers=auth,
-        json={"user_role_name": "临时", "permissions": ["browser"]},
+        json={"user_role_name": "Temporary", "permissions": ["browser"]},
     )
     assert created.status_code == 201, created.text
     role_id = created.json()["user_role_id"]
@@ -258,7 +258,7 @@ async def test_user_and_role_avatars_roundtrip(env):
     role = await c.post(
         "/api/users/roles",
         headers=auth,
-        json={"user_role_name": "带头像", "permissions": ["browser"]},
+        json={"user_role_name": "With avatar", "permissions": ["browser"]},
     )
     assert role.status_code == 201, role.text
     role_id = role.json()["user_role_id"]

@@ -26,7 +26,7 @@ class TestValidateCustomAgentId:
             "ab/cd",  # path separator
             "ab.cd",  # dot
             "../etc",  # traversal
-            "中文",  # non-ascii
+            "café",  # non-ascii
             "",
         ):
             with pytest.raises(OctopError) as exc:

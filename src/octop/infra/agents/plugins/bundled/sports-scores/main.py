@@ -46,7 +46,7 @@ async def sports_scores(league: str = "soccer", query: str = "") -> str:
             resp.raise_for_status()
             body = resp.json()
     except Exception as exc:
-        return _payload({"items": [], "error": str(exc)}, f"赛况获取失败：{exc}")
+        return _payload({"items": [], "error": str(exc)}, f"failed to fetch scores: {exc}")
     rows = body.get("event") or body.get("events") or []
     if isinstance(rows, dict):
         rows = [rows]
@@ -54,7 +54,7 @@ async def sports_scores(league: str = "soccer", query: str = "") -> str:
     if not items:
         return _payload({"items": [], "silent": True, "query": q}, "")
     lines = [f"{e['date']} {e['home']} {e['score']} {e['away']}" for e in items[:8]]
-    text = f"赛况 {len(items)} 场\n" + "\n".join(lines)
+    text = f"scores: {len(items)} matches\n" + "\n".join(lines)
     return _payload({"items": items, "league": league_id, "query": q}, text)
 
 
@@ -62,5 +62,5 @@ def setup(ctx: PluginContext) -> None:
     ctx.tool(
         "sports_scores",
         sports_scores,
-        description="足球赛况。query 非空则搜索赛事；否则返回英超(id 4328)近期比赛。",
+        description="Football scores. A non-empty query searches events; otherwise returns recent Premier League (id 4328) matches.",
     )

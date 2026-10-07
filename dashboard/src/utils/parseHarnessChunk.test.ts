@@ -49,13 +49,13 @@ describe("parseHarnessChunk team speaker", () => {
 describe("parseHarnessChunk usage", () => {
   it("keeps the stable call id and cache-aware usage fields", () => {
     const chunk = parseHarnessChunk(
-      'data: {"type":"usage","call_id":"call-1","model":"deepseek-v4","usage":{"input_tokens":100,"uncached_input_tokens":30,"cache_read_tokens":70,"cache_write_tokens":0,"output_tokens":9,"reasoning_tokens":4,"total_tokens":109}}',
+      'data: {"type":"usage","call_id":"call-1","model":"example-model-v4","usage":{"input_tokens":100,"uncached_input_tokens":30,"cache_read_tokens":70,"cache_write_tokens":0,"output_tokens":9,"reasoning_tokens":4,"total_tokens":109}}',
     );
 
     expect(chunk).toEqual({
       type: "usage",
       call_id: "call-1",
-      model: "deepseek-v4",
+      model: "example-model-v4",
       node: undefined,
       usage: {
         input_tokens: 100,

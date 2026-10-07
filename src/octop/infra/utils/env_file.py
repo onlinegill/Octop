@@ -27,7 +27,6 @@ SEARCH_ENV_KEYS = frozenset(
         "BRAVE_API_KEY",
         "GOOGLE_API_KEY",
         "GOOGLE_CSE_ID",
-        "MOONSHOT_API_KEY",
     }
 )
 

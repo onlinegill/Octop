@@ -28,7 +28,7 @@ describe("ChatTitleBar", () => {
 
     const heading = screen.getByRole("heading", { name: "Weekly recap" });
     const edit = screen.getByRole("button", { name: "common.edit" });
-    const more = screen.getByRole("button", { name: "更多" });
+    const more = screen.getByRole("button", { name: "More" });
 
     expect(heading.parentElement).toContainElement(edit);
     expect(heading.parentElement).toContainElement(more);

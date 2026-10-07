@@ -13,7 +13,6 @@ from mcp.shared.exceptions import McpError
 from octop.config import OctopConfig
 from octop.infra.connectors.builder import (
     build_http_mcp_spec,
-    normalize_weiyun_mcp_token,
     validate_create_credentials,
 )
 from octop.infra.connectors.catalog import (
@@ -28,35 +27,6 @@ from octop.infra.errors import OctopError
 from octop.infra.utils.ssrf_guard import UnsafeOutboundUrl, safe_request
 
 logger = logging.getLogger(__name__)
-
-_LOCAL_WEKNORA_API_URL = "http://127.0.0.1:8080"
-_LOCAL_WEKNORA_CONSOLE_URL = "http://127.0.0.1"
-
-
-async def detect_local_weknora() -> dict[str, Any]:
-    """Detect a default host-side WeKnora deployment without persisting data.
-
-    The target is deliberately fixed to loopback.  This keeps the convenience
-    endpoint from becoming an arbitrary server-side URL fetch while matching
-    WeKnora's default Docker ports (UI 80, API 8080).
-    """
-    try:
-        async with httpx.AsyncClient(
-            timeout=httpx.Timeout(2.0),
-            follow_redirects=False,
-            trust_env=False,
-        ) as client:
-            response = await client.get(f"{_LOCAL_WEKNORA_API_URL}/health")
-    except httpx.HTTPError:
-        return {"found": False}
-    if not response.is_success:
-        return {"found": False}
-    return {
-        "found": True,
-        "base_url": f"{_LOCAL_WEKNORA_API_URL}/api/v1",
-        "console_url": _LOCAL_WEKNORA_CONSOLE_URL,
-    }
-
 
 def normalize_tools(raw: list[Any] | None) -> list[dict[str, str]]:
     out: list[dict[str, str]] = []
@@ -88,16 +58,8 @@ def http_error_message(response: httpx.Response) -> str | None:
     except Exception:
         pass
     if response.status_code == 401:
-        return "认证失败，请检查 Token 或授权码"
+        return "Authentication failed; check the token or authorization code"
     return f"HTTP {response.status_code}"
-
-
-def static_probe_tools(kind: str) -> list[dict[str, str]]:
-    if kind == "tencent-weiyun":
-        entry = get_catalog_entry(kind)
-        if entry and entry.allowed_tools:
-            return [{"name": name, "description": ""} for name in entry.allowed_tools]
-    return []
 
 
 async def prepare_probe_credentials(
@@ -110,18 +72,6 @@ async def prepare_probe_credentials(
     entry = get_catalog_entry(kind)
     if entry is None:
         raise ValueError(f"unknown connector kind: {kind}")
-    if entry.kind == "tencent-weiyun" and entry.auth_kind == "personal_token":
-        raw = str(credentials.get("token") or credentials.get("access_token") or "").strip()
-        token = normalize_weiyun_mcp_token(raw)
-        return {"token": token} if token else {}
-    if entry.kind == "youdao-note" and entry.auth_kind == "personal_token":
-        api_key = str(
-            credentials.get("token")
-            or credentials.get("api_key")
-            or credentials.get("access_token")
-            or ""
-        ).strip()
-        return {"token": api_key} if api_key else {}
     if full_prepare is not None:
         return await full_prepare(kind, credentials)
     return validate_create_credentials(kind, credentials)
@@ -136,8 +86,6 @@ def _probe_mcp_http_error(exc: httpx.HTTPStatusError, *, kind: str) -> dict[str,
     """
     status = exc.response.status_code
     if status in (401, 403):
-        if kind == "youdao-note":
-            return _probe_youdao_note_http_error(exc)
         err = http_error_message(exc.response)
         return {
             "ok": False,
@@ -191,16 +139,9 @@ def _probe_mcp_mcp_error(exc: McpError, *, kind: str) -> dict[str, Any]:
         return {
             "ok": False,
             "error_type": "connection",
-            "error": "与上游 MCP 服务的连接被中断（可能是网络/代理/地域限制），并非密钥无效",
-        }
-    if kind == "youdao-note":
-        return {
-            "ok": False,
-            "error_type": "auth",
-            "error": "API Key 无效或服务暂时不可用，请检查 Key 或在 MCP 平台重新创建",
+            "error": "the connection to the upstream MCP service was interrupted (possibly network/proxy/region restrictions); this is not an invalid key",
         }
     return {"ok": False, "error_type": "connection", "error": str(exc)}
-
 
 def _unwrap_probe_exception_group(exc: BaseExceptionGroup, *, kind: str) -> dict[str, Any] | None:
     """Unwrap a nested TaskGroup exception group to a concrete probe result.
@@ -284,49 +225,6 @@ async def _probe_mcp_sse(
     return {"ok": False, "error": "SSE probe failed after retry"}
 
 
-async def probe_youdao_note(api_key: str) -> dict[str, Any]:
-    """Probe Youdao Note via MCP SSE (streamable HTTP POST is not supported)."""
-    return await _probe_mcp_sse(
-        "https://open.mail.163.com/api/ynote/mcp/sse",
-        {"x-api-key": api_key},
-        kind="youdao-note",
-    )
-
-
-def _probe_youdao_note_http_error(exc: httpx.HTTPStatusError) -> dict[str, Any]:
-    if exc.response.status_code == 401:
-        try:
-            body = exc.response.json()
-            if isinstance(body, dict) and body.get("desc"):
-                return {
-                    "ok": False,
-                    "error_type": "auth",
-                    "error": str(body["desc"]),
-                    "status_code": 401,
-                }
-        except Exception:
-            pass
-        return {
-            "ok": False,
-            "error_type": "auth",
-            "error": "API Key 无效，请检查或在 MCP 平台重新创建",
-            "status_code": 401,
-        }
-    err = http_error_message(exc.response)
-    return {
-        "ok": False,
-        "error_type": "connection",
-        "error": err or str(exc),
-        "status_code": exc.response.status_code,
-    }
-
-
-# Connectors whose tool list is known statically (from the catalog
-# ``allowed_tools``); a failing ``tools/list`` during probe is tolerated for
-# these because :func:`static_probe_tools` supplies the fallback list.
-_REMOTE_STATIC_TOOL_KINDS = frozenset({"tencent-weiyun"})
-
-
 async def probe_streamable_http_mcp(
     url: str,
     headers: dict[str, str],
@@ -405,11 +303,6 @@ async def probe_connector(
     instance_id: str,
     config: OctopConfig,
 ) -> dict[str, Any]:
-    if entry.kind == "qcc":
-        from octop.infra.connectors.qcc import bearer_token, probe
-
-        return await probe(bearer_token(cred_payload))
-
     if entry.mcp_mode == "gateway":
         try:
             await asyncio.to_thread(probe_gateway_credentials, entry.kind, cred_payload)
@@ -428,17 +321,6 @@ async def probe_connector(
             (resp.get("result") or {}).get("tools") if isinstance(resp, dict) else None
         )
         return {"ok": True, "tool_count": len(tools), "tools": tools}
-
-    if entry.kind == "youdao-note":
-        api_key = str(
-            cred_payload.get("token")
-            or cred_payload.get("api_key")
-            or cred_payload.get("access_token")
-            or ""
-        ).strip()
-        if not api_key:
-            return {"ok": False, "error": "请填写 API Key"}
-        return await probe_youdao_note(api_key)
 
     spec = build_http_mcp_spec(
         entry=entry,
@@ -482,7 +364,7 @@ async def probe_connector(
     if r.status_code >= 500:
         return {
             "ok": False,
-            "error": f"远端服务错误 HTTP {r.status_code}",
+            "error": f"remote service error HTTP {r.status_code}",
             "status_code": r.status_code,
         }
 
@@ -501,7 +383,7 @@ async def probe_connector(
             timeout=20.0,
         )
         list_err = http_error_message(r2)
-        if list_err and entry.kind not in _REMOTE_STATIC_TOOL_KINDS:
+        if list_err:
             return {"ok": False, "error": list_err, "status_code": r2.status_code}
         if r2.status_code < 400:
             body = r2.json()
@@ -509,9 +391,6 @@ async def probe_connector(
                 probed_tools = normalize_tools((body.get("result") or {}).get("tools"))
     except Exception:
         logger.debug("connector tools/list probe skipped for %s", entry.kind)
-
-    if not probed_tools:
-        probed_tools = static_probe_tools(entry.kind)
 
     return {
         "ok": True,

@@ -86,9 +86,9 @@ def _seed_memory(srv: Any, agent_id: str) -> None:
         raw_event_ids=[],
         candidate_type="Preference",
         status="promoted",
-        title="美式咖啡偏好",
-        assertion="喜欢喝美式咖啡",
-        verbatim_quote="喜欢喝美式咖啡",
+        title="americano coffee preference",
+        assertion="likes to drink americano coffee",
+        verbatim_quote="likes to drink americano coffee",
         quote_event_id="",
         subject_name="user",
         subject_entity_type="User",
@@ -107,8 +107,8 @@ def _seed_memory(srv: Any, agent_id: str) -> None:
         entity_id="ent-user",
         candidate_id="cand-1",
         raw_event_ids=[],
-        assertion="喜欢喝美式咖啡",
-        verbatim_quote="喜欢喝美式咖啡",
+        assertion="likes to drink americano coffee",
+        verbatim_quote="likes to drink americano coffee",
         quote_event_id="",
         search_terms=["coffee", "americano"],
         occurred_at=_now(),
@@ -128,7 +128,7 @@ def _seed_memory(srv: Any, agent_id: str) -> None:
                 user="u",
                 timestamp=_now(),
                 event_type="user_message",
-                content="我喜欢喝美式咖啡",
+                content="I like to drink americano coffee",
             ),
             RawEvent(
                 id="raw-2",
@@ -138,7 +138,7 @@ def _seed_memory(srv: Any, agent_id: str) -> None:
                 user="u",
                 timestamp=_now(),
                 event_type="assistant_message",
-                content="好的，记住了",
+                content="OK, noted",
             ),
         ]
     )
@@ -147,13 +147,13 @@ def _seed_memory(srv: Any, agent_id: str) -> None:
         id="ep-1",
         raw_event_ids=[],
         occurred_at=_now(),
-        summary="用户表达对美式咖啡的偏好",
-        verbatim_quote="喜欢喝美式咖啡",
+        summary="user expressed a preference for americano coffee",
+        verbatim_quote="likes to drink americano coffee",
         quote_event_id="",
         emotion="happy",
         intensity=2,
         people=[],
-        topics=["饮品"],
+        topics=["beverages"],
         extractor_version="test",
         created_at=_now(),
     )
@@ -213,7 +213,7 @@ async def test_get_atom_inline_kind(env_with_main_agent) -> None:
     r = await client.get(f"/api/agents/{aid}/memory/atoms/atom-1", headers=auth)
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["assertion"] == "喜欢喝美式咖啡"
+    assert body["assertion"] == "likes to drink americano coffee"
     assert body["kind"] == "Preference"
 
 
@@ -233,7 +233,7 @@ async def test_terminal_about_me(env_with_main_agent) -> None:
     assert r.status_code == 200, r.text
     items = r.json()["items"]
     assert len(items) == 1
-    assert items[0]["assertion"] == "喜欢喝美式咖啡"
+    assert items[0]["assertion"] == "likes to drink americano coffee"
     assert items[0]["kind"] == "Preference"
 
 
@@ -280,8 +280,8 @@ async def test_create_and_replace_atom_round_trip(env_with_main_agent) -> None:
         f"/api/agents/{aid}/memory/atoms",
         headers=auth,
         json={
-            "assertion": "喜欢早起跑步",
-            "entity_name": "作息",
+            "assertion": "likes early-morning runs",
+            "entity_name": "routine",
             "entity_type": "Fact",
             "kind": "Preference",
             "actor": "rule",
@@ -292,7 +292,7 @@ async def test_create_and_replace_atom_round_trip(env_with_main_agent) -> None:
     assert body["status"] == "created"
     assert body["created_entity"] is True
     atom_id = body["atom"]["id"]
-    assert body["atom"]["assertion"] == "喜欢早起跑步"
+    assert body["atom"]["assertion"] == "likes early-morning runs"
 
     create_journal = await client.post(
         f"/api/agents/{aid}/memory/journal/list",
@@ -305,11 +305,11 @@ async def test_create_and_replace_atom_round_trip(env_with_main_agent) -> None:
     replaced = await client.post(
         f"/api/agents/{aid}/memory/atoms/{atom_id}:replace",
         headers=auth,
-        json={"assertion": "改成晚上跑步", "actor": "auto"},
+        json={"assertion": "switch to evening runs", "actor": "auto"},
     )
     assert replaced.status_code == 200, replaced.text
     assert replaced.json()["status"] == "replaced"
-    assert replaced.json()["atom"]["assertion"] == "改成晚上跑步"
+    assert replaced.json()["atom"]["assertion"] == "switch to evening runs"
     assert replaced.json()["old_atom_id"] == atom_id
 
     replacement_id = replaced.json()["atom"]["id"]
@@ -324,7 +324,7 @@ async def test_create_and_replace_atom_round_trip(env_with_main_agent) -> None:
     again = await client.post(
         f"/api/agents/{aid}/memory/atoms/{atom_id}:replace",
         headers=auth,
-        json={"assertion": "这条已经弃用了"},
+        json={"assertion": "this entry is deprecated"},
     )
     assert again.status_code == 404
 

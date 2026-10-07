@@ -2,15 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
-from pathlib import Path
 from typing import Any
-from weakref import WeakKeyDictionary
 
 from octop.config import OctopConfig
-from octop.infra.connectors import qcc
 from octop.infra.connectors.builder import build_http_mcp_spec, mcp_server_name, new_internal_token
 from octop.infra.connectors.catalog import get_catalog_entry, uses_internal_http_mcp
 from octop.infra.connectors.crypto import decrypt_credentials, encrypt_credentials
@@ -34,27 +30,15 @@ from octop.infra.connectors.custom_mcp import (
     wrap_servers,
 )
 from octop.infra.connectors.default_open import merge_mcp_servers_with_defaults, read_default_open
-from octop.infra.connectors.gateway import agently_auth
-from octop.infra.connectors.gateway.cli_dirs import resolve_cli_config_key
-from octop.infra.connectors.gateway.feishu_user_auth import (
-    complete_user_device_login,
-    start_user_device_login,
-)
 from octop.infra.connectors.oauth import refresh_oauth_credentials
 from octop.infra.connectors.oauth.registry import refresh_custom_mcp_oauth
 from octop.infra.db.repos.connectors import ConnectorRepo, ConnectorRow
 from octop.infra.db.repos.secrets import SecretRepo
-from octop.infra.errors import ErrorCode, OctopError
-from octop.infra.utils.paths import PathLayout
 from octop.infra.utils.ulid import new_ulid
 
 logger = logging.getLogger(__name__)
 
 _OAUTH_REFRESH_SKEW_SEC = 120
-
-# Shared only within one process and application repository.
-_QCC_LOCKS: WeakKeyDictionary[ConnectorRepo, dict[str, asyncio.Lock]] = WeakKeyDictionary()
-_AGENTLY_LOCKS: WeakKeyDictionary[ConnectorRepo, dict[str, asyncio.Lock]] = WeakKeyDictionary()
 
 
 class ConnectorNameTakenError(ValueError):
@@ -132,10 +116,6 @@ class ConnectorService:
                     or stored.get("internal_token")
                     or new_internal_token()
                 )
-            if row.kind == "agently-cli" and row.credential_blob:
-                # Editing a connector must never switch to another instance's grant.
-                existing = decrypt_credentials(self._secret_repo, row.credential_blob)
-                stored["cli_config_key"] = resolve_cli_config_key(existing)
         stored["instance_id"] = instance_id
         expires_at = stored.get("expires_at")
         exp = int(expires_at) if expires_at is not None else None
@@ -147,8 +127,6 @@ class ConnectorService:
         instance_id: str,
         kind: str,
     ) -> dict[str, Any]:
-        if kind == "qcc":
-            return await self._fresh_qcc(instance_id)
         creds = self.decrypt(instance_id)
         entry = get_catalog_entry(kind)
         if entry is None or entry.auth_kind != "oauth2":
@@ -170,116 +148,6 @@ class ConnectorService:
         creds.update(refreshed)
         self.encrypt_and_store(instance_id=instance_id, payload=creds)
         return creds
-
-    def _qcc_lock(self, instance_id: str) -> asyncio.Lock:
-        locks = _QCC_LOCKS.setdefault(self._repo, {})
-        return locks.setdefault(instance_id, asyncio.Lock())
-
-    async def _fresh_qcc(
-        self, instance_id: str, *, rejected_token: str | None = None
-    ) -> dict[str, Any]:
-        async with self._qcc_lock(instance_id):
-            row = self._repo.get(instance_id)
-            if row is None or row.kind != "qcc" or row.status != "active":
-                return {}
-            creds = self.decrypt(instance_id)
-            if not qcc.is_oauth_grant(creds):
-                return creds
-            token = qcc.bearer_token(creds)
-            # Another request may already have rotated the token rejected by a 401.
-            force = rejected_token is not None and rejected_token == token
-            expires = int(creds.get("expires_at") or 0)
-            if not force and expires > int(time.time()) + _OAUTH_REFRESH_SKEW_SEC:
-                return creds
-            if not creds.get("refresh_token"):
-                if force or (expires and expires <= int(time.time())):
-                    raise ValueError("QCC authorization expired; please authorize again")
-                return creds
-            if not creds.get("oauth_client_id"):
-                raise ValueError("QCC client registration missing; please authorize again")
-            refreshed = await refresh_oauth_credentials(
-                kind="qcc", creds=creds, settings_repo=self._settings_repo
-            )
-            creds.update(refreshed)
-            self.encrypt_and_store(instance_id=instance_id, payload=creds)
-            return creds
-
-    async def _qcc_request(
-        self, instance_id: str, resource: str, method: str, params: dict[str, Any]
-    ) -> dict[str, Any]:
-        creds = await self._fresh_qcc(instance_id)
-        token = qcc.bearer_token(creds)
-        if not token:
-            raise ValueError("QCC connector is disconnected")
-        try:
-            return await qcc.request_resource(resource, token, method, params)
-        except Exception as exc:
-            if not qcc.is_oauth_grant(creds) or not qcc.unauthorized(exc):
-                raise
-        creds = await self._fresh_qcc(instance_id, rejected_token=token)
-        token = qcc.bearer_token(creds)
-        if not token:
-            raise ValueError("QCC connector is disconnected")
-        return await qcc.request_resource(resource, token, method, params)
-
-    async def handle_qcc_request(self, instance_id: str, body: dict[str, Any]) -> dict[str, Any]:
-        from octop.infra.connectors.gateway.protocol import handle_mcp_request
-
-        method = body.get("method")
-        if method not in ("tools/list", "tools/call"):
-            return handle_mcp_request(kind="qcc", creds={}, body=body)
-        try:
-            if method == "tools/list":
-                listed = await asyncio.gather(
-                    *[
-                        self._qcc_request(instance_id, resource, "tools/list", {})
-                        for resource in qcc.RESOURCES
-                    ],
-                    return_exceptions=True,
-                )
-                tools: list[dict[str, Any]] = []
-                for resource, item in zip(qcc.RESOURCES, listed, strict=True):
-                    if isinstance(item, BaseException):
-                        continue
-                    tools.extend(qcc.namespace_tools(resource, item))
-                if not tools:
-                    raise ValueError("QCC MCP request failed; check connection or authorize again")
-                result: dict[str, Any] = {"tools": tools}
-            else:
-                params = dict(body.get("params") or {})
-                resource, sep, name = str(params.get("name") or "").partition("__")
-                if not sep or resource not in qcc.RESOURCES or not name:
-                    raise ValueError("Unknown QCC tool")
-                result = await self._qcc_request(
-                    instance_id, resource, "tools/call", {**params, "name": name}
-                )
-            return {"jsonrpc": "2.0", "id": body.get("id"), "result": result}
-        except Exception:
-            # Upstream exceptions may include credential-bearing request details.
-            return {
-                "jsonrpc": "2.0",
-                "id": body.get("id"),
-                "error": {
-                    "code": -32603,
-                    "message": "QCC MCP request failed; check connection or authorize again",
-                },
-            }
-
-    async def disconnect_qcc(self, instance_id: str) -> None:
-        async with self._qcc_lock(instance_id):
-            row = self._repo.get(instance_id)
-            if row is None:
-                return
-            if row.kind != "qcc":
-                raise ValueError("Not a QCC connector")
-            try:
-                creds = self.decrypt(instance_id)
-                if qcc.is_oauth_grant(creds):
-                    await qcc.revoke(creds)
-            except Exception as exc:
-                # Keep the encrypted grant so the user can retry remote revocation.
-                raise ValueError("QCC revocation failed; retry disconnect") from exc
-            self._repo.delete(instance_id)
 
     def reserved_builtin_mcp_names(self, user_id: int) -> set[str]:
         names: set[str] = set()
@@ -636,163 +504,3 @@ class ConnectorService:
         if not expected or expected != token:
             return None
         return creds
-
-    async def agently_auth_for_instance(
-        self,
-        instance_id: str,
-        user_id: int,
-        action: agently_auth.AuthAction,
-        *,
-        locale: str = "en",
-    ) -> agently_auth.AuthResult:
-        locks = _AGENTLY_LOCKS.setdefault(self._repo, {})
-        async with locks.setdefault(instance_id, asyncio.Lock()):
-            inst = self._repo.get(instance_id)
-            if inst is None:
-                raise OctopError.localized(ErrorCode.CONNECTOR_NOT_FOUND, locale)
-            if inst.user_id != user_id:
-                raise OctopError.localized(ErrorCode.FORBIDDEN, locale)
-            if inst.kind != "agently-cli":
-                raise OctopError.localized(ErrorCode.CONNECTOR_KIND_UNSUPPORTED, locale)
-            creds = self.decrypt(instance_id)
-            creds.setdefault("instance_id", instance_id)
-            result = await agently_auth.authorize(creds, action, locale=locale)
-            if action == "disconnect" and result["status"] == "idle":
-                self._repo.delete(instance_id)
-            return result
-
-    # --- Feishu CLI device-code user auth (domain orchestration) ---
-
-    @staticmethod
-    def feishu_cli_config_dir(cli_config_key: str) -> Path:
-        return PathLayout.from_env().ensure_connector_cli_instance_dir("feishu-cli", cli_config_key)
-
-    async def start_feishu_user_auth(
-        self,
-        *,
-        app_id: str,
-        app_secret: str,
-        cli_config_key: str | None = None,
-        domains: list[str] | None = None,
-    ) -> dict[str, Any]:
-        """Begin OAuth device-code login (anonymous / pre-save credentials)."""
-        app_id = str(app_id or "").strip()
-        app_secret = str(app_secret or "").strip()
-        if not app_id or not app_secret:
-            raise ValueError("app_id and app_secret are required")
-        cli_key = str(cli_config_key or "").strip() or new_ulid()
-        config_dir = self.feishu_cli_config_dir(cli_key)
-        started = await asyncio.to_thread(
-            start_user_device_login,
-            config_dir=config_dir,
-            app_id=app_id,
-            app_secret=app_secret,
-            domains=domains,
-        )
-        return {**started, "cli_config_key": cli_key}
-
-    async def complete_feishu_user_auth(
-        self,
-        *,
-        app_id: str,
-        app_secret: str,
-        device_code: str,
-        cli_config_key: str,
-    ) -> dict[str, Any]:
-        """Finish device-code login for pre-save credentials (no instance write)."""
-        app_id = str(app_id or "").strip()
-        app_secret = str(app_secret or "").strip()
-        device_code = str(device_code or "").strip()
-        cli_key = str(cli_config_key or "").strip()
-        if not app_id or not app_secret or not device_code or not cli_key:
-            raise ValueError("app_id, app_secret, device_code and cli_config_key are required")
-        config_dir = self.feishu_cli_config_dir(cli_key)
-        result = await asyncio.to_thread(
-            complete_user_device_login,
-            config_dir=config_dir,
-            app_id=app_id,
-            app_secret=app_secret,
-            device_code=device_code,
-        )
-        return {**result, "cli_config_key": cli_key, "default_as": "user"}
-
-    def _require_feishu_cli_instance(
-        self, instance_id: str, user_id: int
-    ) -> tuple[ConnectorRow, dict[str, Any]]:
-        inst = self._repo.get(instance_id)
-        if inst is None:
-            raise OctopError(ErrorCode.CONNECTOR_NOT_FOUND, f"instance {instance_id!r} not found")
-        if inst.user_id != user_id:
-            raise OctopError(ErrorCode.FORBIDDEN, "not your connector instance")
-        if inst.kind != "feishu-cli":
-            raise OctopError(
-                ErrorCode.CONNECTOR_KIND_UNSUPPORTED,
-                "only feishu-cli supports user device login",
-            )
-        if not inst.has_credentials:
-            raise OctopError(ErrorCode.CONNECTOR_INVALID_CREDENTIALS, "missing credentials")
-        return inst, dict(self.decrypt(instance_id))
-
-    async def start_feishu_user_auth_for_instance(
-        self, instance_id: str, user_id: int
-    ) -> dict[str, Any]:
-        """Start device login using App Secret stored on the instance."""
-        _inst, creds = self._require_feishu_cli_instance(instance_id, user_id)
-        app_id = str(creds.get("app_id") or "").strip()
-        app_secret = str(creds.get("app_secret") or "").strip()
-        if not app_id or not app_secret:
-            raise OctopError(
-                ErrorCode.CONNECTOR_INVALID_CREDENTIALS,
-                "stored Feishu app credentials incomplete",
-                details={"reason": "stored Feishu app credentials incomplete"},
-            )
-        if not str(creds.get("cli_config_key") or "").strip():
-            creds["cli_config_key"] = instance_id
-        cli_key = resolve_cli_config_key(creds)
-        config_dir = self.feishu_cli_config_dir(cli_key)
-        started = await asyncio.to_thread(
-            start_user_device_login,
-            config_dir=config_dir,
-            app_id=app_id,
-            app_secret=app_secret,
-            domains=None,
-        )
-        return {**started, "cli_config_key": cli_key}
-
-    async def complete_feishu_user_auth_for_instance(
-        self,
-        instance_id: str,
-        user_id: int,
-        *,
-        device_code: str,
-        cli_config_key: str | None = None,
-    ) -> dict[str, Any]:
-        """Finish device login and persist ``default_as=user`` on the instance."""
-        _inst, creds = self._require_feishu_cli_instance(instance_id, user_id)
-        app_id = str(creds.get("app_id") or "").strip()
-        app_secret = str(creds.get("app_secret") or "").strip()
-        device_code = str(device_code or "").strip()
-        if not str(creds.get("cli_config_key") or "").strip():
-            creds["cli_config_key"] = instance_id
-        override = str(cli_config_key or "").strip()
-        if override:
-            creds["cli_config_key"] = override
-        cli_key = resolve_cli_config_key(creds)
-        if not app_id or not app_secret or not device_code:
-            raise OctopError(
-                ErrorCode.CONNECTOR_INVALID_CREDENTIALS,
-                "incomplete Feishu user auth payload",
-                details={"reason": "incomplete Feishu user auth payload"},
-            )
-        config_dir = self.feishu_cli_config_dir(cli_key)
-        result = await asyncio.to_thread(
-            complete_user_device_login,
-            config_dir=config_dir,
-            app_id=app_id,
-            app_secret=app_secret,
-            device_code=device_code,
-        )
-        creds["default_as"] = "user"
-        creds["cli_config_key"] = cli_key
-        self.encrypt_and_store(instance_id=instance_id, payload=creds)
-        return {**result, "cli_config_key": cli_key, "default_as": "user"}

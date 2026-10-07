@@ -1,7 +1,7 @@
 id: daily-english
 version: 0.1.0
-name: 每日英语
-description: 每日一词：音标、释义与例句
+name: Daily English
+description: "One word a day: phonetics, meaning and an example sentence"
 icon: icon.svg
 group: tools
 kind: tool

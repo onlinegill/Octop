@@ -1,4 +1,4 @@
-# 已随安装包分发
+# Distributed with the installation package
 
-此插件的源码在 `src/octop/infra/agents/plugins/bundled/server-status/`。
-`octop init` / `octop run` 会复制到 `~/.octop/plugins/server-status/`，默认关闭。
+The source of this plugin lives in `src/octop/infra/agents/plugins/bundled/server-status/`.
+`octop init` / `octop run` copies it to `~/.octop/plugins/server-status/`, and it is disabled by default.

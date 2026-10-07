@@ -113,7 +113,7 @@ async def test_fetch_models_insufficient_balance_zh() -> None:
         )
 
     assert result["ok"] is False
-    assert "余额" in result["error"] or "额度" in result["error"]
+    assert "balance" in result["error"].lower() or "quota" in result["error"].lower()
     assert "402" not in result["error"]
 
 

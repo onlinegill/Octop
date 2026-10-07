@@ -892,7 +892,7 @@ class GlobalProcessor:
         yield MessageEvent.completed()
 
     # -- Raw harness-chunk stream (Dashboard WS, etc.) -------------------------
-    # IM channels (DingTalk, Feishu, …) stream via __call__ → MessageEvent instead.
+    # IM channels stream via __call__ → MessageEvent instead.
 
     async def iter_turn_chunks(self, msg: InboundMessage) -> AsyncIterator[dict[str, Any]]:
         """Run one agent turn and yield harness-native stream chunks.
@@ -902,7 +902,7 @@ class GlobalProcessor:
         octop-gateway :class:`MessageEvent` batching.
 
         IM channels use :meth:`__call__` → ``project_stream`` → ``MessageEvent``
-        (e.g. DingTalk ``BaseChannel.handle_inbound``).
+        (e.g. ``BaseChannel.handle_inbound``).
         """
         from octop.infra.metrics import METRICS  # noqa: PLC0415
 

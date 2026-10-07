@@ -40,9 +40,9 @@ describe("<MemorySettings />", () => {
     api.getExtractConfig.mockResolvedValue(idleConfig);
     render(<MemorySettings agentId="ZYWZTD" />);
 
-    await screen.findByText("存储记忆");
-    expect(screen.getByText("已开启")).toBeInTheDocument();
-    expect(screen.getByText("对话空闲后提炼")).toBeInTheDocument();
+    await screen.findByText("Store memory");
+    expect(screen.getByText("Already turned on")).toBeInTheDocument();
+    expect(screen.getByText("Conversation refined after free time")).toBeInTheDocument();
     expect(screen.getByRole("spinbutton")).toHaveValue("5");
   });
 
@@ -50,12 +50,12 @@ describe("<MemorySettings />", () => {
     api.getExtractConfig.mockResolvedValue(idleConfig);
     const user = userEvent.setup();
     render(<MemorySettings agentId="ZYWZTD" />);
-    await screen.findByText("存储记忆");
+    await screen.findByText("Store memory");
 
     await user.click(screen.getByRole("switch"));
-    expect(screen.getByText("关闭后 Agent 将不再使用记忆")).toBeInTheDocument();
+    expect(screen.getByText("After closing Agent Memory will no longer be used")).toBeInTheDocument();
     expect(
-      screen.getByText(/已有记忆和对话记录不会被删除/),
+      screen.getByText(/Existing memories and conversation records will not be deleted/),
     ).toBeInTheDocument();
   });
 
@@ -64,9 +64,9 @@ describe("<MemorySettings />", () => {
     api.putExtractConfig.mockResolvedValue(idleConfig);
     const user = userEvent.setup();
     render(<MemorySettings agentId="ZYWZTD" />);
-    await screen.findByText("存储记忆");
+    await screen.findByText("Store memory");
 
-    await user.click(screen.getByRole("button", { name: "保存设置" }));
+    await user.click(screen.getByRole("button", { name: "Save settings" }));
     await waitFor(() => {
       expect(api.putExtractConfig).toHaveBeenCalledWith("ZYWZTD", {
         memory_enabled: true,
@@ -90,11 +90,11 @@ describe("<MemorySettings />", () => {
     ] as never);
     const user = userEvent.setup();
     render(<MemorySettings agentId="ZYWZTD" />);
-    await screen.findByText("记忆提取模型");
+    await screen.findByText("Memory retrieval model");
 
     await user.click(screen.getByRole("combobox"));
     await user.click(await screen.findByTitle("hai / Mini"));
-    await user.click(screen.getByRole("button", { name: "保存设置" }));
+    await user.click(screen.getByRole("button", { name: "Save settings" }));
     await waitFor(() =>
       expect(api.putExtractConfig).toHaveBeenCalledWith(
         "ZYWZTD",
@@ -115,9 +115,9 @@ describe("<MemorySettings />", () => {
     const user = userEvent.setup();
     render(<MemorySettings agentId="ZYWZTD" />);
 
-    await screen.findByText("存储记忆");
+    await screen.findByText("Store memory");
     expect(screen.getByRole("spinbutton")).toHaveValue("1");
-    await user.click(screen.getByRole("button", { name: "保存设置" }));
+    await user.click(screen.getByRole("button", { name: "Save settings" }));
     await waitFor(() =>
       expect(api.putExtractConfig).toHaveBeenCalledWith(
         "ZYWZTD",
@@ -130,8 +130,8 @@ describe("<MemorySettings />", () => {
     api.getExtractConfig.mockResolvedValue(idleConfig);
     const user = userEvent.setup();
     render(<MemorySettings agentId="ZYWZTD" />);
-    await screen.findByText("固定间隔提炼");
-    await user.click(screen.getByText("固定间隔提炼"));
-    expect(await screen.findByText(/会话尚未结束时运行/)).toBeInTheDocument();
+    await screen.findByText("Fixed interval extraction");
+    await user.click(screen.getByText("Fixed interval extraction"));
+    expect(await screen.findByText(/Runs while the session has not yet ended/)).toBeInTheDocument();
   });
 });

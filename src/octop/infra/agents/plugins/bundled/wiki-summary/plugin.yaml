@@ -1,7 +1,7 @@
 id: wiki-summary
 version: 0.1.0
-name: 维基摘要
-description: 读取 Wikipedia 条目摘要
+name: Wiki Summary
+description: Read summaries of Wikipedia entries
 icon: icon.svg
 group: tools
 kind: tool

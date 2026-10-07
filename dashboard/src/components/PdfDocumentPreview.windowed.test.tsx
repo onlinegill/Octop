@@ -282,11 +282,11 @@ describe("PdfDocumentPreview windowed rendering", () => {
   it("shows the outline sidebar and scrolls a bookmark to its page", async () => {
     outlineState.items = [
       {
-        title: "第一章",
+        title: "Chapter 1",
         dest: "ch1",
-        items: [{ title: "1.1 小节", dest: [{ num: 3 }] }],
+        items: [{ title: "1.1 Section", dest: [{ num: 3 }] }],
       },
-      { title: "外部链接", url: "https://example.com" },
+      { title: "External links", url: "https://example.com" },
     ];
     outlineState.dests = { ch1: [{ num: 2 }] };
     const scrollIntoView = vi.fn();
@@ -304,7 +304,7 @@ describe("PdfDocumentPreview windowed rendering", () => {
     const toggle = await waitFor(() => {
       const btn = Array.from(container.querySelectorAll("button")).find(
         (b) =>
-          b.getAttribute("aria-label") === "书签" ||
+          b.getAttribute("aria-label") === "Bookmark" ||
           b.getAttribute("aria-label") === "Outline",
       );
       expect(btn?.disabled).toBeFalsy();
@@ -322,7 +322,7 @@ describe("PdfDocumentPreview windowed rendering", () => {
     const labels = Array.from(nav.querySelectorAll("button, a")).map(
       (el) => el.textContent,
     );
-    expect(labels).toEqual(["第一章", "1.1 小节", "外部链接"]);
+    expect(labels).toEqual(["Chapter 1", "1.1 Section", "External links"]);
 
     // Toggle collapses the sidebar.
     await act(async () => {
@@ -343,7 +343,7 @@ describe("PdfDocumentPreview windowed rendering", () => {
     await act(async () => {
       (
         Array.from(nav2.querySelectorAll("button")).find(
-          (el) => el.textContent === "第一章",
+          (el) => el.textContent === "Chapter 1",
         ) as HTMLElement
       ).click();
     });

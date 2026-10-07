@@ -29,8 +29,8 @@ describe("knowledgePath", () => {
   });
 
   it("builds breadcrumb segments", () => {
-    expect(knowledgeBreadcrumb("notes/law", "知识库")).toEqual([
-      { label: "知识库", path: "" },
+    expect(knowledgeBreadcrumb("notes/law", "Knowledge base")).toEqual([
+      { label: "Knowledge base", path: "" },
       { label: "notes", path: "notes" },
       { label: "law", path: "notes/law" },
     ]);

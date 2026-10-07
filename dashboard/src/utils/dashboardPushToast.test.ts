@@ -11,15 +11,15 @@ describe("parseDashboardPushFrame", () => {
         type: "dashboard_push",
         agent_id: "a1",
         thread_id: "thr_1",
-        text: "记得喝水",
-        agent_name: "助手",
+        text: "Remember to drink water",
+        agent_name: "Assistant",
       }),
     ).toEqual({
       type: "dashboard_push",
       agent_id: "a1",
       thread_id: "thr_1",
-      text: "记得喝水",
-      agent_name: "助手",
+      text: "Remember to drink water",
+      agent_name: "Assistant",
     });
   });
 
@@ -40,7 +40,7 @@ describe("parseDashboardPushFrame", () => {
 
 describe("truncatePushText", () => {
   it("keeps short text intact", () => {
-    expect(truncatePushText("记得喝水")).toBe("记得喝水");
+    expect(truncatePushText("Remember to drink water")).toBe("Remember to drink water");
   });
 
   it("truncates long text with an ellipsis", () => {

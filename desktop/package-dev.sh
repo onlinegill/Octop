@@ -58,15 +58,15 @@ for _ in $(seq 1 60); do
     break
   fi
   if ! kill -0 "$octop_pid" 2>/dev/null; then
-    echo "Octop 进程在就绪前退出了，请查看上方日志。" >&2
+    echo "The Octop process exited before becoming ready; check the log above." >&2
     exit 1
   fi
   sleep 0.5
 done
 
 if ! curl -sf -o /dev/null --max-time 1 "$HEALTH"; then
-  echo "Octop 未在 30 秒内就绪（${URL}）。" >&2
-  echo "请查看上方 octop run 的输出；常见原因：端口被占用、依赖缺失，或服务启动失败。" >&2
+  echo "Octop did not become ready within 30 seconds (${URL})." >&2
+  echo "Check the octop run output above; common causes: the port is in use, missing dependencies, or the service failed to start." >&2
   exit 1
 fi
 

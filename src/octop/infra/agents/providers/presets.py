@@ -59,106 +59,6 @@ def _reasoning_profile(provider_id: str, model_id: str) -> dict[str, Any] | None
             "default_effort": "medium",
         }
 
-    if provider.startswith("tencent-"):
-        if model.startswith("minimax-"):
-            return {
-                "supported": True,
-                "adapter": "status_only",
-                "toggle": False,
-                "default_mode": "enabled",
-            }
-        if model.startswith("deepseek-v4-"):
-            return {
-                "supported": True,
-                "adapter": "thinking_nested_effort"
-                if provider
-                in {
-                    "tencent-token-plan",
-                    "tencent-token-plan-enterprise-cn",
-                    "tencent-coding-plan",
-                }
-                else "thinking",
-                "toggle": True,
-                "default_mode": "enabled",
-                "efforts": ["high", "max"],
-                "default_effort": "high",
-            }
-        if model.startswith(("glm-", "kimi-")) or model == "tc-code-latest":
-            return {
-                "supported": True,
-                "adapter": "thinking",
-                "toggle": True,
-                "default_mode": "enabled",
-            }
-        if provider == "tencent-hy-token-plan" and model.startswith("hy3"):
-            return {
-                "supported": True,
-                "adapter": "status_only",
-                "toggle": False,
-                "default_mode": "enabled",
-            }
-
-    if provider == "deepseek":
-        if model == "deepseek-reasoner":
-            return {
-                "supported": True,
-                "adapter": "status_only",
-                "toggle": False,
-                "default_mode": "enabled",
-            }
-        if model.startswith("deepseek-v4-"):
-            return {
-                "supported": True,
-                "adapter": "thinking",
-                "toggle": True,
-                "default_mode": "auto",
-                "efforts": ["high", "max"],
-                "default_effort": "high",
-            }
-
-    if provider.startswith("zhipu-") and model.startswith(("glm-4.7", "glm-5")):
-        return {
-            "supported": True,
-            "adapter": "thinking",
-            "toggle": True,
-            "default_mode": "auto",
-        }
-
-    if provider.startswith(("dashscope", "aliyun-")):
-        if model.startswith("minimax-") or "-thinking-" in model:
-            return {
-                "supported": True,
-                "adapter": "status_only",
-                "toggle": False,
-                "default_mode": "enabled",
-            }
-        if model.startswith(("qwen3", "glm-", "kimi-", "deepseek-")):
-            return {
-                "supported": True,
-                "adapter": "dashscope",
-                "toggle": True,
-                "default_mode": "auto",
-            }
-
-    if provider.startswith("kimi-") and (
-        model in {"kimi-k2.5", "kimi-k2.6"} or "thinking" in model
-    ):
-        dedicated = "thinking" in model
-        return {
-            "supported": True,
-            "adapter": "status_only" if dedicated else "thinking",
-            "toggle": not dedicated,
-            "default_mode": "enabled" if dedicated else "auto",
-        }
-
-    if provider.startswith("minimax-") and model.startswith("minimax-m2"):
-        return {
-            "supported": True,
-            "adapter": "status_only",
-            "toggle": False,
-            "default_mode": "enabled",
-        }
-
     if provider == "openrouter" and model.startswith(("anthropic/claude-", "google/gemini-2.5")):
         return {
             "supported": True,
@@ -170,13 +70,6 @@ def _reasoning_profile(provider_id: str, model_id: str) -> dict[str, Any] | None
         }
 
     if provider.startswith("opencode-"):
-        if model.startswith("minimax-"):
-            return {
-                "supported": True,
-                "adapter": "status_only",
-                "toggle": False,
-                "default_mode": "enabled",
-            }
         if model.startswith(("claude-opus-4-6", "claude-sonnet-4-6")):
             return {
                 "supported": True,
@@ -186,26 +79,14 @@ def _reasoning_profile(provider_id: str, model_id: str) -> dict[str, Any] | None
                 "efforts": ["low", "medium", "high", "max"],
                 "default_effort": "high",
             }
-        if model == "grok-4.5" or model == "glm-5.2":
-            efforts = (
-                ["minimal", "low", "medium", "high", "xhigh", "max"]
-                if model == "glm-5.2"
-                else enum_efforts
-            )
+        if model == "grok-4.5":
             return {
                 "supported": True,
                 "adapter": "openai_reasoning_effort",
-                "toggle": model != "grok-4.5",
-                "default_mode": "enabled" if model == "grok-4.5" else "auto",
-                "efforts": efforts,
+                "toggle": False,
+                "default_mode": "enabled",
+                "efforts": enum_efforts,
                 "default_effort": "high",
-            }
-        if model.startswith(("deepseek-v4-", "kimi-k", "glm-5.1")):
-            return {
-                "supported": True,
-                "adapter": "thinking",
-                "toggle": True,
-                "default_mode": "auto",
             }
 
     return None

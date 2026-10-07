@@ -228,7 +228,7 @@ async def test_cmd_compact_uses_composer_model_ref(ctx, dispatcher) -> None:
     )
     tid = ctx.thread_registry.get_bound_thread_id(ctx.session_key)
     assert tid
-    ctx.model_ref = "Tencent Cloud HAI/MiniMax-M2.7"
+    ctx.model_ref = "Example Cloud HAI/Example-M2.7"
     # Sticky /model must not beat the composer selection for this turn.
     ctx.agent_manager._harness_manager.get_thread_model.return_value = "DeepSeek/deepseek-chat"
     harness = MagicMock()
@@ -241,7 +241,7 @@ async def test_cmd_compact_uses_composer_model_ref(ctx, dispatcher) -> None:
     await cmd_compact(dispatcher, SlashCommand("compact", ""), ctx, sink)
 
     assert harness.acompact_conversation.await_args.kwargs.get("model") == (
-        "Tencent Cloud HAI/MiniMax-M2.7"
+        "Example Cloud HAI/Example-M2.7"
     )
 
 
@@ -262,7 +262,7 @@ async def test_cmd_compact_nothing_to_compact(ctx, dispatcher) -> None:
     sink = BufferSink()
     await cmd_compact(dispatcher, SlashCommand("compact", ""), ctx, sink)
     text = "\n".join(sink.lines)
-    assert "无可压缩" in text or "Nothing to compact" in text
+    assert "Nothing to compact" in text
 
 
 @pytest.mark.asyncio
@@ -282,5 +282,5 @@ async def test_cmd_compact_unavailable_reason(ctx, dispatcher) -> None:
     sink = BufferSink()
     await cmd_compact(dispatcher, SlashCommand("compact", ""), ctx, sink)
     text = "\n".join(sink.lines)
-    assert "不可用" in text or "unavailable" in text.lower()
+    assert "unavailable" in text.lower()
     assert "graph not ready" not in text

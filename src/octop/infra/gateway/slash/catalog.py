@@ -319,7 +319,7 @@ def channel_origin(channel_type: str) -> str:
     """Map gateway channel type to slash command *origin* filter.
 
     Dashboard and CLI are the only non-IM surfaces. Every other channel type
-    (wecom, lark, telegram, …) is treated as ``im`` so ``/help`` keeps IM-only
+    (telegram, …) is treated as ``im`` so ``/help`` keeps IM-only
     commands when a new platform is added.
     """
     if channel_type == "dashboard":

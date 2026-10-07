@@ -16,8 +16,8 @@ ASK_USER_TOOL_NAME = "ask_user_question"
 # Option keys shown in IM cards: a) b) c) d)
 _OPTION_KEYS = string.ascii_lowercase
 
-# `1`, `a`, `1,3`, `a c`, `b、d` — a pure selection reply.
-_SELECTION_RE = re.compile(r"^[0-9a-z]+(?:[,，、/\s]+[0-9a-z]+)*$")
+# `1`, `a`, `1,3`, `a c`, `b, d` — a pure selection reply.
+_SELECTION_RE = re.compile(r"^[0-9a-z]+(?:[,/\s]+[0-9a-z]+)*$")
 
 
 def normalize_hitl_request(raw: Any) -> dict[str, Any]:
@@ -291,7 +291,7 @@ def parse_ask_reply(
         options = _options_of(questions[0])
         candidate = stripped.lower()
         if options and _SELECTION_RE.match(candidate):
-            tokens = [t for t in re.split(r"[,，、/\s]+", candidate) if t]
+            tokens = [t for t in re.split(r"[,/\s]+", candidate) if t]
             labels = [_resolve_selection(t, options) for t in tokens]
             picked = [label for label in labels if label]
             if picked and len(picked) == len(tokens):

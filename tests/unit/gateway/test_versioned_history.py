@@ -776,7 +776,7 @@ async def test_dashboard_error_keeps_partial_tokens_and_error(archive):
     error = next(
         message for message in recovered if message.additional_kwargs.get("octop_stream_error")
     )
-    assert "余额" in str(error.content) or "insufficient" in str(error.content).lower()
+    assert "insufficient" in str(error.content).lower()
     assert archive.store.turn("t")["status"] == "failed"
 
 
@@ -861,7 +861,7 @@ async def test_append_reuses_large_prefix_and_does_not_rewrite_other_messages(ar
 @pytest.mark.asyncio
 async def test_partial_long_tool_arguments_are_chunked_and_committed(archive):
     tracker = RecordingTracker(archive, archive.begin("a", "t"), [])
-    fragment = '{"text":"' + "汉🙂" * 2048
+    fragment = '{"text":"' + "é🙂" * 2048
     tracker.observe(
         {
             "type": "tool_call_chunk",
@@ -1005,7 +1005,7 @@ async def test_old_body_encoding_remains_readable_without_rewriting_on_resume(ar
 
 def test_replacing_chunked_message_preserves_other_messages_shared_blocks(archive):
     turn = archive.begin("a", "t")
-    text = "漢字🙂original " * 400
+    text = "café🙂original " * 400
     first = message_to_dict(HumanMessage(content=text, id="u"))
     second = message_to_dict(AIMessage(content=text, id="a"))
     archive.save_messages(turn, [first, second])

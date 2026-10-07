@@ -19,7 +19,7 @@ function QrCard(props) {
     },
     "data-octop-plugin-ui": "qrcode",
     children: [
-      _jsx("div", { style: { fontWeight: 800, marginBottom: 10 }, children: "🔳 二维码" }),
+      _jsx("div", { style: { fontWeight: 800, marginBottom: 10 }, children: "🔳 QR Code" }),
       _jsx("img", {
         src: d.image_data_url,
         alt: "qrcode",

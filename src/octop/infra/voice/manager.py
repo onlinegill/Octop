@@ -86,15 +86,15 @@ class VoiceManager:
     def media_type(self, provider_name: str | None) -> str:
         """HTTP content type of the synthesize() stream for the given provider."""
         name = provider_name or self.get_active()["tts"]
-        kind = self.resolve(name).kind
-        return "audio/wav" if kind == "mimo" else "audio/mpeg"
+        self.resolve(name)
+        return "audio/mpeg"
 
     async def transcribe(
         self,
         audio: bytes,
         *,
         mime: str,
-        language: str = "zh-CN",
+        language: str = "en-US",
         provider_name: str | None = None,
     ) -> adapters.STTResult:
         name = provider_name or self.get_active()["stt"]
@@ -111,14 +111,6 @@ class VoiceManager:
             if row is None:
                 raise OctopError(ErrorCode.NOT_FOUND, "OpenAI voice provider is not configured")
             return await adapters.transcribe_openai(row, audio, mime=mime, language=language)
-        if kind == "tencent":
-            if row is None:
-                raise OctopError(ErrorCode.NOT_FOUND, "Tencent voice provider is not configured")
-            return await adapters.transcribe_tencent(row, audio, mime=mime, language=language)
-        if kind == "mimo":
-            if row is None:
-                raise OctopError(ErrorCode.NOT_FOUND, "Mimo voice provider is not configured")
-            return await adapters.transcribe_mimo(row, audio, mime=mime, language=language)
         raise OctopError(ErrorCode.VOICE_KIND_UNSUPPORTED, f"unsupported STT kind {kind!r}")
 
     async def synthesize(
@@ -164,20 +156,6 @@ class VoiceManager:
             async for chunk in adapters.synthesize_openai(
                 row, text, voice_id=voice_id, speed=speed
             ):
-                yield chunk
-            return
-        if kind == "tencent":
-            if row is None:
-                raise OctopError(ErrorCode.NOT_FOUND, "Tencent voice provider is not configured")
-            async for chunk in adapters.synthesize_tencent(
-                row, text, voice_id=voice_id, speed=speed
-            ):
-                yield chunk
-            return
-        if kind == "mimo":
-            if row is None:
-                raise OctopError(ErrorCode.NOT_FOUND, "Mimo voice provider is not configured")
-            async for chunk in adapters.synthesize_mimo(row, text, voice_id=voice_id, speed=speed):
                 yield chunk
             return
         raise OctopError(ErrorCode.VOICE_KIND_UNSUPPORTED, f"unsupported TTS kind {kind!r}")

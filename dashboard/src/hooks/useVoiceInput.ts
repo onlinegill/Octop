@@ -58,10 +58,9 @@ const WAV_SAMPLE_RATE = 16000;
 /**
  * Re-encode a recorded blob as 16kHz mono PCM16 WAV.
  *
- * Server STT providers reject browser recording containers (e.g. Tencent ASR
- * does not accept webm). Decoding via Web Audio and uploading plain WAV works
- * for every provider. Falls back to the original blob when the browser cannot
- * decode it.
+ * Server STT providers reject browser recording containers (many do not
+ * accept webm). Decoding via Web Audio and uploading plain WAV works for every
+ * provider. Falls back to the original blob when the browser cannot decode it.
  */
 async function recordedBlobToWav(blob: Blob): Promise<Blob> {
   const Ctor =

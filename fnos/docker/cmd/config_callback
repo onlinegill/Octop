@@ -1,10 +1,12 @@
 #!/bin/bash
 #
-# Octop — 配置后回调（应用「设置」窗口提交后执行）
+# Octop — post-config callback (runs after the app "Settings" window is submitted)
 #
-# 只处理管理员改密：两栏都空则保持不变；填了则更新 docker/.env、
-# data-share 引导文件、octop-login.txt 应急备份，容器在运行时
-# docker exec ... octop user passwd。日志与 API Key 请在 Web 控制台配置。
+# Only handles administrator password changes: if both fields are left empty the
+# password is kept; if filled in, it updates docker/.env, the data-share
+# bootstrap file and the octop-login.txt emergency backup, and while the
+# container is running runs docker exec ... octop user passwd. Configure logging
+# and the API Key in the Web console.
 #
 set -euo pipefail
 
@@ -15,7 +17,7 @@ _OCTOP_COMMON="$(dirname "$0")/common.sh"
 ENV_FILE="${TRIM_APPDEST:-/var/apps/octop/target}/docker/.env"
 mkdir -p "$(dirname "$ENV_FILE")"
 
-# 挂飞牛 data-share（TRIM_DATA_SHARE_PATHS），与 compose 卷一致。
+# Mount the FnOS data-share (TRIM_DATA_SHARE_PATHS), matching the compose volumes.
 DATA_DIR="$(octop_prepare_docker_persist "$ENV_FILE")"
 mkdir -p "$DATA_DIR"
 
@@ -52,10 +54,10 @@ fi
 if [ "$PASS_CHANGED" = "1" ]; then
     if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER" \
         && docker exec "$CONTAINER" octop user passwd "$CUR_USER" --password "$ADMIN_PASS" > "$LOG" 2>&1; then
-        echo "[octop] 已通过官方 CLI 修改管理员密码" > "$LOG" 2>&1 || true
+        echo "[octop] administrator password changed via the official CLI" > "$LOG" 2>&1 || true
     else
         octop_mark_fnos_passwd_pending "$DATA_DIR"
-        echo "[octop] 提示：容器未运行或在线改密未成功，已记下待下次启动同步。" > "$LOG" 2>&1 || true
+        echo "[octop] note: the container is not running or the online password change failed; it has been recorded to sync on next start." > "$LOG" 2>&1 || true
     fi
     octop_env_set "$ENV_FILE" OCTOP_DEFAULT_PASSWORD "$ADMIN_PASS"
     octop_persist_docker_env "$ENV_FILE"

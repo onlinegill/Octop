@@ -42,9 +42,9 @@ async def client(tmp_path: Path):
 
 async def test_octop_error_5xx_is_logged(client: httpx.AsyncClient) -> None:
     with patch("octop.api.app.logger") as mock_logger:
-        r = await client.get("/_test/octop-500", headers={"Accept-Language": "zh"})
+        r = await client.get("/_test/octop-500", headers={"Accept-Language": "en"})
     assert r.status_code == 500
-    assert r.json()["error"]["message"] == "服务器内部错误。"
+    assert r.json()["error"]["message"] == "Internal server error."
     mock_logger.error.assert_called_once()
     args, kwargs = mock_logger.error.call_args
     rendered = args[0] % args[1:]

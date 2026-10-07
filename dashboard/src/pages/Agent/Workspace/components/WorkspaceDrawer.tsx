@@ -998,7 +998,7 @@ export default function WorkspaceDrawer({
       message.success(
         t("workspace.uploaded", {
           name: file.name,
-          defaultValue: `已上传 ${file.name}`,
+          defaultValue: `Uploaded ${file.name}`,
         }),
       );
       await reloadBranch(uploadDir);
@@ -1084,7 +1084,7 @@ export default function WorkspaceDrawer({
               ? t("common.refresh")
               : t(
                   "workspace.refreshHint",
-                  "只刷新根目录；子目录在展开时按需加载",
+                  "Only the root directory is refreshed; subdirectories are loaded on demand when expanded",
                 )
           }
         >
@@ -1279,7 +1279,7 @@ export default function WorkspaceDrawer({
                   <Empty
                     description={t(
                       "workspace.pickEntry",
-                      "选择工作区或文件以查看内容",
+                      "Select a workspace or file to view the contents",
                     )}
                   />
                 </div>

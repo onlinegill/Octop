@@ -232,7 +232,7 @@ async def test_install_keeps_source_quick_prompts_when_publish_body_omits_them(
         headers=owner_auth,
         json={
             "name": "Quick card expert",
-            "welcome_message": {"zh": "开始写代码吧", "en": "Let's write code"},
+            "welcome_message": {"zh": "Let's write code", "en": "Let's write code"},
         },
     )
     assert published.status_code == 201, published.text

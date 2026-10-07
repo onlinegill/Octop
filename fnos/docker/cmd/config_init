@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-# Octop — 配置变更前回调
-# 设置窗口只改管理员密码：两栏都空=保持不变；填了则校验一致与密码策略。
+# Octop — pre-config callback
+# The settings window only changes the administrator password: both fields empty = keep unchanged;
+# if filled in, the match and password policy are validated.
 #
 set -euo pipefail
 

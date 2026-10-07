@@ -26,7 +26,10 @@ GATED_FILES = [
     "routers/search.py",
     "routers/ollama_models.py",
     "routers/onnx_models.py",
-    "routers/connectors.py",
+    # routers/connectors.py was dropped from this list: its only module-permission
+    # route (the admin-only host CLI installer) was deleted with the China
+    # integrations. The remaining endpoints are per-user: they require an
+    # authenticated user (current_user) plus an ownership assertion.
     "routers/knowledge_bases.py",
     "routers/browser/uninstall.py",
     "routers/browser/env.py",

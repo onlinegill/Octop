@@ -1,13 +1,15 @@
 services:
   octop:
-    image: ghcr.io/tencentcloud/octop:1.0.2b5
+    image: ghcr.io/onlinegill/octop:1.0.2b5
     container_name: octop
     restart: unless-stopped
     pull_policy: missing
     ports:
       - "8088:8088"
-    # 官方镜像 entrypoint 读不到飞牛向导密码（.env 不在 @appcenter）。
-    # 改用 data-share 上的引导脚本：每次启动用向导密码 init 或 passwd。
+    # The official image entrypoint cannot read the FnOS wizard password
+    # (.env is not under @appcenter).
+    # Instead use a bootstrap script on the data-share: on every start it
+    # initialises or resets the password using the wizard password.
     entrypoint: ["bash", "/usr/local/bin/fnos-boot.sh"]
     volumes:
       - "${TRIM_DATA_SHARE_PATHS}/.octop:/data/.octop"

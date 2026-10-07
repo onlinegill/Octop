@@ -1,4 +1,4 @@
-"""Pluggable OAuth SSO HTTP routes (Feishu and future providers)."""
+"""Pluggable OAuth SSO HTTP routes (OIDC and future providers)."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from octop.infra.users.identity import User
 
 router = APIRouter()
 
-SsoKind = Literal["oidc", "feishu", "dingtalk", "wecom"]
+SsoKind = Literal["oidc"]
 
 
 class OauthStartBody(BaseModel):

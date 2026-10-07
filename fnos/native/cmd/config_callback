@@ -1,10 +1,11 @@
 #!/bin/bash
 #
-# Octop 本地版 — 重新配置回调（应用「设置」窗口提交后执行）
+# Octop (native) — reconfigure callback (runs after the app "Settings" window is submitted)
 #
-# 只处理管理员改密：两栏都空则保持不变；填了则更新 PKGVAR/.env、
-# octop-login.txt 应急备份，并对已初始化实例调用 octop user passwd。
-# 日志与 API Key 请在 Web 控制台配置。
+# Only handles administrator password changes: if both fields are left empty the
+# password is kept; if filled in, it updates PKGVAR/.env and the octop-login.txt
+# emergency backup, and calls octop user passwd for an already-initialised
+# instance. Configure logging and the API Key in the Web console.
 #
 set -euo pipefail
 
@@ -52,20 +53,20 @@ fi
 OCTOP_HOME="${DATA_DIR}/.octop"
 MAIN="$APPDEST/cmd/main"
 if [ "$PASS_CHANGED" = "1" ] && [ -f "$OCTOP_HOME/octop.db" ]; then
-    echo "[octop-native] 检测到已初始化实例，先停止服务再离线修改管理员密码 ..." > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
+    echo "[octop-native] detected an initialised instance; stopping the service before changing the administrator password offline ..." > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
     [ -x "$MAIN" ] && "$MAIN" stop >/dev/null 2>&1 || true
     if "$APPDEST/bin/octop-cli" user passwd "$CUR_USER" --password "$ADMIN_PASS" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1; then
-        echo "[octop-native] 已通过官方 CLI 修改管理员密码" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
+        echo "[octop-native] administrator password changed via the official CLI" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
     else
         octop_mark_fnos_passwd_pending "$DATA_DIR"
-        echo "[octop-native] 警告：离线改密未成功，已记下待下次启动同步。" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
+        echo "[octop-native] warning: the offline password change failed; it has been recorded to sync on next start." > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
     fi
     [ -x "$MAIN" ] && "$MAIN" start >/dev/null 2>&1 || true
 fi
 
 if [ "$PASS_CHANGED" = "1" ]; then
     octop_env_set "$ENV_FILE" OCTOP_DEFAULT_PASSWORD "$ADMIN_PASS"
-    echo "[octop-native] 已更新配置: $ENV_FILE" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>/dev/null || true
+    echo "[octop-native] configuration updated: $ENV_FILE" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>/dev/null || true
     octop_write_login_file "$DATA_DIR" "$CUR_USER" "$ADMIN_PASS" 8089
 fi
 

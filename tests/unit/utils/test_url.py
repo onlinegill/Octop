@@ -11,7 +11,7 @@ def test_empty_and_blank() -> None:
 
 
 def test_bare_host_is_prefixed() -> None:
-    assert normalize_nav_url("baidu.com") == "https://baidu.com"
+    assert normalize_nav_url("example.org") == "https://example.org"
     assert normalize_nav_url("example.com/a?q=1") == "https://example.com/a?q=1"
 
 
@@ -24,7 +24,7 @@ def test_absolute_http_urls_are_preserved() -> None:
 def test_protocol_relative_url_gets_https() -> None:
     """`//host` is a relative scheme URL (common when copied from a page source);
     it must not become the hostless https:////host."""
-    assert normalize_nav_url("//baidu.com") == "https://baidu.com"
+    assert normalize_nav_url("//example.org") == "https://example.org"
     assert normalize_nav_url("//example.com/path?q=1") == "https://example.com/path?q=1"
 
 

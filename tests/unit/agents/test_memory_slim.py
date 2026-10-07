@@ -193,7 +193,7 @@ def test_cli_prints_localized_progress_without_booting_another_host(tmp_path, mo
     monkeypatch.setattr(command, "request_memory_slim", events)
     result = CliRunner().invoke(cli, ["memory", "slim", "--agent", "main"])
     assert result.exit_code == 0, result.output
-    assert "正在备份" in result.output and "2.00 → 1.00" in result.output
+    assert "Backing up memory" in result.output and "2.00 -> 1.00" in result.output
 
 
 @pytest.mark.parametrize("phase", ["backing_up", "deduplicating", "compacting"])
@@ -279,8 +279,8 @@ def test_cli_selects_by_number_and_shows_counts(tmp_path, monkeypatch):
         command,
         "list_memory_slim_agents",
         lambda *args, **kwargs: [
-            {"name": "同名助手", "agent_id": "first"},
-            {"name": "同名助手", "agent_id": "second"},
+            {"name": "duplicate assistant", "agent_id": "first"},
+            {"name": "duplicate assistant", "agent_id": "second"},
         ],
     )
     selected = []
@@ -296,10 +296,10 @@ def test_cli_selects_by_number_and_shows_counts(tmp_path, monkeypatch):
     result = CliRunner().invoke(cli, ["memory", "slim"], input="9\n2\n")
     assert result.exit_code == 1
     assert selected == ["second"]
-    assert "1. 同名助手  [first]" in result.output
-    assert "2. 同名助手  [second]" in result.output
+    assert "1. duplicate assistant  [first]" in result.output
+    assert "2. duplicate assistant  [second]" in result.output
     assert "100/200" in result.output
-    assert "已用时 9 秒" in result.output
+    assert "Elapsed: 9s" in result.output
     assert "test failure" in result.output
 
 
@@ -316,7 +316,7 @@ def test_discovery_never_starts_maintenance(tmp_path, monkeypatch, args):
     monkeypatch.setattr(
         command,
         "list_memory_slim_agents",
-        lambda *args, **kwargs: [{"name": "助手", "agent_id": "first"}],
+        lambda *args, **kwargs: [{"name": "assistant", "agent_id": "first"}],
     )
 
     def forbidden(*args, **kwargs):
@@ -343,8 +343,8 @@ def test_empty_discovery_exits_without_a_prompt(tmp_path, monkeypatch):
     monkeypatch.setattr(command, "list_memory_slim_agents", lambda *args, **kwargs: [])
     result = CliRunner().invoke(cli, ["memory", "slim"])
     assert result.exit_code == 1
-    assert "没有可在线整理" in result.output
-    assert "输入要整理" not in result.output
+    assert "No eligible SQLite agents" in result.output
+    assert "Choose the number to maintain" not in result.output
 
 
 def test_live_discovery_filters_unavailable_agents_without_opening_memory(tmp_path):
@@ -378,7 +378,7 @@ async def test_control_discovery_and_heartbeat_during_unchanged_phase(tmp_path, 
     from octop.infra.agents.memory.slim_control import list_memory_slim_agents
 
     coordinator, registry, memory, _, _ = make_manager(tmp_path)
-    registry.list_rows = lambda: [SimpleNamespace(agent_id="a", name="助手")]
+    registry.list_rows = lambda: [SimpleNamespace(agent_id="a", name="assistant")]
     release = threading.Event()
 
     def slow(*args, **kwargs):
@@ -394,7 +394,7 @@ async def test_control_discovery_and_heartbeat_during_unchanged_phase(tmp_path, 
     await control.start()
     try:
         agents = await asyncio.to_thread(list_memory_slim_agents, tmp_path)
-        assert agents == [{"agent_id": "a", "name": "助手"}]
+        assert agents == [{"agent_id": "a", "name": "assistant"}]
         assert coordinator.task is None
         endpoint = json.loads((tmp_path / "memory-slim-control.json").read_text())
         reader, writer = await asyncio.open_connection("127.0.0.1", endpoint["port"])
@@ -440,7 +440,7 @@ def batch_cli(tmp_path, monkeypatch):
     monkeypatch.setattr(
         command,
         "list_memory_slim_agents",
-        lambda *args, **kwargs: [{"name": "助手", "agent_id": aid} for aid in ["a", "b", "c"]],
+        lambda *args, **kwargs: [{"name": "assistant", "agent_id": aid} for aid in ["a", "b", "c"]],
     )
 
     def no_default(*args):
@@ -482,7 +482,7 @@ def test_cli_all_runs_sequentially_with_batch_progress(batch_cli, monkeypatch, j
         assert all(item["total_agents"] == 3 for item in updates)
     else:
         assert "[1/3]" in result.output and "[3/3]" in result.output
-        assert "共完成 3 个" in result.output
+        assert "Batch complete: 3 agents maintained." in result.output
         assert all(f"{aid}.bak" in result.output for aid in completed)
 
 
@@ -529,7 +529,7 @@ def test_cli_all_rejects_explicit_agent(batch_cli, monkeypatch, args):
     monkeypatch.setattr(command, "request_memory_slim", forbidden)
     result = runner.invoke(cli, args)
     assert result.exit_code == 2
-    assert "--all 不能与 --agent" in result.output
+    assert "--all cannot be combined with --agent" in result.output
 
 
 def test_cli_all_empty_list_does_not_start_job(batch_cli, monkeypatch):
@@ -542,7 +542,7 @@ def test_cli_all_empty_list_does_not_start_job(batch_cli, monkeypatch):
     monkeypatch.setattr(command, "request_memory_slim", forbidden)
     result = runner.invoke(cli, ["memory", "slim", "--all"])
     assert result.exit_code == 1
-    assert "没有可在线整理" in result.output
+    assert "No eligible SQLite agents" in result.output
 
 
 def chat_registry(registry):
@@ -699,25 +699,25 @@ def test_preview_reports_specific_ineligibility_without_starting(tmp_path, monke
             registry.get_agent = lambda _: SimpleNamespace(
                 _memory_runtime=SimpleNamespace(memory=None)
             )
-            expected = "没有启用记忆库"
+            expected = "no memory enabled"
         elif reason == "stopped":
 
             def stopped(_):
                 raise OctopError(ErrorCode.AGENT_NOT_RUNNING, "stopped")
 
             registry.get_agent = stopped
-            expected = "尚未启动"
+            expected = "not running or failed to start"
         else:
             monkeypatch.delattr(checkpoint_maintenance, "slim_live_checkpoints")
-            expected = "未提供在线整理接口"
+            expected = "does not provide live maintenance"
             with pytest.raises(ValueError, match=expected):
                 coordinator.list_agents(locale="zh")
         with pytest.raises(ValueError, match=expected) as error:
             coordinator.preview_chat("a", 1, locale="zh")
         if reason == "postgres":
-            assert "也可能出现重复数据或空间膨胀" in str(error.value)
-            assert "尚未支持 PostgreSQL 瘦身" in str(error.value)
-            assert "未执行任何整理，聊天可继续" in str(error.value)
+            assert "can also accumulate duplicate data or storage bloat" in str(error.value)
+            assert "does not yet support PostgreSQL slimming" in str(error.value)
+            assert "you can continue chatting" in str(error.value)
         assert coordinator.task is None and not registry._history_backfills
         assert not list(tmp_path.glob("*.bak"))
     finally:

@@ -15,7 +15,7 @@ describe("classifyChatStreamError", () => {
   it("classifies StreamChunkTimeoutError retry text as stream_stall", () => {
     const msg =
       "Model call failed after 3 attempts with StreamChunkTimeoutError: " +
-      "No streaming chunk received for 120.0s (model=MiniMax-M2.7, chunks_received=122).";
+      "No streaming chunk received for 120.0s (model=example-model-v1, chunks_received=122).";
     expect(classifyChatStreamError(msg)).toBe("stream_errors.stream_stall");
     expect(isChatStreamError(msg)).toBe(true);
   });
@@ -71,7 +71,7 @@ describe("classifyChatStreamError", () => {
 
   it("classifies leftover Windows outside-root paths", () => {
     const msg =
-      String.raw`ValueError: Path:D:\octop-data\data\文章存稿\x.md ` +
+      String.raw`ValueError: Path:D:\octop-data\data\Article deposit\x.md ` +
       String.raw`outside root directory: C:\Users\Administrator`;
     expect(classifyChatStreamError(msg)).toBe(
       "stream_errors.path_outside_root",

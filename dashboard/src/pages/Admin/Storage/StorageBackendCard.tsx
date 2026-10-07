@@ -136,7 +136,7 @@ export function StorageBackendCard({
                   : "",
               )
               .filter(Boolean)
-              .join("、");
+              .join(",");
             message.error(t("storage.deleteReferenced", { names }));
             return;
           }

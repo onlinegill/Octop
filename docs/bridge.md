@@ -1,120 +1,122 @@
-# Bridge（Octop ↔ Octop 实例桥）
+# Bridge (Octop ↔ Octop instance bridge)
 
-> 状态：实现中（Phase 0–3 骨架已落地）。命名与范围以本文为准；实现落在 `infra/bridge/`。  
-> 与同机 Agent 互调无关：见 [agent-call-agent.md](./agent-call-agent.md)（`ask_agent` 不参与跨实例）。
+> Status: in progress (Phase 0–3 skeleton landed). The naming and scope in this document are authoritative; the implementation lives under `infra/bridge/`.  
+> Unrelated to same-machine agent interop: see [agent-call-agent.md](./agent-call-agent.md) (`ask_agent` does not participate in cross-instance calls).
 
-用户级连接另一台 Octop（云端或另一台本地），在本机 Dashboard 查看对端专家列表、按需拉取对话记录，并像选择本地专家一样与对端专家对话（对称：对端也可经同一桥访问本机）。对话只在**专家所在实例**执行；发起侧不落库完整历史。
+At the user level, connect to another Octop (in the cloud or another local machine), view the peer's expert list in the local dashboard, pull conversation records on demand, and talk to peer experts just as you would select a local expert (symmetrically: the peer can also reach this machine through the same bridge). A conversation runs only on the **instance where the expert lives**; the initiating side does not persist the full history.
 
-## 1. 需求结论
+## 1. Requirements conclusions
 
-| 项 | 结论 |
-|----|------|
-| 连接粒度 | 用户级：地址 + 用户名 + 密码；密码加密存储便于自动重连 |
-| 多节点 | 同一用户可同时连接多个远程 Octop |
-| 拓扑 | 两边均可主动建连；同一逻辑连接共用一个 `connection_id` |
-| 专家 | 在线拉取列表；影子入口；不复制 workspace；不安装为本地 runnable agent |
-| 可见范围 | 与该账号在对端本机可见范围一致（无额外「联邦可见」勾选） |
-| UI | 远程单独入口/分组，不与本地专家混排 |
-| 对话执行 | 仅在专家所在侧跑 harness；发起侧不改 harness |
-| 历史 | 按需拉取；权威在专家所在侧；发起侧仅临时会话、不写本机 threads |
-| 附件 | 支持；文件落入专家所在侧 `inbound/` |
-| 前端调用 | 浏览器只打本机 API；本机识别远程后经桥转发 |
-| 远程 agent id | `bridge:{connection_id}:{remote_agent_id}` |
-| 传输 | 联邦长连接用 WebSocket；其上以**通用 HTTP 隧道**为主；特殊能力以后再补显式 RPC |
-| 非目标 | 改造 `ask_agent` / harness 跨端协议；双边双写完整聊天记录；浏览器直连对端 baseURL |
+| Item | Conclusion |
+|------|------------|
+| Connection granularity | User level: address + username + password; the password is stored encrypted to simplify auto-reconnect |
+| Multiple nodes | The same user can connect to several remote Octops at once |
+| Topology | Either side can initiate the connection; one logical connection shares a single `connection_id` |
+| Experts | Pull the list online; a shadow entry point; do not copy the workspace; do not install as a local runnable agent |
+| Visibility scope | Matches what that account can see on the peer machine (no extra "federated visibility" toggle) |
+| UI | Remote has its own entry point/grouping, not mixed in with local experts |
+| Conversation execution | The harness runs only on the expert's side; the initiating side does not change its harness |
+| History | Pulled on demand; the authoritative copy is on the expert's side; the initiating side keeps only a transient session and does not write local `threads` |
+| Attachments | Supported; files land in the expert's side `inbound/` |
+| Frontend calls | The browser talks only to the local API; after identifying a remote target locally, requests are forwarded over the bridge |
+| Remote agent id | `bridge:{connection_id}:{remote_agent_id}` |
+| Transport | WebSocket for the federated long connection; on top of it, a **general HTTP tunnel** is primary; special capabilities get explicit RPC later |
+| Non-goals | Reworking `ask_agent` / the harness cross-instance protocol; dual-writing the full chat record on both sides; the browser connecting directly to the peer baseURL |
 
-## 2. 总体架构
+## 2. Overall architecture
 
 ```
-┌─────────────────────┐         Bridge WS（双向可发起）        ┌─────────────────────┐
-│ 本机 Octop          │◄─────────────────────────────────────►│ 对端 Octop          │
-│                     │   HTTP 隧道 + turn 流式多路复用         │                     │
-│ Dashboard ──HTTP──► │                                       │ ◄──HTTP── Dashboard │
-│   localhost API     │                                       │   peer API          │
-│         │           │                                       │         │           │
-│   infra/bridge      │                                       │   infra/bridge      │
-│   (识别 bridge:* /  │                                       │   (执行隧道请求)     │
-│    转发 / 收隧道)   │                                       │                     │
-│         │           │                                       │         │           │
-│ 本地 agent+harness  │                                       │ 对端 agent+harness  │
-└─────────────────────┘                                       └─────────────────────┘
+┌─────────────────────┐         Bridge WS (either side may initiate)   ┌─────────────────────┐
+│ Local Octop         │◄───────────────────────────────────────────────►│ Peer Octop          │
+│                     │   HTTP tunnel + turn streaming multiplexing      │                     │
+│ Dashboard ──HTTP──► │                                                 │ ◄──HTTP── Dashboard │
+│   localhost API     │                                                 │   peer API          │
+│         │           │                                                 │         │           │
+│   infra/bridge      │                                                 │   infra/bridge      │
+│   (identifies       │                                                 │   (executes tunnel  │
+│    bridge:* /       │                                                 │    requests)        │
+│    forwards /       │                                                 │                     │
+│    receives tunnel) │                                                 │                     │
+│         │           │                                                 │         │           │
+│ local agent+harness │                                                 │ peer agent+harness  │
+└─────────────────────┘                                                 └─────────────────────┘
 ```
 
-![图 2-1 总体架构：两台 Octop 经 Bridge WebSocket 互联](./assets/bridge-architecture.png)
-<!-- 生图建议：扁平化技术架构示意图，16:9。左侧一台服务器图标标「本机 Octop」，右侧标「对端 Octop」，中间一条加粗双向箭头标「Bridge WebSocket（双向可发起）」，细注「HTTP 隧道 + turn 流式多路复用」。两侧各自画出：Dashboard（浏览器仅连本机）、localhost/peer API、infra/bridge 模块、本地/对端 agent+harness。强调机机总线是独立 Bridge WS，不复用浏览器 Hub。现代 SaaS 蓝灰配色、等宽无衬线、留白充足。（注意：含精确文字的架构图建议用 Mermaid/Excalidraw 生成；AI 生图只作概念示意图，文字以图注补充） -->
+![Figure 2-1 Overall architecture: two Octop instances connected over the Bridge WebSocket](./assets/bridge-architecture.png)
+<!-- Image brief: a flat technical architecture diagram, 16:9. Left: a server icon labeled "Local Octop"; right: labeled "Peer Octop"; in the middle a bold double-headed arrow labeled "Bridge WebSocket (either side may initiate)", with a finer note "HTTP tunnel + turn streaming multiplexing". Draw on each side: Dashboard (browser connects only to the local machine), localhost/peer API, the infra/bridge module, and local/peer agent+harness. Emphasize that the machine-to-machine bus is an independent Bridge WS and does not reuse the browser Hub. Modern SaaS blue-grey palette, monospaced sans-serif, generous whitespace. (Note: architecture diagrams with exact text are best generated with Mermaid/Excalidraw; AI-generated images are conceptual only, with text conveyed in the caption) -->
 
-- **Harness / GlobalProcessor** 保持单机语义；桥只负责把请求送到对端执行并把响应送回。
-- Dashboard 的 `WebSocketHub` 仅服务浏览器↔本机；**机机总线是独立的 Bridge WS**，不要复用 Hub。
-- NAT：对端 HTTP 往往不可达时，业务走已建立的 Bridge WS 隧道（尤其云端访问家里的本地实例）。
+- **Harness / GlobalProcessor** keep single-machine semantics; the bridge only delivers requests to the peer for execution and returns the response.
+- The Dashboard's `WebSocketHub` serves only browser↔local; **the machine-to-machine bus is an independent Bridge WS** — do not reuse the Hub.
+- NAT: when the peer's HTTP is often unreachable, traffic goes over the established Bridge WS tunnel (especially when the cloud accesses a home local instance).
 
-## 3. 模块边界
+## 3. Module boundaries
 
-| 路径 | 职责 |
-|------|------|
-| `infra/bridge/connections.py` | 连接 CRUD、加密凭证、`connection_id`、多节点 |
-| `infra/bridge/transport.py` | 出站 WS 客户端 + 入站 WS 端点；重连；同 `connection_id` 去重合并 |
-| `infra/bridge/http_tunnel.py` | 通用 `method/path/query/headers/body` ↔ 响应；分片、超时、取消 |
-| `infra/bridge/router.py` | 本机侧：目标为 `bridge:*`（或显式 connection 上下文）时改走隧道 |
-| `infra/bridge/chat_bridge.py` | 远程对话：本机 chat WS ↔ 桥上对端 turn 流 |
-| `api/routers/bridge.py` | 连接管理 HTTP（探测/添加/列表/删除/连接/改名）；Dashboard 入口在 **设置 → 远程桥接**（`/bridge`，知识库下方） |
+| Path | Responsibility |
+|------|----------------|
+| `infra/bridge/connections.py` | Connection CRUD, encrypted credentials, `connection_id`, multiple nodes |
+| `infra/bridge/transport.py` | Outbound WS client + inbound WS endpoint; reconnect; dedupe/merge by `connection_id` |
+| `infra/bridge/http_tunnel.py` | General `method/path/query/headers/body` ↔ response; chunking, timeouts, cancellation |
+| `infra/bridge/router.py` | Local side: route over the tunnel when the target is `bridge:*` (or an explicit connection context) |
+| `infra/bridge/chat_bridge.py` | Remote chat: local chat WS ↔ peer turn stream over the bridge |
+| `api/routers/bridge.py` | Connection-management HTTP (probe/add/list/delete/connect/rename); Dashboard entry point is **Settings → Remote Bridge** (`/bridge`, below Knowledge Base) |
 
-### 探测（probe，不落库）
+### Probe (does not persist)
 
-添加连接前可先 `POST /api/bridge/probe`：用填写的 `peer_base_url` + 用户名/密码对端 HTTP 登录，再拉 `GET /api/agents?scope=mine`，返回专家摘要列表（`agent_id` / `name` / `description` / 绝对 `icon_url` 等）。**不**写入 `bridge_connections`，**不**建立 Bridge WS。Dashboard 添加抽屉里的「探测」按钮走此接口。
+Before adding a connection you can `POST /api/bridge/probe`: log in to the peer over HTTP with the supplied `peer_base_url` + username/password, then pull `GET /api/agents?scope=mine`, returning a list of expert summaries (`agent_id` / `name` / `description` / absolute `icon_url`, etc.). It does **not** write `bridge_connections` and does **not** establish a Bridge WS. The "Probe" button in the Dashboard add drawer calls this endpoint.
 
-「保存并连接」仅在登录 + Bridge WS `hello_ack` 成功后落库；失败回滚。管理 API 按连接所有者鉴权（登录用户即可管理自己的桥）。入站隧道允许 **agent 范围内** 的读写（聊天、工作区、定时任务、状态，以及个性化里标记为 limited 的工具 / 插件 / 渠道，含 `PATCH …/tool-settings` 与 `POST …/reload`），外加只读 composer：`GET /api/providers/resolved`、`GET /api/providers/active-model`、`GET /api/knowledge-bases`、`GET /api/knowledge-bases/capability`，以及 Chat dock 浏览器 viewer：`GET /api/browser/env-status`、`GET /api/browser/harness-sessions`、`POST /api/browser/sessions/{id}/handoff`。技能包、全局 ACP、连接器管理、知识库管理在 Dashboard 标为 peer-only，应在对端操作。管理 / 认证 / Bridge 控制面不入隧道。`history-migration` 仅本机处理。入站 hello 不得抢占他人 `connection_id`。旧入口 `/admin/advanced?tab=bridge` 会重定向到 `/bridge`。
+"Save and connect" persists only after login + Bridge WS `hello_ack` succeeds; on failure it rolls back. The management API authenticates by connection owner (a logged-in user can manage their own bridges). The inbound tunnel allows reads/writes **within an agent's scope** (chat, workspace, cron, status, plus tools / plugins / channels marked as limited in personalization, including `PATCH …/tool-settings` and `POST …/reload`), plus read-only composer: `GET /api/providers/resolved`, `GET /api/providers/active-model`, `GET /api/knowledge-bases`, `GET /api/knowledge-bases/capability`, and the Chat dock browser viewer: `GET /api/browser/env-status`, `GET /api/browser/harness-sessions`, `POST /api/browser/sessions/{id}/handoff`. Skill packs, global ACP, connector management, and knowledge-base management are marked peer-only in the Dashboard and should be operated on the peer. Admin / auth / Bridge control-plane are not tunnelled. `history-migration` is handled locally only. An inbound hello must not hijack another party's `connection_id`. The legacy entry point `/admin/advanced?tab=bridge` redirects to `/bridge`.
 
 
-依赖：`api` → `infra/bridge` → 现有 `infra`（对端登录、对端执行 agents/history/upload）。  
-禁止：`bridge` → `api/` / `cli/` / `launch.py`（peer turn / browser runner 由 `build_app` 注入）；禁止用 Dashboard Hub 做机机通道。
+Dependencies: `api` → `infra/bridge` → the existing `infra` (peer login, peer execution of agents/history/upload).  
+Forbidden: `bridge` → `api/` / `cli/` / `launch.py` (peer turn / browser runner are injected by `build_app`); forbidden to use the Dashboard Hub as the machine-to-machine channel.
 
-## 4. 连接与身份
+## 4. Connections and identity
 
-### 4.1 配对流程
+### 4.1 Pairing flow
 
-1. 用户在本机填：`base_url`、`username`、`password`。
-2. 发起方用 HTTP 调对端 `POST /api/auth/login` 换 token（**首次配对假定发起方能 HTTP 打到对端**；若不可达需由另一侧发起或另做配对码——实现前写死一种冷启动路径）。
-3. 生成 `connection_id`（ULID）；握手帧确认后**两边各存同一 id**。
-4. 建立 Bridge WS；之后业务优先走隧道（尤其反向访问 NAT 后实例）。
-5. 密码与 token **加密落库**；重连优先 refresh，失败再用密码登录。
+1. The user fills in locally: `base_url`, `username`, `password`.
+2. The initiator calls the peer's `POST /api/auth/login` over HTTP to get a token (**the first pairing assumes the initiator can reach the peer over HTTP**; if unreachable, the other side must initiate or a separate pairing code is needed — before implementation, fix one cold-start path).
+3. Generate a `connection_id` (ULID); after the handshake frame is confirmed, **both sides store the same id**.
+4. Establish the Bridge WS; thereafter traffic prefers the tunnel (especially to reach instances behind NAT).
+5. The password and token are **stored encrypted**; reconnect prefers refresh, falling back to password login.
 
-![图 4-1 配对流程：从填表到建立 Bridge WS](./assets/bridge-pairing-flow.png)
-<!-- 生图建议：横向步骤/时序图。①用户填 base_url+用户名+密码；②本机发 HTTP 登录对端换 token（箭头指向对端）；③生成 ULID connection_id；④握手帧确认后两边各存同一 id（两个数据库图标显示相同 id）；⑤建立 Bridge WS，业务优先走隧道。编号圆点或泳道呈现，蓝灰科技风。（精确流程图建议用 Mermaid，AI 生图作概念示意） -->
+![Figure 4-1 Pairing flow: from form fill to establishing the Bridge WS](./assets/bridge-pairing-flow.png)
+<!-- Image brief: a horizontal step/sequence diagram. ① User fills base_url + username + password; ② the local machine sends an HTTP login to the peer to exchange a token (arrow to the peer); ③ generate a ULID connection_id; ④ after the handshake frame is confirmed, both sides each store the same id (two database icons showing the same id); ⑤ establish the Bridge WS, traffic prefers the tunnel. Use numbered dots or swimlanes, blue-grey tech style. (An exact flowchart is best done with Mermaid; AI images are conceptual only) -->
 
-### 4.2 存储（示意）
+### 4.2 Storage (illustrative)
 
-表名建议：`bridge_connections`。
+Suggested table name: `bridge_connections`.
 
-| 列 | 说明 |
-|----|------|
-| `connection_id` | 双方一致的逻辑连接 id |
-| `owner_user_id` | 本机用户 |
-| `peer_base_url` | 对端地址 |
-| `peer_username` | 对端登录名 |
-| `display_name` | **必填**、同一用户下唯一；聊天页分组切换用的显示名 |
-| `notes` | 可选备注，仅本机展示 |
-| `password_encrypted` | 加密密码 |
-| `access_token_encrypted` / refresh / 过期时间 | 会话 |
-| `created_at` / `last_seen_at` / `status` | 元数据 |
+| Column | Description |
+|--------|-------------|
+| `connection_id` | The logical connection id shared by both sides |
+| `owner_user_id` | The local user |
+| `peer_base_url` | Peer address |
+| `peer_username` | Peer login name |
+| `display_name` | **Required**, unique per user; the display name used for the group switch on the chat page |
+| `notes` | Optional note, shown locally only |
+| `password_encrypted` | Encrypted password |
+| `access_token_encrypted` / refresh / expiry | Session |
+| `created_at` / `last_seen_at` / `status` | Metadata |
 
-同一本机用户可有多行（多远程节点）。
+A single local user may have multiple rows (multiple remote nodes).
 
-### 4.3 鉴权与可见性
+### 4.3 Auth and visibility
 
-- 隧道内请求以**对端该登录用户**身份执行。
-- 专家可见范围 = 该用户在对端本机可见范围。
-- 本机用户 id 与对端用户 id **无对应关系**。
+- Requests inside the tunnel execute as **that logged-in user on the peer**.
+- The expert visibility scope = that user's visibility scope on the peer machine.
+- There is **no correspondence** between the local user id and the peer user id.
 
-### 4.4 双向主动连
+### 4.4 Bidirectional initiation
 
-- 任一侧可 dial；握手携带 `connection_id` + 用户证明。
-- 已存在同一 `connection_id` 的活连接则合并或踢旧，避免双管道。
+- Either side may dial; the handshake carries `connection_id` + user proof.
+- If a live connection with the same `connection_id` already exists, merge or kick the old one to avoid a double pipe.
 
-## 5. 通用 HTTP 隧道
+## 5. General HTTP tunnel
 
-机制通用：任意 `method + path + query + headers + body` 可经 Bridge WS 转发；产品 v1 先接专家列表、对话、历史上传、附件。不是「只服务这几类」的专用协议；可选 path 允许/拒绝仅作安全开关。
+The mechanism is general: any `method + path + query + headers + body` can be forwarded over the Bridge WS; product v1 first wires up expert lists, chat, history upload, and attachments. It is not a dedicated protocol "serving only these categories"; the optional path allow/deny is only a security switch.
 
-### 5.1 帧形态（示意）
+### 5.1 Frame shape (illustrative)
 
 ```text
 → tunnel.request  { id, method, path, query, headers, body_b64? | chunks }
@@ -123,96 +125,96 @@
 → tunnel.cancel   { id }
 ```
 
-- 大 body（上传）分片；支持取消与超时。
-- SSE：v1 可不透传或单独标记；实时对话用 §6 的 turn 流，避免与 HTTP 隧道搅在一起。
+- Large bodies (uploads) are chunked; cancellation and timeouts are supported.
+- SSE: v1 may drop it or mark it separately; real-time chat uses the turn stream in §6 to avoid entangling it with the HTTP tunnel.
 
-![图 5-1 HTTP 隧道帧流转：Bridge WS 上的请求/响应/错误/取消帧](./assets/bridge-tunnel-frames.png)
-<!-- 生图建议：展示一条 Bridge WS 管道上流动的四类消息气泡：tunnel.request（id/method/path/body）、tunnel.response（status/body/chunks/done）、tunnel.error、tunnel.cancel。标注「大 body 分片」「支持取消/超时」。画成消息流气泡，蓝灰风。（含文字帧名建议用 Mermaid 序列图，AI 生图作概念示意） -->
+![Figure 5-1 HTTP tunnel frame flow: request/response/error/cancel frames over the Bridge WS](./assets/bridge-tunnel-frames.png)
+<!-- Image brief: show four message bubbles flowing on one Bridge WS pipe: tunnel.request (id/method/path/body), tunnel.response (status/body/chunks/done), tunnel.error, tunnel.cancel. Annotate "large body chunking" and "cancellation/timeout supported". Draw as message-flow bubbles, blue-grey. (Frames with text are best shown as a Mermaid sequence diagram; AI images are conceptual only) -->
 
-### 5.2 本机路由（浏览器只打本机）
+### 5.2 Local routing (the browser talks only to the local machine)
 
-1. Dashboard 请求本机（列表、history、upload、chat 等）。
-2. 若目标为 `bridge:{connection_id}:{agent_id}`（或带 connection 上下文）：
-   - path 内 agent id 改写为对端真实 id；
-   - 经该 connection 隧道发到对端；
-   - 将 status/body 原样返回浏览器。
-3. 本地真实 agent 仍走现有代码，零隧道。
+1. The Dashboard requests the local machine (list, history, upload, chat, etc.).
+2. If the target is `bridge:{connection_id}:{agent_id}` (or carries a connection context):
+   - rewrite the agent id in the path to the peer's real id;
+   - send it to the peer over that connection's tunnel;
+   - return the status/body to the browser unchanged.
+3. A real local agent still goes through the existing code, with zero tunnel.
 
-![图 5-2 本机路由：浏览器只打本机，bridge:* 目标改走隧道](./assets/bridge-routing.png)
-<!-- 生图建议：路由判断图。浏览器→本机 API；本机 router 用菱形判断目标是否为 bridge:{connection_id}:{agent_id}：若是则改写真实 id 并经隧道转发对端、原样回传（蓝色「隧道路径」）；若本地真实 agent 则零隧道走现有代码（绿色「本地路径」）。双色区分两条分支。（建议用 Mermaid 流程图，AI 生图作概念示意） -->
+![Figure 5-2 Local routing: the browser talks only to the local machine; bridge:* targets go over the tunnel](./assets/bridge-routing.png)
+<!-- Image brief: a routing-decision diagram. Browser → local API; the local router uses a diamond to test whether the target is bridge:{connection_id}:{agent_id}: if so, rewrite the real id and forward to the peer over the tunnel, returning unchanged (blue "tunnel path"); if it is a real local agent, go through the existing code with zero tunnel (green "local path"). Use two colors to distinguish the branches. (Best drawn as a Mermaid flowchart; AI images are conceptual only) -->
 
-## 6. 远程专家与对话
+## 6. Remote experts and chat
 
-### 6.1 列表
+### 6.1 Listing
 
-- Dashboard「远程节点」按 connection 分组。
-- 本机经隧道调对端 `GET /api/agents`（或等价列表），将 id 映射为 `bridge:{connection_id}:{id}` 再返回前端。
-- 不写本地 `agents` 表作为权威（进程内短缓存可选）。
+- The Dashboard's "Remote Nodes" are grouped by connection.
+- Locally, call the peer's `GET /api/agents` (or an equivalent list) over the tunnel, map the id to `bridge:{connection_id}:{id}`, then return it to the frontend.
+- Do not write the local `agents` table as authoritative (an in-process short cache is optional).
 
-### 6.2 开聊
+### 6.2 Starting a chat
 
-- 前端仍连本机：`/api/agents/bridge:…/chat/ws`（或等价入口）。
-- 本机识别 `bridge:*`：不启本地 harness；将 user_turn / subscribe 转到对端对应 agent 的对话通道。
-- 对端正常 `GlobalProcessor → harness`；chunk 经桥回传，本机再推给浏览器（帧形状尽量与现有 dashboard chat 一致）。
-- 同一条 Bridge WS 上：**HTTP 隧道**与 **turn 流式帧**多路复用。
-- Chat dock「远程浏览器」在 `bridge:*` 专家下经隧道读对端 `env-status` / `harness-sessions` / `handoff`，画面走显式 `browser.*` 中继（`WS /api/bridge/connections/{id}/browser-stream/ws`）；独立 Remote Browser 页与 install/录制仍打本机。
+- The frontend still connects locally: `/api/agents/bridge:…/chat/ws` (or an equivalent entry point).
+- The local machine recognizes `bridge:*`: it does not start a local harness; it routes user_turn / subscribe to the peer agent's chat channel.
+- The peer runs `GlobalProcessor → harness` normally; chunks come back over the bridge and the local machine pushes them to the browser (frame shapes kept as close as possible to the existing dashboard chat).
+- On the same Bridge WS: the **HTTP tunnel** and **turn streaming frames** are multiplexed.
+- The Chat dock "remote browser" reads the peer's `env-status` / `harness-sessions` / `handoff` over the tunnel under a `bridge:*` expert, with the picture going through an explicit `browser.*` relay (`WS /api/bridge/connections/{id}/browser-stream/ws`); the standalone Remote Browser page and install/recording still talk to the local machine.
 
-![图 6-1 远程对话中继：前端→本机 chat WS→对端 harness→chunk 回传](./assets/bridge-chat-relay.png)
-<!-- 生图建议：远程专家对话时序/泳道图。泳道：浏览器 / 本机 bridge / 对端 harness。前端→本机 /api/agents/bridge:…/chat/ws；本机识别 bridge:* 不启本地 harness，把 user_turn/subscribe 转对端对话通道；对端 GlobalProcessor→harness 产出 chunk，经桥回传，本机再推浏览器。底部注「同一 Bridge WS 上 HTTP 隧道与 turn 流多路复用」。蓝灰风。（精确时序建议用 Mermaid，AI 生图作概念示意） -->
+![Figure 6-1 Remote chat relay: frontend → local chat WS → peer harness → chunks returned](./assets/bridge-chat-relay.png)
+<!-- Image brief: a remote-expert chat sequence/swimlane diagram. Swimlanes: browser / local bridge / peer harness. Frontend → local /api/agents/bridge:…/chat/ws; the local machine recognizes bridge:* and does not start a local harness, routing user_turn/subscribe to the peer chat channel; the peer GlobalProcessor→harness produces chunks, returned over the bridge, and the local machine pushes them to the browser. At the bottom, note "HTTP tunnel and turn stream multiplexed on the same Bridge WS". Blue-grey. (An exact sequence is best done with Mermaid; AI images are conceptual only) -->
 
-### 6.3 会话与历史
+### 6.3 Sessions and history
 
-- Thread 只在专家所在侧创建与持久化。
-- 发起侧：连接/内存级临时会话（持有对端 `thread_id`），**不写**本机 `threads` / `thread_messages`。
-- 对话列表与历史：本机 API → 隧道 → 对端现有 history API。
-- 对称：云端聊本地专家时，权威在本地。
+- Threads are created and persisted only on the expert's side.
+- Initiating side: a connection/in-memory transient session (holding the peer `thread_id`) that does **not** write the local `threads` / `thread_messages`.
+- Conversation list and history: local API → tunnel → the peer's existing history API.
+- Symmetric: when the cloud chats with a local expert, the authoritative copy is local.
 
-### 6.4 附件
+### 6.4 Attachments
 
-- 前端仍 `POST` 本机 `/api/agents/bridge:…/upload`。
-- 本机隧道转发对端同名 upload，文件落入对端 `inbound/`。
-- 预览/下载由本机代理（再隧道 GET），避免浏览器直连对端。
+- The frontend still `POST`s to the local `/api/agents/bridge:…/upload`.
+- The local machine tunnels the request to the peer's identically named upload, and files land in the peer's `inbound/`.
+- Preview/download is proxied by the local machine (again a tunnelled GET), so the browser never connects directly to the peer.
 
-![图 6-2 附件代理：上传经隧道落对端 inbound，本机只代理](./assets/bridge-attachment-proxy.png)
-<!-- 生图建议：附件上传代理图。前端 POST 本机 /upload；本机隧道转发对端同名 upload，文件落入对端 inbound/（强调「文件只在对端落盘、本机只代理」）；预览/下载由本机代理（再隧道 GET）避免浏览器直连对端。箭头带文件图标，蓝色隧道路径突出。蓝灰风。（建议用 Mermaid，AI 生图作概念示意） -->
+![Figure 6-2 Attachment proxy: uploads land in the peer's inbound over the tunnel; the local machine only proxies](./assets/bridge-attachment-proxy.png)
+<!-- Image brief: an attachment-upload proxy diagram. Frontend POSTs to the local /upload; the local machine tunnels to the peer's identically named upload and files land in the peer's inbound/ (emphasize "files only land on the peer; the local machine only proxies"); preview/download is proxied by the local machine (again a tunnelled GET) so the browser never connects directly to the peer. Arrows carry file icons; the blue tunnel path stands out. Blue-grey. (Mermaid recommended; AI images are conceptual only) -->
 
-## 7. 与现有组件关系
+## 7. Relationship to existing components
 
-| 现有 | Bridge 中的角色 |
-|------|-----------------|
-| Dashboard chat WS / `WebSocketHub` | 仅浏览器↔本机 |
-| `GlobalProcessor` / harness | 只在专家所在侧跑 |
-| `ask_agent` / Team | 不参与跨实例 |
-| `POST …/upload` + `inbound/` | 对端执行；发起侧代理 |
-| 用户 JWT | 本机≠对端；隧道用对端登录态 |
-| Connector（OAuth/MCP） | 无关；勿与 `bridge` 混名 |
+| Existing | Role in Bridge |
+|----------|----------------|
+| Dashboard chat WS / `WebSocketHub` | Browser↔local only |
+| `GlobalProcessor` / harness | Runs only on the expert's side |
+| `ask_agent` / Team | Does not participate in cross-instance calls |
+| `POST …/upload` + `inbound/` | Executed on the peer; the initiator proxies |
+| User JWT | Local ≠ peer; the tunnel uses the peer's login state |
+| Connector (OAuth/MCP) | Unrelated; do not conflate the name with `bridge` |
 
-## 8. 分期
+## 8. Phasing
 
-| 阶段 | 内容 |
-|------|------|
-| Phase 0 | 连接 CRUD、密码加密、登录换 token、双边 WS、`connection_id` 握手与去重、隧道 ping/health |
-| Phase 1 | 远程分组列表、`bridge:*` 映射、经隧道拉 agents / history；Dashboard 远程入口 |
-| Phase 2 | 本机 chat WS ↔ 对端 turn 中继；临时会话；取消/断线 |
-| Phase 3 | upload/预览经隧道分片代理 |
-| Phase 4 | 多连接稳定性、token 刷新、path 策略、可观测性；必要时对极少数能力补显式 RPC |
+| Phase | Content |
+|-------|---------|
+| Phase 0 | Connection CRUD, password encryption, login/token exchange, dual-side WS, `connection_id` handshake and dedupe, tunnel ping/health |
+| Phase 1 | Remote grouping list, `bridge:*` mapping, pulling agents / history over the tunnel; Dashboard remote entry point |
+| Phase 2 | Local chat WS ↔ peer turn relay; transient sessions; cancellation/disconnect |
+| Phase 3 | Upload/preview proxied with chunking over the tunnel |
+| Phase 4 | Multi-connection stability, token refresh, path policy, observability; add explicit RPC for a very few capabilities if needed |
 
-## 9. 风险与约束
+## 9. Risks and constraints
 
-1. **配对冷启动**：添加连接时对端 HTTP 不可达则无法用「登录换 token」完成首配——须约定由可达的一侧发起，或引入配对码/中继。
-2. **隧道面过大**：协议通用后需身份隔离 + 可选 path 策略 + 审计，避免误暴露危险管理 API。
-3. **双连接竞态**：两边同时 dial 同一 `connection_id` 必须合并。
-4. **流式对话**：不要把 turn 硬塞进模拟 HTTP SSE；HTTP 隧道与 turn 流分帧、同连接多路复用。
-5. **版本 skew**：握手带 octop / bridge protocol version；不兼容则拒绝并提示升级。
+1. **Pairing cold start**: if the peer HTTP is unreachable when adding a connection, the first pairing cannot be completed with "login/token exchange" — it must be agreed that the reachable side initiates, or a pairing code/relay must be introduced.
+2. **Tunnel surface too large**: once the protocol is general, it needs identity isolation + an optional path policy + auditing, to avoid accidentally exposing dangerous admin APIs.
+3. **Double-connection race**: both sides dialing the same `connection_id` at once must be merged.
+4. **Streaming chat**: do not force turns into a simulated HTTP SSE; the HTTP tunnel and turn stream are framed separately and multiplexed on the same connection.
+5. **Version skew**: the handshake carries the octop / bridge protocol version; if incompatible, reject and prompt to upgrade.
 
-## 10. 命名一览
+## 10. Naming overview
 
-| 用途 | 命名 |
-|------|------|
-| 包 | `octop.infra.bridge` |
-| HTTP 管理 API | `/api/bridge/...` |
-| 远程 agent id | `bridge:{connection_id}:{remote_agent_id}` |
-| 表 | `bridge_connections` |
-| 产品文案 | 「远程节点」/ Bridge（中英文另定） |
+| Purpose | Naming |
+|---------|--------|
+| Package | `octop.infra.bridge` |
+| HTTP management API | `/api/bridge/...` |
+| Remote agent id | `bridge:{connection_id}:{remote_agent_id}` |
+| Table | `bridge_connections` |
+| Product copy | "Remote Node" / Bridge (final naming TBD) |
 
-旧讨论中的 `federation` / `fed:` **不再使用**。
+The earlier discussion's `federation` / `fed:` **are no longer used**.

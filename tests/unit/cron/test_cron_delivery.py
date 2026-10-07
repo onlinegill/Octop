@@ -23,11 +23,11 @@ from octop.infra.gateway.threads import ThreadRegistry
 def _command(**overrides: object) -> CronDeliveryCommand:
     values: dict[str, object] = {
         "cron_id": "j1",
-        "cron_name": "喝水提醒",
+        "cron_name": "hydration reminder",
         "agent_id": "a1",
         "user_id": 1,
         "session_key": "sk",
-        "prompt": "记得喝水",
+        "prompt": "remember to drink water",
         "fresh_thread": False,
         "task_type": "text",
         "model": None,
@@ -81,8 +81,8 @@ def _seed_dashboard_thread(tmp_path: Path, *, thread_id: str) -> tuple[SqlitePoo
 @pytest.mark.asyncio
 async def test_text_dashboard_appends_checkpoint_before_push() -> None:
     session = _session(channel_type=ThreadRegistry.CHANNEL_DASHBOARD)
-    human = HumanMessage(content="Task j1: 喝水提醒 executed.", id="cron:x:human")
-    ai = AIMessage(content="记得喝水", id="cron:x:assistant")
+    human = HumanMessage(content="Task j1: hydration reminder executed.", id="cron:x:human")
+    ai = AIMessage(content="remember to drink water", id="cron:x:assistant")
     harness = MagicMock()
     agent_manager = MagicMock()
     agent_manager.get_agent.return_value = harness
@@ -152,7 +152,7 @@ async def test_text_projection_and_toast_failure_still_pushes() -> None:
     harness.aappend_messages = AsyncMock(
         return_value=[
             HumanMessage(content="h", id="cron:x:human"),
-            AIMessage(content="记得喝水", id="cron:x:assistant"),
+            AIMessage(content="remember to drink water", id="cron:x:assistant"),
         ]
     )
     agent_manager = MagicMock()
@@ -266,7 +266,7 @@ async def test_agent_strips_orphan_thinking_prefix() -> None:
     async def _stream(_aid: str, _request: dict):
         yield {"type": "token", "content": "internal reasoning"}
         yield {"type": "token", "content": "</think>"}
-        yield {"type": "token", "content": "最终学习内容"}
+        yield {"type": "token", "content": "final study content"}
 
     agent_manager = MagicMock()
     agent_manager.merge_turn_mcp_servers = MagicMock(return_value=None)
@@ -285,7 +285,7 @@ async def test_agent_strips_orphan_thinking_prefix() -> None:
         repos=MagicMock(),
     )
     await service.deliver(_command(task_type="agent", prompt="run"))
-    assert gateway.push_session_text.await_args.args[1] == "最终学习内容"
+    assert gateway.push_session_text.await_args.args[1] == "final study content"
 
 
 @pytest.mark.asyncio
@@ -340,10 +340,10 @@ async def test_dashboard_text_projects_into_real_sqlite(tmp_path: Path) -> None:
     db, session = _seed_dashboard_thread(tmp_path, thread_id="thr_hist")
 
     human = HumanMessage(
-        content="Task j1: 喝水提醒 executed.",
+        content="Task j1: hydration reminder executed.",
         id="cron:01TESTHUMAN00000000000000:human",
     )
-    ai = AIMessage(content="记得喝水", id="cron:01TESTHUMAN00000000000000:assistant")
+    ai = AIMessage(content="remember to drink water", id="cron:01TESTHUMAN00000000000000:assistant")
     harness = MagicMock()
     harness.aappend_messages = AsyncMock(return_value=[human, ai])
     agent_manager = MagicMock()
@@ -367,7 +367,7 @@ async def test_dashboard_text_projects_into_real_sqlite(tmp_path: Path) -> None:
     assert page[0].message_id == human.id
     assert page[1].message_id == ai.id
     assert "j1" in page[0].message_json
-    assert "记得喝水" in page[1].message_json
+    assert "remember to drink water" in page[1].message_json
     gateway.push_session_text.assert_awaited_once()
     db.close()
 
@@ -378,7 +378,7 @@ async def test_agent_failure_projects_the_prompt(tmp_path: Path) -> None:
     db, session = _seed_dashboard_thread(tmp_path, thread_id="thr_fail")
 
     async def _stream(_aid: str, _request: dict):
-        yield {"type": "token", "content": "先查一下"}
+        yield {"type": "token", "content": "let me check first"}
         raise RuntimeError("tool call failed")
 
     agent_manager = MagicMock()
@@ -400,12 +400,12 @@ async def test_agent_failure_projects_the_prompt(tmp_path: Path) -> None:
     service = CronDeliveryService(gateway=gateway, agent_manager=agent_manager, repos=repos)
     with pytest.raises(RuntimeError, match="tool call failed"):
         await service.deliver(
-            _command(task_type="agent", prompt="记得喝水", session_key=session.session_key)
+            _command(task_type="agent", prompt="remember to drink water", session_key=session.session_key)
         )
 
     gateway.push_session_text.assert_not_awaited()
     page, _has_more = ThreadMessageRepo(db).page("thr_fail", limit=10)
     assert [row.role for row in page] == ["human", "ai"]
-    assert "记得喝水" in page[0].message_json
-    assert "先查一下" in page[1].message_json
+    assert "remember to drink water" in page[0].message_json
+    assert "let me check first" in page[1].message_json
     db.close()

@@ -86,7 +86,7 @@ export default function EpisodesList({ agentId }: Props) {
         💡{" "}
         {t(
           "memory.episodes.disclaimer",
-          "这里记录你与 Octop 相处中的情绪和小故事。它不会用于常规对话引用，只会帮 Octop 更好地关心你，并用于周 / 月小结。",
+          "Here is a record of your relationship with Octop Emotions and stories about getting along. It won’t be used for regular dialogue quotes, it will just help Octop Take better care of you and use it for weeks / Monthly summary.",
         )}
       </div>
       {loading && items.length === 0 ? (
@@ -153,7 +153,7 @@ export default function EpisodesList({ agentId }: Props) {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Space size={4} wrap>
                         <Tag color={emotionColor(ep.emotion)}>
-                          {emotionLabel(ep.emotion)} · 强度 {ep.intensity}
+                          {emotionLabel(ep.emotion)} · Intensity {ep.intensity}
                         </Tag>
                         {(ep.topics || []).slice(0, 3).map((topic) => (
                           <Tag key={topic}>{topic}</Tag>
@@ -191,21 +191,21 @@ export default function EpisodesList({ agentId }: Props) {
           <div>
             <Space size={4} wrap style={{ marginBottom: 12 }}>
               <Tag color={emotionColor(selected.emotion)}>
-                {emotionLabel(selected.emotion)} · 强度 {selected.intensity}
+                {emotionLabel(selected.emotion)} · Intensity {selected.intensity}
               </Tag>
               {(selected.topics || []).map((tp) => (
                 <Tag key={tp}>{tp}</Tag>
               ))}
             </Space>
-            <Typography.Title level={5}>摘要</Typography.Title>
+            <Typography.Title level={5}>Summary</Typography.Title>
             <Typography.Paragraph>{selected.summary}</Typography.Paragraph>
-            <Typography.Title level={5}>原话依据</Typography.Title>
+            <Typography.Title level={5}>Original story based on</Typography.Title>
             <Typography.Paragraph type="secondary">
               {selected.verbatim_quote}
             </Typography.Paragraph>
             {selected.people && selected.people.length > 0 ? (
               <>
-                <Typography.Title level={5}>涉及的人</Typography.Title>
+                <Typography.Title level={5}>People involved</Typography.Title>
                 <Space size={4} wrap>
                   {selected.people.map((p) => (
                     <Tag key={p}>{p}</Tag>
@@ -217,7 +217,7 @@ export default function EpisodesList({ agentId }: Props) {
               type="secondary"
               style={{ fontSize: 12, marginTop: 12 }}
             >
-              发生于 {formatServerIsoDateTime(selected.occurred_at, timeZone)}
+              Occurs in {formatServerIsoDateTime(selected.occurred_at, timeZone)}
             </Typography.Paragraph>
           </div>
         ) : null}
@@ -238,13 +238,13 @@ function emotionColor(e: string): string {
 
 function emotionLabel(e: string): string {
   const k = (e || "").toLowerCase();
-  if (k.includes("happy") || k.includes("joy")) return "开心";
-  if (k.includes("sad")) return "难过";
-  if (k.includes("angry") || k.includes("anger")) return "生气";
-  if (k.includes("surpr")) return "惊讶";
-  if (k.includes("anxi") || k.includes("worry")) return "焦虑";
-  if (k.includes("calm") || k.includes("neutral")) return "平静";
-  return e || "未分类";
+  if (k.includes("happy") || k.includes("joy")) return "Happy";
+  if (k.includes("sad")) return "Sad";
+  if (k.includes("angry") || k.includes("anger")) return "Angry";
+  if (k.includes("surpr")) return "Surprised";
+  if (k.includes("anxi") || k.includes("worry")) return "Anxiety";
+  if (k.includes("calm") || k.includes("neutral")) return "Calm";
+  return e || "Uncategorized";
 }
 
 function emotionHex(e: string): string {
@@ -267,9 +267,9 @@ function groupByDay(items: EpisodeItem[], timeZone: string): DayGroup[] {
   for (const it of items) {
     const diffDays = calendarDaysAgo(it.occurred_at, timeZone);
     let label: string;
-    if (diffDays === 0) label = "今天";
-    else if (diffDays === 1) label = "昨天";
-    else if (diffDays > 1 && diffDays < 7) label = `${diffDays} 天前`;
+    if (diffDays === 0) label = "Today";
+    else if (diffDays === 1) label = "Yesterday";
+    else if (diffDays > 1 && diffDays < 7) label = `${diffDays} Days ago`;
     else label = formatServerYmd(it.occurred_at, timeZone);
 
     const last = groups[groups.length - 1];

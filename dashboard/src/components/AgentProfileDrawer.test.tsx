@@ -135,7 +135,7 @@ describe("AgentProfileDrawer sections", () => {
     });
 
     expect(
-      screen.queryByRole("button", { name: /工作区|Workspace/i }),
+      screen.queryByRole("button", { name: /Workspace|Workspace/i }),
     ).not.toBeInTheDocument();
 
     const configHeader = screen

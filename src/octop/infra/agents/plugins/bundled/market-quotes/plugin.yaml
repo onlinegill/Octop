@@ -1,7 +1,7 @@
 id: market-quotes
 version: 0.2.2
-name: 行情
-description: 查询汇率、加密货币与 A 股行情卡片
+name: Market Quotes
+description: Exchange-rate, crypto and stock quote cards
 icon: icon.svg
 group: finance
 kind: tool

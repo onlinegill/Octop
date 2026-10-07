@@ -11,7 +11,7 @@ interface GeneratingIndicatorProps {
    * producing — softer named copy.
    */
   membersOnly?: boolean;
-  /** Named speakers still generating (e.g. ["临床助手"]). */
+  /** Named speakers still generating (e.g. ["Clinical assistant"]). */
   speakerNames?: ReadonlyArray<string>;
 }
 
@@ -39,22 +39,22 @@ export default function GeneratingIndicator({
     if (named.length === 1) {
       label = t("chat.memberResponding", {
         name: named[0],
-        defaultValue: "{{name}} 正在回答",
+        defaultValue: "{{name}} Answering",
       });
     } else if (named.length > 1) {
       label = t("chat.membersRespondingNamed", {
-        names: named.join(t("chat.nameJoin", { defaultValue: "、" })),
-        defaultValue: "{{names}} 正在回答",
+        names: named.join(t("chat.nameJoin", { defaultValue: "," })),
+        defaultValue: "{{names}} Answering",
       });
     } else {
       label = t("chat.membersResponding", {
-        defaultValue: "成员回答中",
+        defaultValue: "Members are answering",
       });
     }
   } else if (showTimer) {
     label = t("chat.generatingWithElapsed", {
       seconds: elapsed,
-      defaultValue: "生成中 · {{seconds}}s",
+      defaultValue: "Generating · {{seconds}}s",
     });
   } else {
     label = t("chat.generating", "Generating");

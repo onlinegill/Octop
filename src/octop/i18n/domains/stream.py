@@ -129,9 +129,6 @@ def classify_stream_error_message(message: str) -> str | None:
         or "payment_required" in lower
         or "billing_not_active" in lower
         or "arrearage" in lower
-        or "余额不足" in msg
-        or "账户余额" in msg
-        or "欠费" in msg
     ):
         return INSUFFICIENT_BALANCE
 

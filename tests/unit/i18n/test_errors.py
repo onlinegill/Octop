@@ -20,20 +20,20 @@ def test_every_error_code_has_i18n_entry():
 
 
 def test_error_message_zh():
-    assert "名称" in error_message("AGENT_NAME_TAKEN", "zh")
+    assert "name" in error_message("AGENT_NAME_TAKEN", "zh").lower()
 
 
 def test_octop_error_localized_factory():
     err = OctopError.localized(ErrorCode.FORBIDDEN, "zh")
     assert err.code is ErrorCode.FORBIDDEN
-    assert err.message == "没有权限。"
+    assert err.message == "Permission denied."
 
 
 def test_octop_error_to_envelope_with_locale():
     err = OctopError(ErrorCode.AGENT_NAME_TAKEN, "agent name 'x' already in use")
     envelope = err.to_envelope(locale="zh")
     assert envelope["error"]["code"] == "AGENT_NAME_TAKEN"
-    assert envelope["error"]["message"] == "该名称已被使用，请换一个名称。"
+    assert envelope["error"]["message"] == "This name is already in use. Please choose another."
 
 
 def test_resolve_request_locale_from_accept_language():
@@ -46,7 +46,7 @@ def test_resolve_request_locale_from_accept_language():
     class _Req:
         headers = _Headers()
 
-    assert resolve_request_locale(_Req()) == "zh"
+    assert resolve_request_locale(_Req()) == "en"
 
 
 def test_dashboard_api_errors_match_backend():
@@ -77,8 +77,9 @@ def test_dashboard_api_errors_use_i18next_placeholders():
 
 
 def test_login_locked_interpolates_minutes():
-    assert "15" in error_message("LOGIN_LOCKED", "zh", minutes=15)
-    assert "minutes" not in error_message("LOGIN_LOCKED", "zh", minutes=15).lower()
+    zh_msg = error_message("LOGIN_LOCKED", "zh", minutes=15)
+    assert "15" in zh_msg
+    assert "{minutes}" not in zh_msg
     assert "{minutes}" not in error_message("LOGIN_LOCKED", "en", minutes=15)
 
 

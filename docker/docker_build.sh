@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 # =============================================================================
-# 构建 Octop Docker 镜像
+# Build the Octop Docker image
 #
-# 用法:
-#   bash docker/docker_build.sh [镜像标签] [额外 docker build 参数...]
+# Usage:
+#   bash docker/docker_build.sh [IMAGE_TAG] [extra docker build args...]
 #
-# 示例:
+# Examples:
 #   bash docker/docker_build.sh
 #   bash docker/docker_build.sh myreg/octop:v1
 #   bash docker/docker_build.sh octop:dev --no-cache
 #
-# 国内加速（可选，需 BuildKit，本脚本默认已开启）:
-#   PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple \
-#   PIP_TRUSTED_HOST=mirrors.cloud.tencent.com \
-#   NPM_REGISTRY=https://mirrors.cloud.tencent.com/npm/ \
-#   APT_MIRROR=mirrors.cloud.tencent.com \
+# Optional build acceleration (needs BuildKit; this script enables it by default):
+#   PIP_INDEX_URL=https://pypi.org/simple \
+#   PIP_TRUSTED_HOST=pypi.org \
+#   NPM_REGISTRY=https://registry.npmjs.org/ \
+#   APT_MIRROR=deb.debian.org \
 #   bash docker/docker_build.sh
 # =============================================================================
 set -euo pipefail
@@ -25,7 +25,7 @@ cd "$REPO_ROOT"
 IMAGE_TAG="${1:-octop:latest}"
 shift 2>/dev/null || true
 
-# BuildKit 启用 Dockerfile 缓存挂载，加速 npm / pip / apt 下载
+# BuildKit enables Dockerfile cache mounts, speeding up npm / pip / apt downloads
 export DOCKER_BUILDKIT=1
 
 BUILD_ARGS=()
@@ -46,8 +46,8 @@ if [ -n "${APT_MIRROR:-}" ]; then
 fi
 
 echo "╔══════════════════════════════════════════════════╗"
-echo "║  正在构建 Octop Docker 镜像                      ║"
-echo "║  标签: ${IMAGE_TAG}"
+echo "║  Building the Octop Docker image                 ║"
+echo "║  Tag: ${IMAGE_TAG}"
 echo "╚══════════════════════════════════════════════════╝"
 echo ""
 
@@ -59,10 +59,10 @@ docker build \
     "$REPO_ROOT"
 
 echo ""
-echo "✅ 构建完成: ${IMAGE_TAG}"
+echo "✅ Build complete: ${IMAGE_TAG}"
 echo ""
-echo "启动示例:"
+echo "Run example:"
 echo "  docker run -d -p 8088:8088 -v octop-data:/data/.octop -e HOME=/data ${IMAGE_TAG}"
 echo ""
-echo "或使用 Compose:"
+echo "Or use Compose:"
 echo "  docker compose -f docker/docker-compose.yml up -d"

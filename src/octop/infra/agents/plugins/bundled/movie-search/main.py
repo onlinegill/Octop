@@ -60,7 +60,7 @@ async def search_movie(query: str, limit: int = 5) -> str:
     """Search Bangumi for movies (type 6) with anime fallback (type 2)."""
     q = (query or "").strip()
     if not q:
-        return _payload({"items": [], "error": "empty query"}, "请提供搜索关键词。")
+        return _payload({"items": [], "error": "empty query"}, "Please provide a search keyword.")
     n = max(1, min(int(limit or 5), 15))
     headers = {"User-Agent": _UA}
     try:
@@ -71,11 +71,11 @@ async def search_movie(query: str, limit: int = 5) -> str:
                 items = _search(client, q, 2, n)
                 source = "anime"
     except Exception as exc:
-        return _payload({"items": [], "error": str(exc)}, f"搜索失败：{exc}")
+        return _payload({"items": [], "error": str(exc)}, f"search failed: {exc}")
     if not items:
         return _payload({"items": [], "query": q, "silent": True}, "")
     lines = [f"{r['title']} ({r['score'] or '—'})" for r in items[:5]]
-    text = f"Bangumi「{q}」{len(items)} 条\n" + "\n".join(lines)
+    text = f"Bangumi \u201c{q}\u201d {len(items)} results\n" + "\n".join(lines)
     return _payload({"items": items, "query": q, "source": source}, text)
 
 
@@ -83,5 +83,5 @@ def setup(ctx: PluginContext) -> None:
     ctx.tool(
         "search_movie",
         search_movie,
-        description="在 Bangumi 搜索电影或动画。query 为关键词，limit 默认 5。",
+        description="Search movies or anime on Bangumi. query is the keyword; limit defaults to 5.",
     )

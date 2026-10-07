@@ -18,7 +18,7 @@ function SportsScores(props) {
     },
     "data-octop-plugin-ui": "sports-scores",
     children: [
-      _jsx("div", { style: { padding: "12px 14px", fontWeight: 800, background: dark ? "#14532d" : "#dcfce7" }, children: "⚽ 赛况" }),
+      _jsx("div", { style: { padding: "12px 14px", fontWeight: 800, background: dark ? "#14532d" : "#dcfce7" }, children: "⚽ Scores" }),
       items.map((row, i) =>
         _jsxs(
           "div",

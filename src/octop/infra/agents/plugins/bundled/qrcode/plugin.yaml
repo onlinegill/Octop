@@ -1,7 +1,7 @@
 id: qrcode
 version: 0.2.2
-name: 二维码
-description: 把文本或链接生成二维码图片卡片
+name: QR Code
+description: Turn text or a link into a QR code image card
 icon: icon.svg
 group: tools
 kind: tool

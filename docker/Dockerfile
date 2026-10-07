@@ -1,37 +1,37 @@
 # syntax=docker/dockerfile:1
 # =============================================================================
-# Octop — 多阶段 Docker 构建
+# Octop — multi-stage Docker build
 #
-# 阶段 1: 构建 React/TypeScript 前端
-# 阶段 2: Python 运行时 + 预构建前端
+# Stage 1: build the React/TypeScript frontend
+# Stage 2: Python runtime + prebuilt frontend
 #
-# 用法（在仓库根目录执行，构建上下文为根目录）:
+# Usage (run from the repo root; the build context is the root):
 #   docker build -f docker/Dockerfile -t octop:latest .
 #   docker run -d -p 8088:8088 -v octop-data:/data/.octop -e HOME=/data octop:latest
 #
-# 国内加速（可选，需 BuildKit，docker/docker_build.sh 默认已开启）:
-#   PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple \
-#   PIP_TRUSTED_HOST=mirrors.cloud.tencent.com \
-#   NPM_REGISTRY=https://mirrors.cloud.tencent.com/npm/ \
-#   APT_MIRROR=mirrors.cloud.tencent.com \
+# Optional build acceleration (needs BuildKit; docker/docker_build.sh enables it by default):
+#   PIP_INDEX_URL=https://pypi.org/simple \
+#   PIP_TRUSTED_HOST=pypi.org \
+#   NPM_REGISTRY=https://registry.npmjs.org/ \
+#   APT_MIRROR=deb.debian.org \
 #   bash docker/docker_build.sh
 #
-# 或直接传 build-arg:
+# Or pass build-args directly:
 #   docker build \
 #     -f docker/Dockerfile \
-#     --build-arg PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple \
-#     --build-arg PIP_TRUSTED_HOST=mirrors.cloud.tencent.com \
-#     --build-arg NPM_REGISTRY=https://mirrors.cloud.tencent.com/npm/ \
-#     --build-arg APT_MIRROR=mirrors.cloud.tencent.com \
+#     --build-arg PIP_INDEX_URL=https://pypi.org/simple \
+#     --build-arg PIP_TRUSTED_HOST=pypi.org \
+#     --build-arg NPM_REGISTRY=https://registry.npmjs.org/ \
+#     --build-arg APT_MIRROR=deb.debian.org \
 #     --build-arg NODE_MAX_OLD_SPACE_SIZE=1024 \
 #     -t octop:latest .
 #
-# 或使用 Compose:
+# Or use Compose:
 #   docker compose -f docker/docker-compose.yml up -d
 # =============================================================================
 
 # ---------------------------------------------------------------------------
-# 阶段 1 — 前端构建
+# Stage 1 — frontend build
 # ---------------------------------------------------------------------------
 FROM node:20-slim AS frontend-builder
 
@@ -54,19 +54,19 @@ COPY dashboard/ ./
 
 RUN mkdir -p ../src/octop/dashboard
 
-# 镜像构建跳过完整 tsc；生产打包由 vite/esbuild 完成（使用 lockfile 中的 vite，不用 npx）
+# The image build skips full tsc; production bundling is done by vite/esbuild (vite from the lockfile, not npx)
 RUN NODE_ENV=production NODE_OPTIONS="--max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE}" npm run build:docker
 
 
 # ---------------------------------------------------------------------------
-# 阶段 2 — Python 运行时
+# Stage 2 — Python runtime
 # ---------------------------------------------------------------------------
 FROM python:3.12-slim AS runtime
 
 LABEL maintainer="OrcaKit Team"
 LABEL org.opencontainers.image.title="Octop"
 LABEL org.opencontainers.image.description="Smarter self-hosted AI assistant — multi-user, multi-agent."
-LABEL org.opencontainers.image.source="https://github.com/TencentCloud/orca"
+LABEL org.opencontainers.image.source="https://github.com/onlinegill/Octop"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -100,7 +100,7 @@ COPY --from=ghcr.io/astral-sh/uv:0.7 /uv /uvx /bin/
 
 WORKDIR /app
 
-# 先安装锁定依赖，仅改源码时可复用此层缓存
+# Install locked deps first so this layer cache is reused when only source changes
 COPY pyproject.toml uv.lock README.md LICENSE ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     if [ -n "$PIP_INDEX_URL" ]; then \

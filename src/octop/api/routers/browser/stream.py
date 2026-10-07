@@ -422,7 +422,7 @@ async def run_browser_stream_session(
                     await send_json(
                         {
                             "type": "error",
-                            "message": f"导航到 {start_url} 失败：{exc}",
+                            "message": f"navigation to {start_url} failed: {exc}",
                         },
                     )
 

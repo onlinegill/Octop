@@ -52,9 +52,9 @@ describe("sidebarNavLayout", () => {
     const sections = catalog();
     const applied = sectionsFromLayout(sections, {
       groups: [
-        { id: "settings", name: "配置" },
+        { id: "settings", name: "Configuration" },
         { id: "control" },
-        { id: "c_emptygrp1", name: "空组" },
+        { id: "c_emptygrp1", name: "Empty group" },
       ],
       items: [
         { key: "chat" },
@@ -69,7 +69,7 @@ describe("sidebarNavLayout", () => {
       "control",
     ]);
     expect(applied[0]?.items.map((item) => item.key)).toEqual(["chat"]);
-    expect(applied[1]?.title).toBe("配置");
+    expect(applied[1]?.title).toBe("Configuration");
     expect(applied[1]?.items.map((item) => item.key)).toEqual([
       "personalization",
     ]);
@@ -121,7 +121,7 @@ describe("sidebarNavLayout", () => {
       groups: [
         { id: "settings" },
         { id: "admin" },
-        { id: "c_aabbccdd", name: "常用" },
+        { id: "c_aabbccdd", name: "Commonly used" },
       ],
       items: [
         { key: "chat" },
@@ -148,9 +148,9 @@ describe("sidebarNavLayout", () => {
     const editor = createGroup(
       editorFromCatalog(catalog(), null),
       "c_aabbccdd",
-      "常用",
+      "Commonly used",
     );
-    expect(editor.groups.at(-1)?.name).toBe("常用");
+    expect(editor.groups.at(-1)?.name).toBe("Commonly used");
     const applied = sectionsFromLayout(catalog(), layoutFromEditor(editor));
     expect(applied.some((section) => section.id === "c_aabbccdd")).toBe(false);
   });

@@ -91,7 +91,7 @@ def test_compose_followup_uses_peer_display_name(processor_env: dict) -> None:
     text = processor.compose_followup(msg, result_text="findings", error_text=None)
     assert "Researcher" in text
     assert "findings" in text
-    assert "do not" in text.lower() or "不要" in text
+    assert "do not" in text.lower() or "must not" in text
 
 
 def test_compose_followup_team_host_asks_for_wrapup(processor_env: dict) -> None:
@@ -108,8 +108,8 @@ def test_compose_followup_team_host_asks_for_wrapup(processor_env: dict) -> None
     text = processor.compose_followup(msg, result_text="findings", error_text=None)
     assert "Researcher" in text
     assert "findings" in text
-    assert "Member answer" in text or "成员正文" in text
-    assert "do not" in text.lower() or "不要" in text
+    assert "Member answer" in text or "member body" in text
+    assert "do not" in text.lower() or "must not" in text
 
 
 def test_compose_followup_truncates_long_member_result(processor_env: dict) -> None:
@@ -125,9 +125,9 @@ def test_compose_followup_truncates_long_member_result(processor_env: dict) -> N
         message="survey market",
         user_id=1,
     )
-    huge = "建议采纳此项。" + ("x" * (_FOLLOWUP_RESULT_MAX_CHARS + 200))
+    huge = "Recommend adopting this." + ("x" * (_FOLLOWUP_RESULT_MAX_CHARS + 200))
     text = processor.compose_followup(msg, result_text=huge, error_text=None)
-    assert "建议采纳此项。" in text
+    assert "Recommend adopting this." in text
     assert huge not in text
     assert "…" in text
     assert len(text) < len(huge) + 800
@@ -229,14 +229,14 @@ async def test_on_reply_team_host_pushes_wrapup_live(processor_env: dict) -> Non
             source_thread_id="thr_parent",
             target_agent_id="child",
             user_id=1,
-            reply_text="睡眠建议已经给出，可以收工。",
+            reply_text="Sleep advice delivered, all done.",
             metadata={"session_key": parent_sk},
         )
     )
 
     tokens = [frame for frame in frames if frame.get("type") == "token"]
     assert tokens
-    assert tokens[0].get("content") == "睡眠建议已经给出，可以收工。"
+    assert tokens[0].get("content") == "Sleep advice delivered, all done."
     assert tokens[0].get("team_wrapup") is True
     assert tokens[0].get("team_snapshot") is not True
 
@@ -262,14 +262,14 @@ async def test_on_reply_publishes_wrapup_without_session_key(processor_env: dict
             source_thread_id="thr_parent",
             target_agent_id="child",
             user_id=1,
-            reply_text="没有 session_key 也要进群聊",
+            reply_text="must join the room even without session_key",
             metadata={},
         )
     )
 
     tokens = [frame for frame in frames if frame.get("type") == "token"]
     assert tokens
-    assert tokens[0].get("content") == "没有 session_key 也要进群聊"
+    assert tokens[0].get("content") == "must join the room even without session_key"
 
 
 @pytest.mark.asyncio
@@ -297,7 +297,7 @@ async def test_on_reply_skips_snapshot_after_live_host_wrapup(
             source_thread_id="thr_parent",
             target_agent_id="child",
             user_id=1,
-            reply_text="可以收工。",
+            reply_text="All done.",
             metadata={"session_key": parent_sk},
         )
     )
@@ -328,12 +328,12 @@ async def test_stream_host_followup_marks_live_and_persists(
 
     async def fake_stream(_agent_id: str, request: dict[str, object]) -> object:
         seen_threads.append(str(request.get("thread_id") or ""))
-        yield {"type": "token", "content": "可以"}
-        yield {"type": "token", "content": "收工。"}
+        yield {"type": "token", "content": "All "}
+        yield {"type": "token", "content": "done."}
 
     processor._agent_manager.stream = fake_stream
     harness = MagicMock()
-    harness.aget_history = AsyncMock(return_value=[AIMessage(content="可以收工。")])
+    harness.aget_history = AsyncMock(return_value=[AIMessage(content="All done.")])
     processor._agent_manager.get_agent.return_value = harness
     repo = MagicMock()
     repo.projection_status.return_value = "ready"
@@ -348,7 +348,7 @@ async def test_stream_host_followup_marks_live_and_persists(
     assert result["team_live_streamed"] is True
     assert "thr_parent" in processor.teams._live_host_replies
     tokens = [frame for frame in frames if frame.get("type") == "token"]
-    assert [frame.get("content") for frame in tokens] == ["可以", "收工。"]
+    assert [frame.get("content") for frame in tokens] == ["All ", "done."]
     assert all(frame.get("team_wrapup") is True for frame in tokens)
     assert all(frame.get("team_snapshot") is not True for frame in frames)
     assert seen_threads == ["thr_parent"]
@@ -374,7 +374,7 @@ async def test_stream_host_followup_waits_for_dispatch_turn(
 
     async def fake_stream(_agent_id: str, _request: dict[str, object]) -> object:
         started.set()
-        yield {"type": "token", "content": "可以收工。"}
+        yield {"type": "token", "content": "All done."}
 
     processor._agent_manager.stream = fake_stream
     gateway.ws_hub.mark_turn_active("thr_parent")
@@ -403,11 +403,11 @@ async def test_stream_host_followup_unwatched_does_not_skip_snapshot(
     processor._agent_repo.create(agent_id="host", user_id=1, name="Host", kind="team")
 
     async def fake_stream(_agent_id: str, _request: dict[str, object]) -> object:
-        yield {"type": "token", "content": "可以收工。"}
+        yield {"type": "token", "content": "All done."}
 
     processor._agent_manager.stream = fake_stream
     harness = MagicMock()
-    harness.aget_history = AsyncMock(return_value=[AIMessage(content="可以收工。")])
+    harness.aget_history = AsyncMock(return_value=[AIMessage(content="All done.")])
     processor._agent_manager.get_agent.return_value = harness
     repo = MagicMock()
     repo.projection_status.return_value = "ready"
@@ -446,7 +446,7 @@ async def test_stream_host_followup_pushes_wrapup_when_no_tokens(
 
     processor._agent_manager.stream = fake_stream
     harness = MagicMock()
-    harness.aget_history = AsyncMock(return_value=[AIMessage(content="可以收工。")])
+    harness.aget_history = AsyncMock(return_value=[AIMessage(content="All done.")])
     processor._agent_manager.get_agent.return_value = harness
     repo = MagicMock()
     repo.projection_status.return_value = "ready"
@@ -462,7 +462,7 @@ async def test_stream_host_followup_pushes_wrapup_when_no_tokens(
     assert "thr_parent" in processor.teams._live_host_replies
     tokens = [frame for frame in frames if frame.get("type") == "token"]
     assert tokens
-    assert tokens[0].get("content") == "可以收工。"
+    assert tokens[0].get("content") == "All done."
     assert tokens[0].get("team_wrapup") is True
     assert tokens[0].get("agent_id") == "host"
 
@@ -481,7 +481,7 @@ async def test_record_peer_turn_persists_room_user_question(processor_env: dict)
     repo.page = MagicMock(return_value=([], False))
     processor.replace_thread_message_repo(repo)
     processor._agent_manager.get_agent.return_value = SimpleNamespace(
-        aget_history=AsyncMock(return_value=[HumanMessage(content="我最近总失眠")])
+        aget_history=AsyncMock(return_value=[HumanMessage(content="I keep having insomnia")])
     )
 
     await processor.record_peer_turn(
@@ -489,12 +489,12 @@ async def test_record_peer_turn_persists_room_user_question(processor_env: dict)
             from_agent_id="host",
             to_agent_id="child",
             user_id=1,
-            message="请根据用户问题给出睡眠建议",
+            message="Give sleep advice based on the user's question",
             source_thread_id="thr_parent",
             source_session_key=None,
         ),
         "thr_parent~child",
-        {"messages": [AIMessage(content="建议早睡")]},
+        {"messages": [AIMessage(content="Go to bed early")]},
     )
 
     member_calls = [
@@ -504,15 +504,15 @@ async def test_record_peer_turn_persists_room_user_question(processor_env: dict)
     inputs = member_calls[0].args[1]
     roles = [item.role for item in inputs]
     assert any(role in {"human", "user"} for role in roles)
-    assert any("请根据用户问题给出睡眠建议" in item.message_json for item in inputs)
-    assert all("我最近总失眠" not in item.message_json for item in inputs)
+    assert any("Give sleep advice based on the user's question" in item.message_json for item in inputs)
+    assert all("I keep having insomnia" not in item.message_json for item in inputs)
     room_calls = [
         call for call in repo.append_if_ready.call_args_list if call.args[0] == "thr_parent"
     ]
     assert room_calls
     room_inputs = room_calls[0].args[1]
     assert any(
-        item.role in {"ai", "assistant"} and "建议早睡" in item.message_json for item in room_inputs
+        item.role in {"ai", "assistant"} and "Go to bed early" in item.message_json for item in room_inputs
     )
     repo.mark_projection.assert_called_with("thr_parent~child", "ready")
 
@@ -530,7 +530,7 @@ async def test_record_peer_turn_keeps_sync_ask_agent_message(processor_env: dict
     repo.page = MagicMock(return_value=([], False))
     processor.replace_thread_message_repo(repo)
     processor._agent_manager.get_agent.return_value = SimpleNamespace(
-        aget_history=AsyncMock(return_value=[HumanMessage(content="用户对 A 说的话")])
+        aget_history=AsyncMock(return_value=[HumanMessage(content="What the user said to A")])
     )
 
     await processor.record_peer_turn(
@@ -538,12 +538,12 @@ async def test_record_peer_turn_keeps_sync_ask_agent_message(processor_env: dict
             from_agent_id="parent",
             to_agent_id="child",
             user_id=1,
-            message="请根据任务给 B 的指令",
+            message="Instruction to B based on the task",
             source_thread_id="thr_parent",
             source_session_key=None,
         ),
         "thr_parent~child",
-        {"messages": [AIMessage(content="工具结果")]},
+        {"messages": [AIMessage(content="tool result")]},
     )
 
     member_calls = [
@@ -552,8 +552,8 @@ async def test_record_peer_turn_keeps_sync_ask_agent_message(processor_env: dict
     assert member_calls
     payload = member_calls[0].args[1]
     joined = " ".join(item.message_json for item in payload)
-    assert "请根据任务给 B 的指令" in joined
-    assert "用户对 A 说的话" not in joined
+    assert "Instruction to B based on the task" in joined
+    assert "What the user said to A" not in joined
 
 
 @pytest.mark.asyncio
@@ -614,7 +614,7 @@ async def test_prepare_team_peer_seeds_host_assignment(processor_env: dict) -> N
     repo.page = MagicMock(return_value=([], False))
     processor.replace_thread_message_repo(repo)
     processor._agent_manager.get_agent.return_value = SimpleNamespace(
-        aget_history=AsyncMock(return_value=[HumanMessage(content="我最近总失眠")])
+        aget_history=AsyncMock(return_value=[HumanMessage(content="I keep having insomnia")])
     )
 
     await processor.prepare_peer_session(
@@ -622,7 +622,7 @@ async def test_prepare_team_peer_seeds_host_assignment(processor_env: dict) -> N
             from_agent_id="host",
             to_agent_id="child",
             user_id=1,
-            message="请给出睡眠建议",
+            message="Please give sleep advice",
             source_thread_id="thr_parent",
             source_session_key=str(parent_sk),
         )
@@ -631,8 +631,8 @@ async def test_prepare_team_peer_seeds_host_assignment(processor_env: dict) -> N
     repo.mark_projection.assert_called_with("thr_parent~child", "ready")
     seeded = repo.append_if_ready.call_args.args[1]
     assert seeded[0].role in {"human", "user"}
-    assert "请给出睡眠建议" in seeded[0].message_json
-    assert "我最近总失眠" not in seeded[0].message_json
+    assert "Please give sleep advice" in seeded[0].message_json
+    assert "I keep having insomnia" not in seeded[0].message_json
     assert seeded[0].message_id.startswith("team-peer:thr_parent~child:")
     assert seeded[0].message_id.endswith(":human")
 
@@ -678,13 +678,13 @@ async def test_prepare_followup_seeds_new_user_question(processor_env: dict) -> 
     repo.projection_status = MagicMock(return_value="ready")
     repo.page = MagicMock(
         return_value=(
-            [SimpleNamespace(role="human", message_json='{"content": "上一轮的问题"}')],
+            [SimpleNamespace(role="human", message_json='{"content": "previous round question"}')],
             False,
         )
     )
     processor.replace_thread_message_repo(repo)
     processor._agent_manager.get_agent.return_value = SimpleNamespace(
-        aget_history=AsyncMock(return_value=[HumanMessage(content="请改成早睡建议")])
+        aget_history=AsyncMock(return_value=[HumanMessage(content="Please change to early-sleep advice")])
     )
 
     first = await processor.prepare_peer_session(
@@ -692,7 +692,7 @@ async def test_prepare_followup_seeds_new_user_question(processor_env: dict) -> 
             from_agent_id="host",
             to_agent_id="child",
             user_id=1,
-            message="继续睡眠建议",
+            message="continue sleep advice",
             source_thread_id="thr_parent",
             source_session_key=str(parent_sk),
             job_id="job-1",
@@ -703,7 +703,7 @@ async def test_prepare_followup_seeds_new_user_question(processor_env: dict) -> 
             from_agent_id="host",
             to_agent_id="child",
             user_id=1,
-            message="继续睡眠建议",
+            message="continue sleep advice",
             source_thread_id="thr_parent",
             source_session_key=str(parent_sk),
             job_id="job-2",
@@ -715,9 +715,9 @@ async def test_prepare_followup_seeds_new_user_question(processor_env: dict) -> 
         "team-peer:thr_parent~child:job-1:human",
         "team-peer:thr_parent~child:job-2:human",
     ]
-    assert all("继续睡眠建议" in item.message_json for item in seeded)
-    assert all("请改成早睡建议" not in item.message_json for item in seeded)
-    assert all("上一轮的问题" not in item.message_json for item in seeded)
+    assert all("continue sleep advice" in item.message_json for item in seeded)
+    assert all("Please change to early-sleep advice" not in item.message_json for item in seeded)
+    assert all("previous round question" not in item.message_json for item in seeded)
 
 
 @pytest.mark.asyncio
@@ -791,7 +791,7 @@ async def test_prepare_team_dispatch_includes_room_history(
     assert question == "survey market"
     assert "what is the market?" in dispatch
     assert "I will ask Researcher" in dispatch
-    assert "Team assignment" in dispatch or "团队派工" in dispatch
+    assert "Team assignment" in dispatch or "team assignment" in dispatch
     taken = processor.teams.take_peer_prompt("child", "thr_parent~child")
     assert taken == pair
     assert harness.aget_history.await_count >= 1
@@ -1176,7 +1176,7 @@ async def test_record_peer_turn_keeps_tool_trail_on_member_page(
     repo.page = MagicMock(return_value=([], False))
     processor.replace_thread_message_repo(repo)
     processor._agent_manager.get_agent.return_value = SimpleNamespace(
-        aget_history=AsyncMock(return_value=[HumanMessage(content="用户原话")])
+        aget_history=AsyncMock(return_value=[HumanMessage(content="user's original words")])
     )
 
     await processor.record_peer_turn(
@@ -1184,7 +1184,7 @@ async def test_record_peer_turn_keeps_tool_trail_on_member_page(
             from_agent_id="host",
             to_agent_id="child",
             user_id=1,
-            message="请写计划",
+            message="please write a plan",
             source_thread_id="thr_parent",
             source_session_key=None,
             job_id="job1",
@@ -1192,7 +1192,7 @@ async def test_record_peer_turn_keeps_tool_trail_on_member_page(
         "thr_parent~child",
         {
             "messages": [
-                HumanMessage(content="请写计划"),
+                HumanMessage(content="please write a plan"),
                 AIMessage(
                     content="",
                     tool_calls=[
@@ -1204,7 +1204,7 @@ async def test_record_peer_turn_keeps_tool_trail_on_member_page(
                     ],
                 ),
                 ToolMessage(content="ok", tool_call_id="c1", name="write_file"),
-                AIMessage(content="写好了"),
+                AIMessage(content="plan is written"),
             ]
         },
     )
@@ -1220,7 +1220,7 @@ async def test_record_peer_turn_keeps_tool_trail_on_member_page(
         item.role in {"ai", "assistant"} and "write_file" in item.message_json for item in inputs
     )
     assert any(
-        item.role in {"ai", "assistant"} and "写好了" in item.message_json for item in inputs
+        item.role in {"ai", "assistant"} and "plan is written" in item.message_json for item in inputs
     )
     room_calls = [
         call for call in repo.append_if_ready.call_args_list if call.args[0] == "thr_parent"
@@ -1447,7 +1447,7 @@ async def test_prepare_team_peer_pushes_dispatch_notice_to_im(
     )
     assert len(pushed) == 1
     assert "Researcher" in pushed[0]
-    assert ("请稍候" in pushed[0]) or ("please wait" in pushed[0].lower())
+    assert ("please wait" in pushed[0]) or ("please wait" in pushed[0].lower())
 
 
 @pytest.mark.asyncio
@@ -1533,11 +1533,11 @@ async def test_on_reply_live_wrapup_still_pushes_im(processor_env: dict) -> None
             source_thread_id="thr_parent",
             target_agent_id="child",
             user_id=1,
-            reply_text="可以收工。",
+            reply_text="All done.",
             metadata={"session_key": processor_env["parent_sk"]},
         )
     )
-    assert pushed == ["【主持人总结】可以收工。"] or pushed == ["[Host wrap-up] 可以收工。"]
+    assert pushed == ["[Host wrap-up] All done."] or pushed == ["[Host wrap-up] All done."]
     assert "thr_parent" not in processor.teams._live_host_replies
 
 

@@ -1,36 +1,36 @@
-# Agent 后台协作（harness teams + Octop 投递）
+# Agent Background Collaboration (harness teams + Octop delivery)
 
-> **同步互调**（`@` Agent、`ask_agent` sync）见 [agent-call-agent.md](./agent-call-agent.md)。  
-> 架构说明见 [agent-interop-mailbox.md](./agent-interop-mailbox.md)。
+> For **synchronous peer calls** (`@` Agent, `ask_agent` sync) see [agent-call-agent.md](./agent-call-agent.md).  
+> For the architecture, see [agent-interop-mailbox.md](./agent-interop-mailbox.md).
 
-## 行为
+## Behavior
 
-1. 主 Agent 调用 **`ask_agent`（`mode=background`）**，harness `TeamManager` 将任务入队并立即返回 `job_id`。
-2. 主对话继续；inbox worker 串行执行：`target.call` → 合成提示 → `source.call`（落在父 `thread_id`）。
-3. 完成后 **`GlobalProcessor.on_reply`**：Dashboard 仅 `increment_unread`（回复已在 checkpoint）；IM 通道则 `Gateway.push_text`。
+1. The main Agent calls **`ask_agent` (`mode=background`)**; the harness `TeamManager` enqueues the task and immediately returns a `job_id`.
+2. The main conversation continues; the inbox worker runs serially: `target.call` → compose prompt → `source.call` (landing on the parent `thread_id`).
+3. On completion, **`GlobalProcessor.on_reply`**: the Dashboard only does `increment_unread` (the reply is already in the checkpoint); IM channels call `Gateway.push_text`.
 
-## 工具
+## Tools
 
-| `ask_agent` mode | 行为 |
-|------------------|------|
-| `sync`（默认） | 阻塞等待子 Agent 一次性 `call` 结果 |
-| `background` | 入 harness inbox，完成后主动通知 |
+| `ask_agent` mode | Behavior |
+|------------------|----------|
+| `sync` (default) | Block and wait for the sub-Agent's one-shot `call` result |
+| `background` | Enter the harness inbox; notify proactively on completion |
 
-可选 `user_question`：写入 inbox 消息，供 `compose_followup` 使用。
+Optional `user_question`: written into the inbox message, for `compose_followup` to use.
 
-## Octop 侧保留代码
+## Code retained on the Octop side
 
-| 路径 | 职责 |
-|------|------|
-| `infra/gateway/processor.py` | `GlobalProcessor` 实现 `TeamProcessor`（`compose_followup` / `on_reply`） |
-| `infra/agents/manager.py` | 注册 `team_tools()`、`apply_mentions` 薄封装 |
+| Path | Responsibility |
+|------|----------------|
+| `infra/gateway/processor.py` | `GlobalProcessor` implements `TeamProcessor` (`compose_followup` / `on_reply`) |
+| `infra/agents/manager.py` | Registers `team_tools()`; thin wrapper around `apply_mentions` |
 
-**已移除**：`agent_delegations` 表、`DelegationRepo`、`/delegate` slash（状态由 harness inbox 内存队列管理）。
+**Removed**: the `agent_delegations` table, `DelegationRepo`, and the `/delegate` slash command (state is now managed by the harness inbox in-memory queue).
 
-## 异步场景还需做什么？
+## What else is needed for async scenarios?
 
-当前闭环已可用。可选增强（非阻塞）：
+The loop is already usable. Optional enhancements (non-blocking):
 
-- 前端：用户停留在当前 thread 时，除未读角标外主动 `loadHistory`（或 SSE/WS 通知）。
-- harness：inbox `cancel(job_id)` 暴露给 slash 或管理 API（若需要取消长任务）。
-- 重启后 in-flight 任务丢失（inbox 纯内存）——若需持久化队列，应在 harness 层扩展，而非 octop DB 重复实现。
+- Frontend: while the user stays on the current thread, proactively `loadHistory` beyond the unread badge (or notify via SSE/WS).
+- harness: expose inbox `cancel(job_id)` to a slash command or admin API (needed to cancel long-running tasks).
+- In-flight tasks are lost after a restart (the inbox is purely in-memory) — if a persistent queue is needed, extend it at the harness layer rather than reimplementing it in the octop DB.

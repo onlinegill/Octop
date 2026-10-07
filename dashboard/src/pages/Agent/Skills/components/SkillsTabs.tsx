@@ -1,8 +1,8 @@
 /**
- * SkillsTabs — the full three-tab skills surface (已安装 / 内置 / 技能市场):
+ * SkillsTabs — the full skills surface (Installed / Built-in / Packages):
  *   1. Customized Skills  (workspace kind, editable + deletable)
  *   2. Built-in Skills    (builtin kind, toggle only)
- *   3. Skill Market       (SkillHub marketplace)
+ *   3. Skill Packages     (shared skill bundles)
  *
  * Extracted from the Skills page so it can be embedded both on the dedicated
  * `/skills` route and inside drawers (e.g. the expert skill catalog). It takes
@@ -11,25 +11,23 @@
 
 import { useMemo, useState } from "react";
 import { Empty } from "antd";
-import { Blocks, Package, Sparkles, Store } from "lucide-react";
+import { Blocks, Package, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import TabBar, {
   type TabBarItem,
 } from "../../../../components/TabLabel/TabBar";
 import InstalledSkillsTab from "./InstalledSkillsTab";
 import SkillPackagesTab from "./SkillPackagesTab";
-import SkillHubTab from "./SkillHubTab";
 import { useSkills } from "../useSkills";
 import styles from "../index.module.less";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
 import { userCanAny, PERM } from "../../../../utils/permissions";
 
-type SkillsTab = "custom" | "builtin" | "skillhub" | "packages";
+type SkillsTab = "custom" | "builtin" | "packages";
 
 const SKILL_TABS: TabBarItem<SkillsTab>[] = [
   { key: "custom", labelKey: "skills.customizedSkills", icon: Sparkles },
   { key: "builtin", labelKey: "skills.builtinSkills", icon: Blocks },
-  { key: "skillhub", labelKey: "skills.tencentSkillHub", icon: Store },
   { key: "packages", labelKey: "skills.skillPackages", icon: Package },
 ];
 
@@ -85,8 +83,6 @@ export default function SkillsTabs({ agentId }: SkillsTabsProps) {
           ) : (
             noAgent
           )
-        ) : resolvedTab === "skillhub" && agentId ? (
-          <SkillHubTab key={agentId} target={{ type: "agent", agentId }} />
         ) : resolvedTab === "packages" && agentId && canSkillPackages ? (
           <SkillPackagesTab
             key={agentId}

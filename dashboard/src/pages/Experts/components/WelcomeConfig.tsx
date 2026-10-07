@@ -49,8 +49,8 @@ const presetColors = [
   "#faf5ff",
 ];
 
-// 图标名必须来自 iconForName 的 iconMap，否则会全部回退成默认图标造成重复。
-// 以下 16 个名字在 iconMap 中均存在且互不相同。
+// The icon name must come from iconForName Of iconMap, otherwise it will all fall back to the default icon, causing duplication.
+// Below 16 Name in iconMap They all exist and are different from each other.
 const presetIcons = [
   "file-text",
   "message-square",

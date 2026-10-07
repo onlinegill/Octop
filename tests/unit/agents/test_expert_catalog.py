@@ -11,7 +11,7 @@ import pytest
 def _write_manifest(expert_dir: Path, *, extra: dict | None = None) -> None:
     payload: dict = {
         "id": expert_dir.name,
-        "label": {"zh": "测试", "en": "Test"},
+        "label": {"zh": "Test", "en": "Test"},
         "description": {"zh": "desc", "en": "desc"},
     }
     if extra:
@@ -43,35 +43,6 @@ def test_expert_discovers_seed_paths(tmp_path: Path) -> None:
     assert expert.prompt_files == []
 
 
-def test_resolve_expert_icon_url_uses_scene_for_skillhub() -> None:
-    from octop.infra.agents.experts.catalog import resolve_expert_icon_url
-
-    assert (
-        resolve_expert_icon_url(
-            "skillhub-skillset-healthcare-nursing-plan",
-            None,
-            scene="healthcare",
-        )
-        == "/experts/avatars/scene-healthcare.svg"
-    )
-    # Do not invent missing per-skillset SVG paths.
-    assert (
-        resolve_expert_icon_url(
-            "skillhub-skillset-healthcare-nursing-plan",
-            "/experts/avatars/skillhub-skillset-healthcare-nursing-plan.svg",
-            scene="healthcare",
-        )
-        == "/experts/avatars/scene-healthcare.svg"
-    )
-    assert resolve_expert_icon_url("stock-assistant", None) == (
-        "/experts/avatars/stock-assistant.svg"
-    )
-    assert resolve_expert_icon_url(
-        "external",
-        "https://cdn.example.com/a.png",
-    ) == ("https://cdn.example.com/a.png")
-
-
 def test_bundled_avatar_ids_discovered_from_public_dir() -> None:
     from octop.infra.agents.experts.catalog import (
         _BUNDLED_AVATAR_IDS,
@@ -87,30 +58,6 @@ def test_bundled_avatar_ids_discovered_from_public_dir() -> None:
     assert discovered == _BUNDLED_AVATAR_IDS
     # Empty / missing dir falls back without crashing.
     assert "scene-default" in discover_bundled_avatar_ids(avatars / "missing")
-
-
-def test_skillhub_market_manifest_gets_scene_icon_url(tmp_path: Path) -> None:
-    from octop.infra.agents.experts.catalog import ExpertCatalog
-
-    market_root = tmp_path / "market"
-    expert_dir = market_root / "skillhub-skillset-healthcare-nursing-plan"
-    expert_dir.mkdir(parents=True)
-    _write_manifest(
-        expert_dir,
-        extra={
-            "id": "skillhub-skillset-healthcare-nursing-plan",
-            "icon_name": "heart",
-            "source": {"type": "skillhub", "scene": "healthcare"},
-        },
-    )
-
-    catalog = ExpertCatalog(tmp_path / "bundled", extra_roots=[market_root])
-    (tmp_path / "bundled").mkdir()
-    catalog.refresh()
-
-    expert = catalog.get("skillhub-skillset-healthcare-nursing-plan")
-    assert expert is not None
-    assert expert.summary.icon_url == "/experts/avatars/scene-healthcare.svg"
 
 
 def test_expert_catalog_reads_extra_roots(tmp_path: Path) -> None:
@@ -247,23 +194,23 @@ def test_bundled_default_expert_only_has_agents_md() -> None:
     assert names == {"AGENTS.md"}
 
 
-def test_bundled_office_automation_discovers_skills() -> None:
+def test_bundled_general_assistant_discovers_skills() -> None:
     from octop.infra.agents.experts.catalog import ExpertCatalog, default_library_root
 
     catalog = ExpertCatalog(default_library_root())
     catalog.refresh()
-    expert = catalog.get("office-automation")
+    expert = catalog.get("general-assistant")
     assert expert is not None
     assert expert.prompt_files
-    assert len(expert.files) > 50
-    names = {item["name"] for item in catalog.read_file_contents("office-automation")}
-    assert "skills/docx/SKILL.md" in names
-    docx_skill = next(
+    assert "skills/octop-assistant/SKILL.md" in expert.files
+    names = {item["name"] for item in catalog.read_file_contents("general-assistant")}
+    assert "skills/octop-assistant/SKILL.md" in names
+    skill = next(
         item["content"]
-        for item in catalog.read_file_contents("office-automation")
-        if item["name"] == "skills/docx/SKILL.md"
+        for item in catalog.read_file_contents("general-assistant")
+        if item["name"] == "skills/octop-assistant/SKILL.md"
     )
-    assert "DOCX" in docx_skill
+    assert "octop-assistant" in skill
 
 
 def test_expert_quick_prompts_from_manifest(tmp_path: Path) -> None:
@@ -277,9 +224,9 @@ def test_expert_quick_prompts_from_manifest(tmp_path: Path) -> None:
             "prompt_files": ["SOUL.md"],
             "quick_prompts": [
                 {
-                    "title": {"zh": "标题", "en": "Title"},
-                    "description": {"zh": "说明", "en": "Desc"},
-                    "prompt": {"zh": "你好", "en": "Hello"},
+                    "title": {"zh": "Title", "en": "Title"},
+                    "description": {"zh": "Desc", "en": "Desc"},
+                    "prompt": {"zh": "Hello", "en": "Hello"},
                     "color": "#abcdef",
                     "icon_name": "zap",
                 }
@@ -294,7 +241,7 @@ def test_expert_quick_prompts_from_manifest(tmp_path: Path) -> None:
     expert = catalog.get("my-expert")
     assert expert is not None
     assert len(expert.quick_prompts) == 1
-    assert expert.quick_prompts[0].title_zh == "标题"
+    assert expert.quick_prompts[0].title_en == "Title"
     assert expert.quick_prompts[0].prompt_en == "Hello"
 
 
@@ -307,7 +254,7 @@ def test_expert_task_examples_from_manifest(tmp_path: Path) -> None:
         expert_dir,
         extra={
             "task_examples": {
-                "zh": ["一", "二", "三", "四", "五"],
+                "zh": ["one", "two", "three", "four", "five"],
                 "en": ["a", "b", "c", "d", "e"],
             }
         },
@@ -317,10 +264,7 @@ def test_expert_task_examples_from_manifest(tmp_path: Path) -> None:
     catalog.refresh()
     expert = catalog.get("my-expert")
     assert expert is not None
-    assert expert.summary.task_examples == {
-        "zh": ["一", "二", "三"],
-        "en": ["a", "b", "c"],
-    }
+    assert expert.summary.task_examples == {"en": ["a", "b", "c"]}
 
 
 class _MemWorkspace:
@@ -349,9 +293,9 @@ async def test_apply_workspace_quick_prompts_merges_and_filters() -> None:
         workspace,
         [
             {
-                "title": {"zh": "卡", "en": ""},
+                "title": {"zh": "Card", "en": "Card"},
                 "description": {"zh": "", "en": ""},
-                "prompt": {"zh": "做这件事", "en": ""},
+                "prompt": {"zh": "Do this", "en": "Do this"},
                 "color": "#fff7ed",
                 "icon_name": "zap",
             },
@@ -361,7 +305,7 @@ async def test_apply_workspace_quick_prompts_merges_and_filters() -> None:
     data = json.loads(workspace.files[WORKSPACE_MANIFEST_PATH])
     assert data["id"] == "demo"
     assert len(data["quick_prompts"]) == 1
-    assert data["quick_prompts"][0]["title"]["zh"] == "卡"
+    assert data["quick_prompts"][0]["title"]["en"] == "Card"
 
 
 @pytest.mark.asyncio

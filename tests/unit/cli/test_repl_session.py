@@ -6,9 +6,9 @@ from octop.cli.repl.session import ReplSession
 from octop.cli.repl.toolbar import format_repl_toolbar
 
 
-def test_apply_slash_text_sets_model_from_zh_reply() -> None:
+def test_apply_slash_text_sets_model_from_localized_reply() -> None:
     state = ReplSession(agent_id="ag1", session_key="cli")
-    state.apply_slash_text("此话题模型 → openai:gpt-4o。")
+    state.apply_slash_text("Thread model → openai:gpt-4o.")
     assert state.model == "openai:gpt-4o"
 
 

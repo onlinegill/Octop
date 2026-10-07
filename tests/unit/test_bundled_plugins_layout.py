@@ -69,7 +69,9 @@ def test_offline_bundled_plugins_load() -> None:
     PluginRegistry.reset()
     root = default_bundled_plugins_root()
     try:
-        for name in ("fortune", "pomodoro", "mini-games", "qrcode", "tetris"):
+        # "fortune" (a China-only fortune-telling plugin) was removed with the other
+        # China integrations; sample the surviving bundled plugins instead.
+        for name in ("fun-facts", "pomodoro", "mini-games", "qrcode", "tetris"):
             loaded = load_plugin_dir(root / name, install_deps=False)
             assert loaded.manifest.id == name
             assert loaded.tools

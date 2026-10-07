@@ -15,19 +15,19 @@ vi.mock("../../../hooks/useCurrentUser", () => ({
 const agents = [
   {
     agent_id: "own-1",
-    name: "我的专家",
+    name: "My expert",
     is_shared: false,
     is_owner: true,
   },
   {
     agent_id: "shared-1",
-    name: "共享专家甲",
+    name: "Sharing expert A",
     is_shared: true,
     is_owner: false,
   },
   {
     agent_id: "shared-2",
-    name: "共享专家乙",
+    name: "Sharing expert B",
     is_shared: true,
     is_owner: false,
   },
@@ -53,38 +53,38 @@ describe("ExpertPickerPopover hide shared experts", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("共享专家甲")).toBeInTheDocument();
-    expect(screen.getByText("共享专家乙")).toBeInTheDocument();
-    expect(screen.getByText("我的专家")).toBeInTheDocument();
+    expect(screen.getByText("Sharing expert A")).toBeInTheDocument();
+    expect(screen.getByText("Sharing expert B")).toBeInTheDocument();
+    expect(screen.getByText("My expert")).toBeInTheDocument();
 
     const hideButtons = screen.getAllByRole("button", {
-      name: /chat\.expertHide|Hide shared expert|隐藏共享专家/,
+      name: /chat\.expertHide|Hide shared expert|Hide sharing experts/,
     });
     expect(hideButtons.length).toBe(2);
     await user.click(hideButtons[0]);
 
-    expect(screen.queryByText("共享专家甲")).not.toBeInTheDocument();
-    expect(screen.getByText("共享专家乙")).toBeInTheDocument();
+    expect(screen.queryByText("Sharing expert A")).not.toBeInTheDocument();
+    expect(screen.getByText("Sharing expert B")).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", {
-        name: /chat\.expertPickerHidden|Hidden experts|已隐藏专家/,
+        name: /chat\.expertPickerHidden|Hidden experts|Experts hidden/,
       }),
     );
-    expect(screen.getByText("共享专家甲")).toBeInTheDocument();
+    expect(screen.getByText("Sharing expert A")).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", {
-        name: /chat\.expertUnhide|Show expert again|重新显示专家/,
+        name: /chat\.expertUnhide|Show expert again|Reshow expert/,
       }),
     );
     // Last hidden expert restored → auto-return to the visible list.
-    expect(screen.getByText("共享专家甲")).toBeInTheDocument();
-    expect(screen.getByText("共享专家乙")).toBeInTheDocument();
-    expect(screen.getByText("我的专家")).toBeInTheDocument();
+    expect(screen.getByText("Sharing expert A")).toBeInTheDocument();
+    expect(screen.getByText("Sharing expert B")).toBeInTheDocument();
+    expect(screen.getByText("My expert")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", {
-        name: /chat\.expertPickerHidden|Hidden experts|已隐藏专家/,
+        name: /chat\.expertPickerHidden|Hidden experts|Experts hidden/,
       }),
     ).not.toBeInTheDocument();
   });

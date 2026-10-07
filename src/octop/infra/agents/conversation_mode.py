@@ -18,29 +18,20 @@ HOST_READ_TOOLS: tuple[str, ...] = ("search_knowledge",)
 
 _EXECUTE_EXACT = frozenset(
     {
-        "执行计划",
-        "按计划执行",
-        "开始干",
-        "开始干吧",
-        "开始执行",
-        "干吧",
-        "开干",
         "executeplan",
         "executetheplan",
     }
 )
 _EXECUTE_CONTAINS = (
-    "按计划执行",
     "execute the plan",
     "execute plan",
     "start executing",
 )
 _PLAN_FILE = r"plans/[a-zA-Z0-9][a-zA-Z0-9._-]{0,120}\.md"
 _DASHBOARD_EXECUTE_RES = (
-    re.compile(rf"请按\s*{_PLAN_FILE}\s*执行"),
     re.compile(rf"(?i)(?:please\s+)?execute\s+{_PLAN_FILE}"),
 )
-_PUNCT_RE = re.compile(r"[\s，。！？、,.!?;:'\"“”‘’]+")
+_PUNCT_RE = re.compile(r"[\s,.!?;:'\"“”‘’]+")
 
 
 def resolve_conversation_mode(

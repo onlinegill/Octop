@@ -29,7 +29,7 @@ def test_require_cron_prompt_strips() -> None:
 
 
 def test_default_cron_name_uses_first_line() -> None:
-    assert default_cron_name("该喝水了\n更多说明", "cron_x") == "该喝水了"
+    assert default_cron_name("Time to drink water\nmore details", "cron_x") == "Time to drink water"
 
 
 def test_default_cron_name_truncates_long_prefix() -> None:
@@ -42,11 +42,11 @@ def test_default_cron_name_falls_back_to_cron_id() -> None:
 
 
 def test_require_cron_name_uses_explicit_name() -> None:
-    assert require_cron_name("  喝水  ", prompt="ignored", cron_id="cron_x") == "喝水"
+    assert require_cron_name("  Drink water  ", prompt="ignored", cron_id="cron_x") == "Drink water"
 
 
 def test_require_cron_name_blank_uses_prompt_prefix() -> None:
-    assert require_cron_name("  ", prompt="站起来活动", cron_id="cron_x") == "站起来活动"
+    assert require_cron_name("  ", prompt="Stand up and move", cron_id="cron_x") == "Stand up and move"
 
 
 def test_require_cron_name_rejects_too_long() -> None:

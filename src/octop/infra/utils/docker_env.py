@@ -274,58 +274,61 @@ def agent_prompt(
     host = platform.platform()
 
     if status in {"ready", "installed"}:
-        return f"本机 Docker 已可用（系统：{host}）。请运行 `docker info` 确认，无需再安装。"
+        return (
+            f"Docker is already available on this machine (system: {host}). "
+            "Run `docker info` to confirm; no install is needed."
+        )
 
     if status == "daemon_down":
         if key == "darwin":
             return (
-                "本机已有 docker 命令，但 daemon 未响应。"
-                f"当前系统：{host}。"
-                "请先检查并启动 Docker Desktop 或 OrbStack（`open -a Docker` / `open -a OrbStack`）；"
-                "若应用已卸载，再用 `brew install --cask docker` 或 `brew install --cask orbstack` 重装。"
-                "若 `docker context` 指向已不存在的环境（如 orbstack），请切回可用 context 后执行 `docker info` 直到成功。"
+                "The docker command is already installed, but the daemon is not responding. "
+                f"Current system: {host}. "
+                "First check and start Docker Desktop or OrbStack (`open -a Docker` / `open -a OrbStack`); "
+                "if the app was uninstalled, reinstall it with `brew install --cask docker` or `brew install --cask orbstack`. "
+                "If `docker context` points at an environment that no longer exists (such as orbstack), switch back to a working context and run `docker info` until it succeeds."
             )
         if key == "linux":
             return (
-                "本机已有 docker 命令，但 daemon 未响应。"
-                f"当前系统：{host}。"
-                "请执行 `sudo systemctl start docker`（并视情况 `enable`），"
-                "确认当前用户在 `docker` 组后运行 `docker info`。"
+                "The docker command is already installed, but the daemon is not responding. "
+                f"Current system: {host}. "
+                "Run `sudo systemctl start docker` (and `enable` it if appropriate), "
+                "confirm your user is in the `docker` group, then run `docker info`."
             )
         if key == "win32":
             return (
-                "本机已有 docker 命令，但 daemon 未响应。"
-                f"当前系统：{host}。"
-                "请启动 Docker Desktop，等待其就绪后运行 `docker info`。"
+                "The docker command is already installed, but the daemon is not responding. "
+                f"Current system: {host}. "
+                "Start Docker Desktop, wait until it is ready, then run `docker info`."
             )
         return (
-            f"本机已有 docker CLI，但 daemon 未响应（系统：{host}）。"
-            "请启动 Docker 服务后验证 `docker info`。"
+            f"The docker CLI is already installed, but the daemon is not responding (system: {host}). "
+            "Start the Docker service, then verify with `docker info`."
         )
 
     if key == "linux":
         return (
-            "请在本机帮我安装并启用 Docker Engine，使 `docker info` 可用。"
-            f"当前系统：{host}。"
-            "优先用官方脚本 `curl -fsSL https://get.docker.com | sudo sh`，"
-            "并把当前用户加入 `docker` 组；完成后验证 `docker info`。"
-            "如需 sudo 密码请提示我手动输入，不要把密钥写进命令历史。"
+            "Please install and enable Docker Engine on this machine so that `docker info` works. "
+            f"Current system: {host}. "
+            "Prefer the official script `curl -fsSL https://get.docker.com | sudo sh`, "
+            "and add the current user to the `docker` group; verify `docker info` afterwards. "
+            "If a sudo password is needed, prompt me to type it manually — do not write secrets into the command history."
         )
     if key == "darwin":
         return (
-            "请帮我在 macOS 上安装 Docker Desktop（可用 `brew install --cask docker`），"
-            "并引导我打开 Docker.app，直到 `docker info` 成功。"
-            f"当前系统：{host}。"
+            "Please install Docker Desktop on macOS (you can use `brew install --cask docker`), "
+            "and guide me through opening Docker.app until `docker info` succeeds. "
+            f"Current system: {host}."
         )
     if key == "win32":
         return (
-            "请指导我在 Windows 上安装 Docker Desktop（含 WSL2 如需要），"
-            "并确认安装后 `docker info` 可用。"
-            f"当前系统：{host}。"
+            "Please walk me through installing Docker Desktop on Windows (including WSL2 if needed), "
+            "and confirm `docker info` works after the install. "
+            f"Current system: {host}."
         )
     return (
-        f"请帮我在当前系统（{host}）安装 Docker，并验证 `docker info` 可用。"
-        f"参考文档：{_DOCS_BY_PLATFORM.get('linux')}"
+        f"Please install Docker on the current system ({host}) and verify that `docker info` works. "
+        f"Reference docs: {_DOCS_BY_PLATFORM.get('linux')}"
     )
 
 

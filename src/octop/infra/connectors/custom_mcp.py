@@ -14,7 +14,7 @@ from octop.infra.utils.ssrf_guard import (
 )
 
 CUSTOM_MCP_KIND = "custom-mcp"
-CUSTOM_MCP_DISPLAY_NAME = "自定义 MCP"
+CUSTOM_MCP_DISPLAY_NAME = "Custom MCP"
 
 _SERVER_NAME_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 _META_KEYS = frozenset({"enabled", "display_name", "default_open", "shared"})

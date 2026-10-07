@@ -67,7 +67,7 @@ on each start. Schema (`OctopConfig` in `octop/config.py`):
   "login_max_attempts": 5,
   "login_lockout_seconds": 900,
   "cors_origins": [],
-  "default_timezone": "Asia/Shanghai",
+  "default_timezone": "UTC",
   "enable_dashboard": true,
   "enable_api_docs": false,
   "require_setup_password": true,
@@ -142,13 +142,11 @@ Each variable, when set, takes precedence over the matching key in
 | `OCTOP_ACCESS_TOKEN_TTL` | int (seconds) | `86400` | JWT access-token lifetime |
 | `OCTOP_LOGIN_MAX_ATTEMPTS` | int | `5` | Failed-login attempts before lockout |
 | `OCTOP_LOGIN_LOCKOUT_SECONDS` | int | `900` | Lockout duration after `OCTOP_LOGIN_MAX_ATTEMPTS` failures |
-| `OCTOP_CAPTCHA_PROVIDER` | slug | `slider` | Login captcha (`slider`, `turnstile`, `hcaptcha`, `recaptcha-v3`, `tencent`, `geetest-v4`; `recaptcha` v2 stays resolvable for existing configs but is unlisted). Boot snapshot; restart after change |
-| `OCTOP_CAPTCHA_SITE_KEY` | string | empty | Public site key (Tencent: CaptchaAppId; required when the env snapshot is a strong provider) |
-| `OCTOP_CAPTCHA_SECRET` | string | empty | Siteverify secret (Tencent: AppSecretKey; never logged; `GET /api/envs` redacts it) |
-| `OCTOP_CAPTCHA_CAM_SECRET_ID` | string | empty | Tencent only: CAM API SecretId signing `DescribeCaptchaResult`; required when the env snapshot is `tencent` |
-| `OCTOP_CAPTCHA_CAM_SECRET_KEY` | string | empty | Tencent only: CAM API SecretKey; never logged; `GET /api/envs` redacts it |
+| `OCTOP_CAPTCHA_PROVIDER` | slug | `slider` | Login captcha (`slider`, `turnstile`, `hcaptcha`, `recaptcha-v3`, `geetest-v4`; `recaptcha` v2 stays resolvable for existing configs but is unlisted). Boot snapshot; restart after change |
+| `OCTOP_CAPTCHA_SITE_KEY` | string | empty | Public site key (required when the env snapshot is a strong provider) |
+| `OCTOP_CAPTCHA_SECRET` | string | empty | Siteverify secret (never logged; `GET /api/envs` redacts it) |
 | `OCTOP_CAPTCHA_V3_MIN_SCORE` | float | `0.5` | Minimum `recaptcha-v3` score; admin UI is read-only |
-| `OCTOP_DEFAULT_TIMEZONE` | IANA tz | `Asia/Shanghai` | Default timezone for display, scheduling, and harness (`cron_timezone` / `OCTOP_CRON_TIMEZONE` still accepted) |
+| `OCTOP_DEFAULT_TIMEZONE` | IANA tz | `UTC` | Default timezone for display, scheduling, and harness (`cron_timezone` / `OCTOP_CRON_TIMEZONE` still accepted) |
 | `OCTOP_CORS_ORIGINS` | comma-sep list | empty | Permitted CORS origins for the dashboard / external callers |
 | `OCTOP_ENABLE_DASHBOARD` | bool | `true` | Serve the built React SPA at `/` |
 | `OCTOP_ENABLE_API_DOCS` | bool | `false` | Expose Scalar API docs at `/api/docs` |

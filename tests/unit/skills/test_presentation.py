@@ -11,8 +11,8 @@ def test_apply_skill_presentation_exposes_localized_copy_and_assets() -> None:
     frontmatter = {
         "metadata": {
             "octop": {
-                "label": {"zh": "PDF 阅读", "en": "PDF Reader"},
-                "summary": {"zh": "读取 PDF", "en": "Read PDFs"},
+                "label": {"zh": "PDF Reader", "en": "PDF Document Reader"},
+                "summary": {"zh": "Read PDFs", "en": "Read PDF documents"},
                 "emoji": "📄",
                 "icon_url": "https://cdn.example.com/pdf.png",
             }
@@ -24,12 +24,12 @@ def test_apply_skill_presentation_exposes_localized_copy_and_assets() -> None:
 
     assert raw["name"] == "pdf-reader"
     assert raw["description"] == "Agent trigger"
-    assert raw["label"] == {"zh": "PDF 阅读", "en": "PDF Reader"}
-    assert raw["summary"] == {"zh": "读取 PDF", "en": "Read PDFs"}
+    assert raw["label"] == {"zh": "PDF Reader", "en": "PDF Document Reader"}
+    assert raw["summary"] == {"zh": "Read PDFs", "en": "Read PDF documents"}
     assert raw["emoji"] == "📄"
     assert raw["icon_url"] == "https://cdn.example.com/pdf.png"
-    assert localized["name"] == "PDF 阅读"
-    assert localized["description"] == "读取 PDF"
+    assert localized["name"] == "PDF Reader"
+    assert localized["description"] == "Read PDFs"
     assert localized["slug"] == "pdf-reader"
 
 
@@ -47,14 +47,14 @@ def test_localize_skill_summary_uses_english_then_chinese_fallback() -> None:
     summary = {
         "name": "stable-name",
         "description": "Agent trigger",
-        "label": {"zh": "中文名"},
-        "summary": {"zh": "中文简介"},
+        "label": {"zh": "Localized name"},
+        "summary": {"zh": "Localized summary"},
     }
 
     localized = localize_skill_summary(summary, "en")
 
-    assert localized["name"] == "中文名"
-    assert localized["description"] == "中文简介"
+    assert localized["name"] == "Localized name"
+    assert localized["description"] == "Localized summary"
 
 
 def test_legacy_display_name_and_compatible_emoji_remain_supported() -> None:

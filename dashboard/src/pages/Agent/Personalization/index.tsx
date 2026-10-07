@@ -102,7 +102,7 @@ export default function PersonalizationPage() {
   const expertOnlyBlocked = isTeamAgent(activeAgent) && !showTeams;
   const teamNeedsExpert = t("agentSelector.teamNeedsExpert", {
     name: activeAgent?.name ?? "",
-    defaultValue: "当前是团队「{{name}}」，此页请选择专家",
+    defaultValue: "\"{{name}}\" is a team. Choose an expert for this page.",
   });
   const expertOnly = (node: ReactNode) =>
     expertOnlyBlocked ? (

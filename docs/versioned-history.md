@@ -1,109 +1,107 @@
-# 分段历史归档：启用、验证和回退
+# Segmented History Archiving: Enabling, Verifying, and Rollback
 
-本期增加可选的历史存储，不运行历史数据迁移，不清理 checkpoint。默认关闭。
+This release adds optional history storage. It does not run history data migration and does not clean up checkpoints. Off by default.
 
-## 数据如何保存
+## How data is stored
 
-以一段已经聊了 100 轮的旧会话为例：
+Take an old conversation that has already had 100 turns:
 
 ```text
-第 1～100 轮       开关打开后，第 101～110 轮       关闭开关后，第 111 轮起
-原有记录          history_v2.sqlite              原有消息/轨迹表
+Turns 1–100       After the switch is on, turns 101–110   After the switch is off, from turn 111
+existing records  history_v2.sqlite                        existing message/trajectory tables
      └──────────────────┬──────────────────────────┘
-                兼容读取接口，按段分页展示
+                 compatible read interface, paginated and displayed by segment
 ```
 
-切换以完整回合为边界。等待用户批准的回合继续使用开始时的格式，恢复时不重新选择格式。
-旧前缀只在新归档中登记边界，不复制正文：已有 `thread_messages` 投影的会话固定最后序号；
-尚未完成投影的会话固定当时的 checkpoint 配置，读取时经 graph 的状态恢复接口还原。
-兼容模式不自动修复旧投影，也停用批量回填入口。因此旧数据原有缺漏不会被本期自动补齐。
+The switchover happens on whole-turn boundaries. A turn waiting for user approval keeps the format it started with; the format is not re-selected when it resumes.
+For an old prefix, only the boundary is registered in the new archive — the body is not copied: conversations that already have a `thread_messages` projection fix their last sequence number;
+conversations whose projection is not yet complete fix the checkpoint configuration at that time, and the state is restored on read through the graph's state-restoration interface.
+Compatible mode does not automatically repair old projections, and it disables the bulk backfill entry point. Therefore pre-existing gaps in old data are not automatically filled by this release.
 
-v2 回合不再追加旧 `thread_messages` 和 `trajectory_events`。
-新文件中的 `documents` 保存消息结构或轨迹结构，`bodies` 保存按内容哈希共享的正文、
-可见 thinking、工具参数和结果。完全相同的大字段可被两种视图引用；不是把两份完整聊天存入两个新库。
-不同形态的内容（例如工具结果对象与其格式化文本）仍可能分别保存，不承诺语义去重。
+v2 turns no longer append to the old `thread_messages` and `trajectory_events`.
+In the new files, `documents` stores the message structure or trajectory structure, and `bodies` stores bodies shared by content hash —
+visible thinking, tool arguments, and results. Identical large fields can be referenced by both views; this is not storing two complete copies of a chat in two new databases.
+Different forms of content (for example, a tool-result object and its formatted text) may still be stored separately; semantic deduplication is not promised.
 
-checkpoint、Memory 原始记录及会话 JSONL 仍遵循现有行为。
-本期没有把“全项目的历史数据只剩一份”作为结果，也不会让已有 SQLite 文件立即变小。
+Checkpoints, raw Memory records, and session JSONL still follow existing behavior.
+This release does not treat "the whole project's history is now a single copy" as a goal, nor does it immediately shrink existing SQLite files.
 
-## Checkpoint 读取兼容性
+## Checkpoint read compatibility
 
-分段归档关闭时，旧投影回填仍可读取 checkpoint。SQLite 回填使用独立只读连接、事务和内容缓存；
-若 octop-memory 使用共享正文格式，须同时安装提供 `CheckpointSerializer.with_connection` 的
-octop-memory 和本次 Octop 读取修正。原有 inline 格式仍可读取。
-PostgreSQL 不进入 SQLite 读取入口，继续经 graph 恢复消息；这不改变下述分段归档的 SQLite-only 限制。
+When segmented archiving is off, old-projection backfill can still read checkpoints. SQLite backfill uses a separate read-only connection, transaction, and content cache;
+if octop-memory uses the shared-body format, you must install both the octop-memory that provides `CheckpointSerializer.with_connection` and this Octop read fix. The original inline format remains readable.
+PostgreSQL does not enter the SQLite read path; it continues to restore messages through the graph. This does not change the SQLite-only limitation of segmented archiving described below.
 
-## 启用
+## Enabling
 
-适用范围：SQLite 主库、单个 Octop 服务进程。PostgreSQL 开启此功能会明确拒绝启动。
-上线需同时包含本次 Octop 变更及 octop-harness 流式协议变更；后者提供模型消息 ID 和来源关联。
-本地仅修改源码不会自动升级虚拟环境里已安装的 octop-harness。
+Scope: the SQLite primary database, a single Octop service process. Enabling this feature on PostgreSQL is explicitly refused at startup.
+Going live requires both this Octop change and the octop-harness streaming protocol change; the latter provides model message IDs and origin correlation.
+Editing the source locally does not automatically upgrade the octop-harness already installed in the virtual environment.
 
-1. 先停止新请求，等待运行中的任务结束。保留当前应用版本及完整数据目录备份。
-2. 在测试数据副本中安装包含上述变更的兼容版本。
-3. 在现有 `config.json` 增加 `"history_v2_enabled": true`，或设置
-   `OCTOP_HISTORY_V2_ENABLED=true` 后重启。默认值为 false。
-4. 新文件位于 Octop 数据根目录下的 `history_v2.sqlite`，旁边有
-   `history_v2.required` 标记。不要单独删除或移动其中之一。
-5. 对一段旧会话继续聊天，刷新并翻到切换边界之前；再测试工具调用、可见 thinking、
-   HITL 暂停恢复和进程中断。确认新回合没有写入旧消息/轨迹表。
+1. Stop new requests first and wait for running tasks to finish. Keep the current application version and a full backup of the data directory.
+2. Install a compatible version containing the changes above onto a copy of the test data.
+3. Add `"history_v2_enabled": true` to the existing `config.json`, or set
+   `OCTOP_HISTORY_V2_ENABLED=true`, then restart. The default is false.
+4. The new file lives under the Octop data root as `history_v2.sqlite`, with a
+   `history_v2.required` marker beside it. Do not delete or move either one separately.
+5. Keep chatting in an old conversation, refresh, and page back past the switchover boundary; then test tool calls, visible thinking,
+   HITL pause/resume, and process interruption. Confirm that new turns are not written to the old message/trajectory tables.
 
-新归档使用 SQLite 事务、外键、WAL 和 FULL 同步。每次保存会在同一个事务中更新文档和正文引用；
-更新流式消息时，只释放被该文档替换且已无其他引用的新正文，不清理历史回合或旧库数据。
+The new archive uses SQLite transactions, foreign keys, WAL, and FULL synchronization. Each save updates document and body references in the same transaction;
+when updating a streaming message, it releases only the new bodies that were replaced by that document and are no longer referenced elsewhere, without cleaning up historical turns or old-database data.
 
-新格式回合中，每个需要保留的正文、thinking、工具参数/结果或消息状态事件，都在向 Dashboard / IM
-转发前等待数据库事务提交；不再设置 200ms 的限频或等待下一事件。没有内容变化的重复事件复用已经提交的记录。
-写入失败时停止转发该内容并报告错误，回合不能标为成功归档。取消请求时会等待已经交给执行器的写入结束，
-再释放回合，避免后台写入尚未完成就开始恢复或下一轮。
+In new-format turns, every body, thinking, tool argument/result, or message-state event that needs to be retained waits for the database transaction to commit before being forwarded to the Dashboard / IM;
+there is no longer a 200ms rate limit or a wait for the next event. Repeated events with no content change reuse the already-committed record.
+On a write failure, it stops forwarding that content and reports an error; the turn cannot be marked as successfully archived. When a request is cancelled, it waits for writes already handed to the executor to finish,
+then releases the turn, so that recovery or the next round does not begin before background writes have completed.
 
-每次只提交变化的消息，不遍历更新整轮消息。超过 1024 个 Unicode 字符的文本按固定边界分块，
-只插入新增或变化的正文块及引用；已提交的前缀块可复用。消息结构及其块引用列表仍需要更新，
-所以这并不等于每个 token 的数据库开销只有几个字节。逐事件提交也会增加事务数量和首显延迟，
-可靠性优先；没有新增原始事件日志或第二份完整消息。旧的单正文编码仍可读取，不做批量重编码或改表。
+Each save commits only the changed messages, without iterating over and updating the whole turn. Text longer than 1024 Unicode characters is chunked at fixed boundaries,
+inserting only new or changed body chunks and references; already-committed prefix chunks can be reused. The message structure and its chunk reference list still need updating,
+so this does not mean the per-token database cost is only a few bytes. Per-event commit also increases the number of transactions and first-render latency —
+reliability comes first; no new raw event log or second full message copy is added. The old single-body encoding remains readable; no bulk re-encoding or schema change is performed.
 
-进程在提交前退出时，尚未提交的内容不会由这条路径发给前端；提交后、发送前退出时，
-可能出现“历史里已有，但前端还没收到”的内容，刷新即可读取。此保证以 SQLite 和底层存储正常履行持久化语义为前提，
-不涵盖上游从未交给采集器的事件或存储设备损坏。
-重启后再次接收请求会保留前一回合并将未结束的活动记录标为 interrupted。
+If the process exits before the commit, content not yet committed is not sent to the frontend by this path; if it exits after the commit but before sending,
+content may appear as "already in history but not yet received by the frontend" — a refresh will read it. This guarantee presumes that SQLite and the underlying storage correctly honor persistence semantics,
+and does not cover events the upstream never handed to the collector or storage-device corruption.
+After a restart, accepting requests again preserves the previous turn and marks unfinished activity records as interrupted.
 
-## 读取失败与完整性
+## Read failures and integrity
 
-历史请求失败时，Dashboard 显示错误与重试入口，保留当前已展示的消息及翻页位置。
-文件丢失、数据库身份不符、正文引用丢失或不可解码的旧记录会报错，不能按空历史处理。
+When a history request fails, the Dashboard shows the error and a retry entry point, preserving the currently displayed messages and pagination position.
+A missing file, a mismatched database identity, a lost body reference, or an undecodable old record all raise errors and cannot be treated as an empty history.
 
-回合状态包括 active、paused、complete、partial、failed、interrupted。
-缺少工具结果、消息解码失败、无法关联的多来源输出或轨迹写入失败，不能记为 complete。
-complete 仅表示本采集器通过当前回合的检查，不能证明旧会话完整，也不能证明上游未漏发事件。
+Turn states include active, paused, complete, partial, failed, interrupted.
+A missing tool result, a message decode failure, uncorrelatable multi-origin output, or a trajectory write failure cannot be recorded as complete.
+complete only means that this collector passed the current turn's checks; it does not prove that an old conversation is intact, nor that the upstream did not drop events.
 
-已授权用户可调用 `GET /api/agents/{agent_id}/threads/{thread_id}/history/export`
-下载未经过界面排版的消息 JSON 和最新归档回合状态。实际前缀以服务挂载设置为准。
-该导出帮助区分“记录还在但界面没显示”与读取失败，不替代完整数据库备份；损坏的正文仍会使导出失败。
+Authorized users can call `GET /api/agents/{agent_id}/threads/{thread_id}/history/export`
+to download the message JSON (without UI formatting) and the latest archived turn state. The actual prefix is subject to the service's mounted settings.
+This export helps distinguish "the record is still there but the UI isn't showing it" from a read failure; it does not replace a full database backup — a corrupted body will still make the export fail.
 
-历史分页返回 `next_cursor`。客户端应原样用于下一页，不用随新消息数量变化的 offset 替代。
-分叉从兼容读取结果取选定前缀，原会话不被回填或重写。
+History pagination returns `next_cursor`. Clients should use it verbatim for the next page, not substitute an offset that changes with the number of new messages.
+A fork takes the selected prefix from the compatible read result; the original conversation is neither backfilled nor rewritten.
 
-## 如何回退
+## How to roll back
 
-1. 等待当前回合完成，或先完成其 HITL 恢复。
-2. 将开关设为 false 后重启**这一兼容版本**。
-3. 下一回合改用旧消息/轨迹格式。已写入的 v2 内容继续由兼容读取接口展示。
-4. 重新打开开关可再创建新的 v2 段，不需要迁移中间那段旧格式内容。
+1. Wait for the current turn to complete, or first finish its HITL resume.
+2. Set the switch to false and restart **this compatible version**.
+3. The next turn reverts to the old message/trajectory format. Already-written v2 content continues to be displayed by the compatible read interface.
+4. Turning the switch back on creates a new v2 segment; there is no need to migrate the intervening old-format content.
 
-不能直接退到完全不认识 v2 的旧程序：它无法展示新归档。
-开关关闭不等于卸载读取器；不能靠删除新文件实现回退。
-如果新文件不可读，先恢复文件或修复读取问题，不自动把新历史“回退”为旧库里的空白。
+You cannot roll directly back to an old build that knows nothing about v2: it cannot display the new archive.
+Turning the switch off is not the same as uninstalling the reader; you cannot roll back by deleting the new file.
+If the new file is unreadable, first restore the file or fix the read problem — do not automatically "roll back" the new history to blanks in the old database.
 
-## 备份与恢复边界
+## Backup and restore boundaries
 
-包含聊天的系统备份会额外带上新归档的 SQLite 一致快照及标记文件。
-不包含聊天的备份不包含该文件。新归档先于主库取快照，降低出现新线程引用缺失的风险；
-多个数据库并非一个原子事务，运行中备份不保证所有文件处于同一个瞬间。
+A system backup that includes chat now carries an additional SQLite-consistent snapshot of the new archive plus the marker file.
+A backup that excludes chat does not include that file. The new archive is snapshotted before the primary database, reducing the risk of a new thread referencing a missing body;
+multiple databases are not a single atomic transaction, so a live backup does not guarantee that all files are at the same instant.
 
-本期明确阻止涉及 v2 数据的现有在线恢复入口和运行时换库，防止只恢复主库造成错配。
-目前尚未实现 v2 多库的自动协调恢复；需要恢复时使用停机取得的完整数据目录备份：
-停止服务、另存当前整个目录、在原路径恢复同一备份中的主库、新归档及标记、
-agent checkpoint/工作区、配置，然后用兼容版本启动检查。
-不要把不同时间点的主库和新归档随意拼在一起。新归档记录主库的绝对路径身份，
-跨机器或换路径恢复需要后续提供显式身份重绑定工具，本期不自动改写身份。
+This release explicitly blocks existing online restore entry points and runtime database swaps involving v2 data, to prevent a restore of only the primary database causing a mismatch.
+Automatic coordinated restore across the v2 multi-database set is not yet implemented; when a restore is needed, use a full data-directory backup taken while stopped:
+stop the service, copy the current whole directory aside, restore the primary database, new archive and marker, agent checkpoint/workspace, and configuration from the same backup at their original paths, then start with the compatible version to check.
+Do not arbitrarily splice a primary database and a new archive from different points in time. The new archive records the absolute path identity of the primary database;
+restoring across machines or to a different path requires a future explicit identity-rebinding tool — this release does not automatically rewrite identity.
 
-在上述读写、暂停恢复、回退与停机恢复演练通过之前，不启用 checkpoint 保留策略。
+Until the read/write, pause/resume, rollback, and stopped-restore drills above pass, do not enable any checkpoint retention policy.

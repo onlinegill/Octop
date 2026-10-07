@@ -18,7 +18,7 @@ function DailyEnglish(props) {
     },
     "data-octop-plugin-ui": "daily-english",
     children: [
-      _jsx("div", { style: { fontSize: 12, opacity: 0.75 }, children: d.daily ? `📘 今日单词 · ${d.date || ""}` : "📘 单词" }),
+      _jsx("div", { style: { fontSize: 12, opacity: 0.75 }, children: d.daily ? `📘 Word of the day · ${d.date || ""}` : "📘 Word" }),
       _jsx("div", { style: { fontSize: 28, fontWeight: 800, margin: "8px 0 4px" }, children: d.word || "" }),
       _jsx("div", { style: { fontStyle: "italic", opacity: 0.85 }, children: d.phonetic || "" }),
       _jsx("div", { style: { marginTop: 10, fontWeight: 600 }, children: d.meaning_zh || "" }),

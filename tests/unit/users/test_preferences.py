@@ -41,8 +41,8 @@ def test_validate_skips_invalid_urls() -> None:
 
 
 def test_validate_title_fallback_to_hostname() -> None:
-    out = validate_remote_browser_bookmarks([{"url": "https://cloud.tencent.com", "title": ""}])
-    assert out[0].title == "cloud.tencent.com"
+    out = validate_remote_browser_bookmarks([{"url": "https://cloud.example.com", "title": ""}])
+    assert out[0].title == "cloud.example.com"
 
 
 def test_validate_rejects_over_limit() -> None:
@@ -108,8 +108,8 @@ def test_model_preferences_roundtrip_and_preserve_other_keys() -> None:
 def test_sidebar_nav_roundtrip_preserves_other_keys() -> None:
     layout = {
         "groups": [
-            {"id": "settings", "name": "配置"},
-            {"id": "c_aabbccdd11223344", "name": "常用"},
+            {"id": "settings", "name": "Settings"},
+            {"id": "c_aabbccdd11223344", "name": "Frequently used"},
         ],
         "items": [
             {"key": "chat"},
@@ -120,7 +120,7 @@ def test_sidebar_nav_roundtrip_preserves_other_keys() -> None:
     merged = merge_sidebar_nav_json('{"foo": 1}', layout)
     saved = get_sidebar_nav_from_json(merged)
     assert saved is not None
-    assert saved["groups"][0] == {"id": "settings", "name": "配置"}
+    assert saved["groups"][0] == {"id": "settings", "name": "Settings"}
     assert saved["groups"][1]["id"] == "c_aabbccdd11223344"
     hidden = next(item for item in saved["items"] if item["key"] == "tasks")
     assert hidden == {"key": "tasks", "hidden": True}

@@ -1,5 +1,5 @@
 /**
- * PresetGroupCard — card for a multi-site brand (Kimi, MiniMax, Aliyun, …).
+ * PresetGroupCard — card for a multi-site model brand.
  *
  * Unconfigured: click opens site/variant picker, then PresetProviderModal.
  * Configured: segmented tabs switch between site-specific ProviderCards.

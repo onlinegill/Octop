@@ -130,7 +130,7 @@ def test_process_document_indexes_ocr_text(tmp_path: Path, monkeypatch: pytest.M
     write_document(kb.id, doc.id, doc.filename, b"image")
     services = SimpleNamespace(knowledge_repo=repo, settings_repo=SettingsRepo(pool))
     monkeypatch.setattr(jobs, "assert_knowledge_usable", lambda *_args: None)
-    monkeypatch.setattr(jobs, "optional_ocr_extractor", lambda _services: lambda _path: "发票")
+    monkeypatch.setattr(jobs, "optional_ocr_extractor", lambda _services: lambda _path: "invoice")
     monkeypatch.setattr(jobs, "embed_knowledge_texts", lambda _services, _texts: [[1.0, 0.0]])
 
     jobs.process_document(services, kb.id, doc.id)
@@ -138,7 +138,7 @@ def test_process_document_indexes_ocr_text(tmp_path: Path, monkeypatch: pytest.M
     updated = repo.get_document(doc.id)
     assert updated is not None
     assert updated.status == "ready"
-    assert KnowledgeIndex(kb.id).search([1.0, 0.0], 1)[0].text == "发票"
+    assert KnowledgeIndex(kb.id).search([1.0, 0.0], 1)[0].text == "invoice"
 
 
 def test_reindex_all_updates_base_model_marks_documents_pending_and_enqueues(

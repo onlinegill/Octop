@@ -25,7 +25,7 @@ function GithubTrending(props) {
           fontWeight: 800,
           background: dark ? "#27272a" : "linear-gradient(135deg,#f4f4f5,#e4e4e7)",
         },
-        children: ["🐙 GitHub 趋势 · ", d.since || "daily", d.language ? ` · ${d.language}` : ""],
+        children: ["🐙 GitHub Trending · ", d.since || "daily", d.language ? ` · ${d.language}` : ""],
       }),
       _jsx("ol", {
         style: { margin: 0, padding: "8px 12px 12px", listStyle: "none" },

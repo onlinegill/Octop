@@ -49,7 +49,7 @@ function ServerStatusCard(props) {
           color: "#fff",
         },
         children: [
-          _jsx("div", { style: { fontSize: 13, opacity: 0.85 }, children: "🖥️ 服务器状态" }),
+          _jsx("div", { style: { fontSize: 13, opacity: 0.85 }, children: "🖥️ Server Status" }),
           _jsx("div", { style: { fontWeight: 800, fontSize: 18, marginTop: 4 }, children: d.hostname || "Server" }),
           _jsx("div", { style: { fontSize: 12, opacity: 0.85, marginTop: 4 }, children: `${os.pretty || ""} ${os.machine || ""}`.trim() }),
         ],
@@ -57,10 +57,10 @@ function ServerStatusCard(props) {
       _jsxs("div", {
         style: { padding: "8px 16px 16px" },
         children: [
-          _jsx("div", { style: { fontSize: 12, opacity: 0.65, marginTop: 8 }, children: `内核 ${d.kernel || "—"} · 已运行 ${d.uptime_h || "—"}` }),
-          _jsx(Bar, { label: "CPU", icon: "🧠", percent: cpu.percent, detail: `${Number(cpu.percent || 0).toFixed(0)}% · ${cpu.logical || "?"} 核` }),
-          _jsx(Bar, { label: "内存", icon: "💾", percent: mem.percent, detail: `${mem.used_h || "?"} / ${mem.total_h || "?"}` }),
-          _jsx(Bar, { label: "磁盘", icon: "📀", percent: disk.percent, detail: `${disk.used_h || "?"} / ${disk.total_h || "?"}` }),
+          _jsx("div", { style: { fontSize: 12, opacity: 0.65, marginTop: 8 }, children: `Kernel ${d.kernel || "—"} · uptime ${d.uptime_h || "—"}` }),
+          _jsx(Bar, { label: "CPU", icon: "🧠", percent: cpu.percent, detail: `${Number(cpu.percent || 0).toFixed(0)}% · ${cpu.logical || "?"} cores` }),
+          _jsx(Bar, { label: "Memory", icon: "💾", percent: mem.percent, detail: `${mem.used_h || "?"} / ${mem.total_h || "?"}` }),
+          _jsx(Bar, { label: "Disk", icon: "📀", percent: disk.percent, detail: `${disk.used_h || "?"} / ${disk.total_h || "?"}` }),
         ],
       }),
     ],

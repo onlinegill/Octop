@@ -88,30 +88,30 @@ describe("ChatDockPanel add-tab menu", () => {
     );
 
     const title = screen.getByTestId("dock-title");
-    const addBtn = within(title).getByRole("button", { name: "添加面板" });
+    const addBtn = within(title).getByRole("button", { name: "Add panel" });
     await user.click(addBtn);
 
-    await user.click(await screen.findByText("工作区"));
+    await user.click(await screen.findByText("Workspace"));
     expect(onOpenWorkspace).toHaveBeenCalledTimes(1);
 
     await user.click(addBtn);
-    await user.click(await screen.findByText("文件变更"));
+    await user.click(await screen.findByText("File changes"));
     expect(onOpenFiles).toHaveBeenCalledTimes(1);
 
     await user.click(addBtn);
-    await user.click(await screen.findByText("远程浏览器"));
+    await user.click(await screen.findByText("Remote browser"));
     expect(onOpenBrowser).toHaveBeenCalledTimes(1);
 
     await user.click(addBtn);
     // Terminal appears both as the open tab label and the menu item.
-    const terminalItems = await screen.findAllByText("终端");
+    const terminalItems = await screen.findAllByText("Terminal");
     await user.click(terminalItems[terminalItems.length - 1]!);
     expect(onOpenTerminal).toHaveBeenCalledTimes(1);
   });
 
   it("hides the + control when no add-tab handlers are provided", () => {
     render(<ChatDockPanel {...baseProps} />);
-    expect(screen.queryByRole("button", { name: "添加面板" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Add panel" })).toBeNull();
   });
 
   it("disables workspace when the agent is not ready", async () => {
@@ -129,8 +129,8 @@ describe("ChatDockPanel add-tab menu", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "添加面板" }));
-    const item = await screen.findByText("工作区");
+    await user.click(screen.getByRole("button", { name: "Add panel" }));
+    const item = await screen.findByText("Workspace");
     await user.click(item);
     expect(onOpenWorkspace).not.toHaveBeenCalled();
   });

@@ -21,7 +21,7 @@ function MemeTemplates(props) {
     style: { margin: 0, maxWidth: 360, borderRadius: 14, padding: 12, background: "#fdf2f8", border: "1px solid #fbcfe8" },
     "data-octop-plugin-ui": "meme-maker",
     children: [
-      _jsx("div", { style: { fontWeight: 800, marginBottom: 8 }, children: "模板列表" }),
+      _jsx("div", { style: { fontWeight: 800, marginBottom: 8 }, children: "Templates" }),
       items.map((row) =>
         _jsxs("div", { style: { fontSize: 13, marginBottom: 6 }, children: [
           _jsx("code", { children: row.id }),

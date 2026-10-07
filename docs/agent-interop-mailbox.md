@@ -1,49 +1,49 @@
-# Agent Teams：Inbox + Callback 方案
+# Agent Teams: Inbox + Callback Design
 
-**状态：** 已实现（harness `teams/` + octop `GlobalProcessor` 作为 `TeamProcessor`）
-**范围：** `octop-harness`（主实现）+ `octop`（宿主适配）
-**关联：** [agent-call-agent.md](./agent-call-agent.md)、[agent-delegation.md](./agent-delegation.md)
+**Status:** Implemented (harness `teams/` + octop `GlobalProcessor` as `TeamProcessor`)
+**Scope:** `octop-harness` (primary implementation) + `octop` (host adaptation)
+**Related:** [agent-call-agent.md](./agent-call-agent.md), [agent-delegation.md](./agent-delegation.md)
 
-> 说明：早前实现的 `AgentMailbox`（把所有 `stream`/`call` 透明入队）将被本方案取代。
-> 本方案核心：`stream`/`call` 回到**原始直连**行为；互调能力收敛到一个**全局 inbox** +
-> 可选 **callback processor**；相关代码集中到 `octop_harness/teams/`。
-
----
-
-## 1. 目标
-
-1. 全局一个 `HarnessAgentInboxManager`（收件箱队列），统一管理所有 agent 的收件箱消息，
-   每条消息含：`target`（收件人）、`source`、`source_thread_id`、`status` 等关键信息。
-2. `HarnessAgentManager` 提供两种使用方式：
-   - **不使用 inbox**：`stream` / `call` 入参与行为**与重构前完全一致**（直连 agent，无队列）。
-   - **使用 inbox**：构造时提供一个 `callback`（process 方法/类）。提供后，manager 启用对 inbox
-     队列的处理：收到消息 → `target.call` → 拿到结果 → 组合提示词后请求
-     `source` agent + `source_thread_id` 再 `call` → 把返回通过 callback 暴露出来（主动推送）。
-3. `peer_agent` 工具不放在 `builtin/`。新增 `octop_harness/teams/` 目录，集中放 inbox_manager、
-   工具、callback 定义。工具**不进 agent 默认工具集**，仅在「启用 team」时由 manager 提供。
-4. `ask_agent` 工具：**默认同步阻塞**等待结果返回；**仅当 manager 配置了 callback** 时才走异步
-   ——向 `HarnessAgentInboxManager` 投递一条消息并立即返回 `id`。
+> Note: the earlier `AgentMailbox` (which transparently enqueued all `stream`/`call` calls) is superseded by this design.
+> Core idea: `stream`/`call` return to their **original direct** behavior; interop capability is consolidated into one **global inbox** +
+> an optional **callback processor**; the related code is centralized under `octop_harness/teams/`.
 
 ---
 
-## 2. 模块布局
+## 1. Goals
+
+1. A single global `HarnessAgentInboxManager` (inbox queue) that manages the inbox messages of all agents,
+   each message carrying: `target` (recipient), `source`, `source_thread_id`, `status`, and other key information.
+2. `HarnessAgentManager` offers two usage modes:
+   - **Without inbox**: the parameters and behavior of `stream` / `call` are **exactly as before the refactor** (direct to the agent, no queue).
+   - **With inbox**: provide a `callback` (process method/class) at construction. Once provided, the manager enables inbox
+     queue processing: receive message → `target.call` → get result → compose prompt, then request
+     the `source` agent + `source_thread_id` via `call` → expose the return through the callback (proactive push).
+3. The `peer_agent` tool does not live in `builtin/`. Add an `octop_harness/teams/` directory that centralizes the inbox_manager,
+   tools, and callback definitions. The tools **are not part of the agent's default tool set**; they are provided by the manager only when "teams" are enabled.
+4. The `ask_agent` tool: **synchronous blocking** by default, waiting for the result; **only when the manager is configured with a callback** does it go async
+   — posting a message to `HarnessAgentInboxManager` and immediately returning an `id`.
+
+---
+
+## 2. Module layout
 
 ```
 octop_harness/teams/
-  __init__.py        # 导出公开符号
+  __init__.py        # exports public symbols
   inbox.py           # InboxMessage, InboxStatus, HarnessAgentInboxManager
-  processor.py       # TeamProcessor 协议, ReplyEvent, 默认提示词组合
+  processor.py       # TeamProcessor protocol, ReplyEvent, default prompt composition
   tools.py           # build_team_tools(manager) -> [agent_list, ask_agent]
-  util.py            # extract_call_response / first_user_text 等纯函数
+  util.py            # pure functions such as extract_call_response / first_user_text
 ```
 
-删除：`octop_harness/mailbox.py`、`octop_harness/peer.py`（内容拆入 `teams/`）。
+Remove: `octop_harness/mailbox.py`, `octop_harness/peer.py` (their contents are split into `teams/`).
 
 ---
 
-## 3. 数据模型
+## 3. Data model
 
-### 3.1 `InboxMessage`（队列项）
+### 3.1 `InboxMessage` (queue item)
 
 ```python
 InboxStatus = Literal["queued", "running", "replying", "done", "failed", "cancelled"]
@@ -51,23 +51,23 @@ InboxStatus = Literal["queued", "running", "replying", "done", "failed", "cancel
 @dataclass
 class InboxMessage:
     id: str
-    target_agent_id: str            # 收件人：要执行任务的 agent
-    source_agent_id: str            # 发起方 agent（回信对象）
-    source_thread_id: str | None    # 回信时落在 source 上的 thread（保上下文）
-    message: str                    # 任务内容
+    target_agent_id: str            # recipient: the agent that will run the task
+    source_agent_id: str            # originating agent (the one to reply to)
+    source_thread_id: str | None    # thread on source to land the reply (preserves context)
+    message: str                    # task content
     user_id: str | int
     status: InboxStatus = "queued"
-    original_user_prompt: str | None = None   # 组合提示词用
+    original_user_prompt: str | None = None   # used for prompt composition
     error_text: str | None = None
     created_at: datetime
     updated_at: datetime
-    metadata: dict[str, Any] = {}             # 透传给 callback（session_key 等）
+    metadata: dict[str, Any] = {}             # passed through to the callback (session_key, etc.)
 ```
 
-> `target.call` 的结果与 `source` 合成回复都是 worker 内的**局部过程值**，不挂在 `InboxMessage` 上：
-> 不入库、历史靠 checkpoint，没有事后查结果的场景；`reply_text` 经 `ReplyEvent` 透传给 `on_reply`。
+> Both the `target.call` result and the composed reply to `source` are **local process values** inside the worker and are not attached to `InboxMessage`:
+> they are not persisted; history comes from the checkpoint, and there is no scenario that looks up results afterward; `reply_text` is passed through to `on_reply` via `ReplyEvent`.
 
-### 3.2 `ReplyEvent`（回调出参）
+### 3.2 `ReplyEvent` (callback output)
 
 ```python
 @dataclass
@@ -78,24 +78,24 @@ class ReplyEvent:
     source_thread_id: str | None
     target_agent_id: str
     user_id: str | int
-    reply_text: str | None          # source agent 合成后的主动回复正文
+    reply_text: str | None          # the proactive reply body composed by the source agent
     error_text: str | None
     metadata: dict[str, Any]
 ```
 
-### 3.3 `TeamProcessor`（process 方法/类）
+### 3.3 `TeamProcessor` (process method/class)
 
 ```python
 class TeamProcessor(Protocol):
-    # 组合「target 结果 → 给 source 的提示词」；teams 提供默认实现，可覆盖
+    # Compose "target result -> prompt for source"; teams provides a default implementation, overridable
     def compose_followup(self, msg: InboxMessage, result_text: str) -> str: ...
 
-    # 最终把 source 的回复暴露给宿主（写 thread / IM 推送 / WS 通知）
+    # Finally expose the source's reply to the host (write thread / IM push / WS notification)
     async def on_reply(self, event: ReplyEvent) -> None: ...
 ```
 
-- `compose_followup` 默认实现放在 `teams/processor.py`（等价现 `delegation/synthesis.py`）。
-- `on_reply` 是「让用户感知主动推送」的唯一出口；宿主在此投递文本。
+- The default `compose_followup` implementation lives in `teams/processor.py` (equivalent to today's `delegation/synthesis.py`).
+- `on_reply` is the single exit point for "letting the user perceive a proactive push"; the host delivers text here.
 
 ---
 
@@ -114,7 +114,7 @@ class HarnessAgentInboxManager:
         user_id: str | int,
         original_user_prompt: str | None = None,
         metadata: dict[str, Any] | None = None,
-    ) -> str: ...                       # 返回 inbox id，立即返回
+    ) -> str: ...                       # returns the inbox id, immediately
 
     def get(self, inbox_id: str) -> InboxMessage | None: ...
     def list(self, *, target=None, source=None, status=None) -> list[InboxMessage]: ...
@@ -124,200 +124,200 @@ class HarnessAgentInboxManager:
     async def shutdown(self) -> None: ...
 ```
 
-- `AgentCaller` 是一个最小协议（`HarnessAgentManager` 实现）：
-  `async def call(self, agent_id: str, request: ChatRequest) -> dict[str, Any]`。
-- 内部：`dict[id -> InboxMessage]` 做状态查询 + 投递队列。
-- **并发模型**：单 worker 串行消费；同一 `target` 自然串行。
-  （可选增强：按 `target` 分队列并行，跨 target 并发——V2，不在本期。）
+- `AgentCaller` is a minimal protocol (implemented by `HarnessAgentManager`):
+  `async def call(self, agent_id: str, request: ChatRequest) -> dict[str, Any]`.
+- Internally: `dict[id -> InboxMessage]` for status lookup + the delivery queue.
+- **Concurrency model**: a single worker consumes serially; the same `target` is naturally serial.
+  (Optional enhancement: per-`target` queues in parallel, concurrent across targets — V2, not this release.)
 
-### 4.1 worker 处理流程
+### 4.1 Worker processing flow
 
 ```text
-取出 InboxMessage(status=queued)
+take InboxMessage(status=queued)
   status=running
-  result = await caller.call(target_agent_id, ChatRequest(message, thread=新 thread))
-  result_text = extract_call_response(result)            # 局部变量
+  result = await caller.call(target_agent_id, ChatRequest(message, thread=new thread))
+  result_text = extract_call_response(result)            # local variable
 
   status=replying
   prompt = processor.compose_followup(msg, result_text)
   reply  = await caller.call(source_agent_id, ChatRequest(prompt, thread=source_thread_id))
-  reply_text = extract_call_response(reply)               # 局部变量
+  reply_text = extract_call_response(reply)               # local variable
 
   status=done
   await processor.on_reply(ReplyEvent(... reply_text=reply_text ...))
-异常 → status=failed, on_reply(status=failed, error_text=...)   # 让 source agent 兜底说明
+exception -> status=failed, on_reply(status=failed, error_text=...)   # let the source agent give a fallback explanation
 ```
 
-并发：**全局单 worker 串行**消费（不按 target 分队列）。
+Concurrency: **a single global worker consumes serially** (no per-target queues).
 
-要点：
-- 第二步 `call` 落在 `source_thread_id` 上，langgraph checkpointer 自动把这轮并进父对话，
-  天然「结合之前的问题一并处理」。
-- `on_reply` 只负责**投递已生成文本**（不再触发 agent），宿主侧实现极薄。
+Key points:
+- The second `call` lands on `source_thread_id`, and the langgraph checkpointer automatically merges this round into the parent conversation,
+  naturally "handling it together with the earlier question".
+- `on_reply` only handles **delivering already-generated text** (it no longer triggers an agent), so the host-side implementation is extremely thin.
 
 ---
 
-## 5. `HarnessAgentManager` 改动
+## 5. `HarnessAgentManager` changes
 
-### 5.1 构造与开关
+### 5.1 Construction and switch
 
 ```python
 HarnessAgentManager(
     providers=...,
     langfuse=...,
-    team_processor: TeamProcessor | None = None,   # 提供即启用 team/inbox
+    team_processor: TeamProcessor | None = None,   # providing this enables team/inbox
 )
 ```
 
-- `team_processor is None` → 不创建 inbox；`stream`/`call` 直连。
-- `team_processor` 非空 → 创建 `HarnessAgentInboxManager(caller=self, processor=...)`。
-- 属性 `team_enabled: bool`；`set_team_processor(...)` 支持启动后注入（Octop 装配顺序需要）。
+- `team_processor is None` → no inbox is created; `stream`/`call` are direct.
+- `team_processor` non-empty → creates `HarnessAgentInboxManager(caller=self, processor=...)`.
+- Attribute `team_enabled: bool`; `set_team_processor(...)` supports injection after startup (needed by Octop's assembly order).
 
-### 5.2 `stream` / `call`：回到原始实现
+### 5.2 `stream` / `call`: return to the original implementation
 
-撤销 mailbox 包裹，恢复重构前直连 `entry.agent.stream/call` + `_cancel_events`。
-**对外签名、行为不变。**
+Undo the mailbox wrapping and restore the pre-refactor direct `entry.agent.stream/call` + `_cancel_events`.
+**The public signatures and behavior are unchanged.**
 
-### 5.3 互调 API（供工具/宿主调用）
+### 5.3 Interop API (for tools/host to call)
 
 ```python
 async def call_peer(self, *, from_agent_id, to_agent_id, message, user_id, source="ask_agent") -> PeerResult
-    # 同步：直接 self.call(to_agent_id, ...)，返回 response
+    # sync: self.call(to_agent_id, ...) directly, return the response
 
 def submit_peer(self, *, from_agent_id, to_agent_id, message, user_id,
                 source_thread_id, original_user_prompt=None, metadata=None) -> str
-    # 异步：要求 team_enabled，否则报错；inbox.enqueue(...) 返回 id
+    # async: requires team_enabled, otherwise errors; inbox.enqueue(...) returns the id
 
 async def apply_mentions(self, *, from_agent_id, user_id, mention_agent_ids, prompt, messages) -> list
-    # 用户 @：对每个目标并行 call_peer(sync)，注入 system 消息（与现状一致）
+    # user @: for each target, call_peer(sync) in parallel, injecting a system message (consistent with today)
 ```
 
-### 5.3 team 工具
+### 5.3 team tools
 
 ```python
 def team_tools(self) -> list[StructuredTool]:
     return build_team_tools(self)        # agent_list + ask_agent
 ```
 
-- 仅当调用方（Octop）显式取用时加入 agent 工具；**不写进 HarnessAgent 默认工具**。
+- Added to the agent tools only when the caller (Octop) explicitly requests them; **not written into HarnessAgent's default tools**.
 
 ---
 
-## 6. team 工具（`teams/tools.py`）
+## 6. team tools (`teams/tools.py`)
 
-### `ask_agent` 行为
+### `ask_agent` behavior
 
-| 条件 | 行为 |
-|------|------|
-| 默认 / `team_enabled=False` | **同步阻塞** `call_peer` → 返回 `response` |
-| `team_enabled=True` 且模型选 `mode=background` | `submit_peer` → 入 inbox，返回 `{job_id, status:"queued"}`，提示稍后主动回复 |
+| Condition | Behavior |
+|-----------|----------|
+| Default / `team_enabled=False` | **Synchronous blocking** `call_peer` → returns `response` |
+| `team_enabled=True` and the model picks `mode=background` | `submit_peer` → enters the inbox, returns `{job_id, status:"queued"}`, and notes that it will reply proactively later |
 
-- `mode` 字段仅在 `team_enabled` 时有效；未启用时忽略，强制 sync。
-- 上下文（`from_agent_id`、`user`、`session_key`/`thread_id`）从 `langgraph.config.get_config().configurable` 读取，与现状一致。
-- `submit_peer` 的 `source_agent_id = from_agent_id`、`source_thread_id = 当前 thread_id`。
+- The `mode` field is only effective when `team_enabled`; when not enabled it is ignored and sync is forced.
+- Context (`from_agent_id`, `user`, `session_key`/`thread_id`) is read from `langgraph.config.get_config().configurable`, consistent with today.
+- For `submit_peer`, `source_agent_id = from_agent_id` and `source_thread_id = current thread_id`.
 
 ---
 
-## 7. Octop 适配
+## 7. Octop adaptation
 
-### 7.1 实现 `TeamProcessor`
+### 7.1 Implement `TeamProcessor`
 
-`infra/gateway/processor.py` — `GlobalProcessor` 实现 `TeamProcessor`（`compose_followup` / `on_reply`）
+`infra/gateway/processor.py` — `GlobalProcessor` implements `TeamProcessor` (`compose_followup` / `on_reply`)
 
 ```python
 class DelegationProcessor(TeamProcessor):
     def compose_followup(self, msg, result_text) -> str:
-        return build_completion_prompt(...)            # 复用 synthesis.py
+        return build_completion_prompt(...)            # reuses synthesis.py
 
     async def on_reply(self, event: ReplyEvent) -> None:
-        # source.call 已把回复写进 source_thread 的 checkpoint；
-        # 这里只需通知用户界面有新消息：
-        #   - Dashboard：标记 unread + WS 推一条 “新回复” 通知
-        #   - IM：Gateway.push_text(channel, reply_text)
+        # source.call has already written the reply into the source_thread checkpoint;
+        # here we only need to notify the user interface of a new message:
+        #   - Dashboard: mark unread + WS-push a "new reply" notification
+        #   - IM: Gateway.push_text(channel, reply_text)
 ```
 
-- 不再需要 `Gateway.push_text_from_session` 重跑父 agent（合成已在 inbox 内的 `source.call` 完成）。
-- 可选保留 `agent_delegations` 表：在 `on_reply` / `enqueue` 时记状态，支撑 `/delegations` 列表与
-  cancel；执行本身不依赖 DB。
+- `Gateway.push_text_from_session` is no longer needed to re-run the parent agent (the synthesis is already done in the inbox's `source.call`).
+- The `agent_delegations` table may optionally be kept: record state in `on_reply` / `enqueue` to support the `/delegations` list and
+  cancel; execution itself does not depend on the DB.
 
-### 7.2 装配
+### 7.2 Assembly
 
 ```python
 delegation_processor = DelegationProcessor(gateway=..., thread_registry=...)
 harness = HarnessAgentManager(providers=..., team_processor=delegation_processor)
-# 或 boot 后：harness.set_team_processor(delegation_processor)
+# or after boot: harness.set_team_processor(delegation_processor)
 ```
 
-### 7.3 工具注册
+### 7.3 Tool registration
 
-`AgentManager._build_harness_config`：`merged_tools.extend(self._harness_manager.team_tools())`
-（仅 Octop 使用 manager，符合「使用 manager 时才启用」）。
+`AgentManager._build_harness_config`: `merged_tools.extend(self._harness_manager.team_tools())`
+(only Octop uses the manager, consistent with "enable only when the manager is used").
 
-### 7.4 入口不变
+### 7.4 Entry points unchanged
 
-`chat.py` SSE、`ws_chat.py` + `processor.iter_turn_chunks`、IM → 全部不改协议；
-`@` 仍走 `apply_mentions`（同步）。外部 HTTP/WS/SDK 调用方无感。
+`chat.py` SSE, `ws_chat.py` + `processor.iter_turn_chunks`, IM → none of the protocols change;
+`@` still goes through `apply_mentions` (synchronously). External HTTP/WS/SDK callers are unaffected.
 
 ---
 
-## 8. 端到端：后台调研场景
+## 8. End to end: background research scenario
 
 ```text
-用户问主 Agent（thread T）→ 主 Agent 调 ask_agent(mode=background, Researcher)
-  → manager.submit_peer(target=Researcher, source=主Agent, source_thread_id=T)
-  → inbox.enqueue → 返回 id，工具立即回「后台进行中」
-主 Agent 继续与用户对话（thread T，直连 call/stream，不受 inbox 影响）
+User asks the main Agent (thread T) -> the main Agent calls ask_agent(mode=background, Researcher)
+  -> manager.submit_peer(target=Researcher, source=MainAgent, source_thread_id=T)
+  -> inbox.enqueue -> returns id, the tool immediately replies "running in background"
+The main Agent continues talking with the user (thread T, direct call/stream, unaffected by the inbox)
 
-inbox worker：
-  Researcher.call(任务)            → result_text
-  compose_followup(原问题, result) → prompt
-  主Agent.call(thread=T, prompt)   → reply_text（已并入 T 的上下文）
-  processor.on_reply(reply_text)   → Dashboard/IM 主动推送给用户
+inbox worker:
+  Researcher.call(task)            -> result_text
+  compose_followup(original_q, result) -> prompt
+  MainAgent.call(thread=T, prompt)   -> reply_text (already merged into T's context)
+  processor.on_reply(reply_text)     -> Dashboard/IM proactively pushes to the user
 ```
 
 ---
 
-## 9. 与现有实现的差异（重构清单）
+## 9. Differences from the current implementation (refactor checklist)
 
 ### octop-harness
 
-| 文件 | 操作 |
-|------|------|
-| `mailbox.py` | **删除** |
-| `peer.py` | **拆分** → `teams/util.py`（helpers）+ `teams/inbox.py`（数据/管理器） |
-| `manager.py` | `stream`/`call` 还原直连；新增 `team_processor`、`team_enabled`、`team_tools`、`call_peer`/`submit_peer`；`apply_mentions` 用 `call_peer` |
-| `builtin/tools/peer_agent.py` | **移动** → `teams/tools.py`（`build_team_tools`） |
-| `teams/inbox.py`、`teams/processor.py`、`teams/tools.py`、`teams/util.py` | **新增** |
-| `tests/test_mailbox.py` | 替换为 `tests/test_inbox.py` |
-| `tests/test_peer_agent.py` | 调整为 `teams` 导入 |
+| File | Action |
+|------|--------|
+| `mailbox.py` | **Delete** |
+| `peer.py` | **Split** → `teams/util.py` (helpers) + `teams/inbox.py` (data/manager) |
+| `manager.py` | Restore `stream`/`call` to direct; add `team_processor`, `team_enabled`, `team_tools`, `call_peer`/`submit_peer`; use `call_peer` in `apply_mentions` |
+| `builtin/tools/peer_agent.py` | **Move** → `teams/tools.py` (`build_team_tools`) |
+| `teams/inbox.py`, `teams/processor.py`, `teams/tools.py`, `teams/util.py` | **Add** |
+| `tests/test_mailbox.py` | Replace with `tests/test_inbox.py` |
+| `tests/test_peer_agent.py` | Adjust to import from `teams` |
 
 ### octop
 
-| 文件 | 操作 |
-|------|------|
-| `infra/gateway/processor.py` | `GlobalProcessor` 实现 `TeamProcessor`；`on_reply` 投递未读/IM |
-| `infra/agents/manager.py` | 构造 `team_processor=...`；`team_tools()` 注册；`apply_mention_agent_calls` 透传 |
-| `infra/agents/agent_call.py` | 重导出从 `octop_harness.teams.util` |
-| `api/routers/chat.py`、`infra/gateway/processor.py` | 导入路径调整，逻辑不变 |
-| 相关单测 | 跟随导入调整 |
+| File | Action |
+|------|--------|
+| `infra/gateway/processor.py` | `GlobalProcessor` implements `TeamProcessor`; `on_reply` delivers unread/IM |
+| `infra/agents/manager.py` | Construct `team_processor=...`; register `team_tools()`; pass through `apply_mention_agent_calls` |
+| `infra/agents/agent_call.py` | Re-export from `octop_harness.teams.util` |
+| `api/routers/chat.py`, `infra/gateway/processor.py` | Import-path adjustments, logic unchanged |
+| Related unit tests | Adjusted to follow the imports |
 
 ---
 
-## 10. 实施阶段
+## 10. Implementation phases
 
-1. **teams 骨架**：`teams/util.py` + `teams/inbox.py`（`InboxMessage`、`HarnessAgentInboxManager`）+ `teams/processor.py`（协议 + 默认 compose）。
-2. **manager 接线**：`stream`/`call` 还原；`team_processor` 开关；`call_peer`/`submit_peer`/`apply_mentions`/`team_tools`。
-3. **teams/tools.py**：`agent_list` + `ask_agent`（sync 默认，team 时支持 background）。
-4. **harness 测试**：`test_inbox.py`（enqueue→target.call→source.call→on_reply）、`test_team_tools.py`。
-5. **Octop 接线**：`DelegationProcessor`、装配、工具注册、删旧路径；回归 `uv run pytest -m "not live"`。
+1. **teams skeleton**: `teams/util.py` + `teams/inbox.py` (`InboxMessage`, `HarnessAgentInboxManager`) + `teams/processor.py` (protocol + default compose).
+2. **manager wiring**: restore `stream`/`call`; `team_processor` switch; `call_peer`/`submit_peer`/`apply_mentions`/`team_tools`.
+3. **teams/tools.py**: `agent_list` + `ask_agent` (sync by default, background supported when team-enabled).
+4. **harness tests**: `test_inbox.py` (enqueue→target.call→source.call→on_reply), `test_team_tools.py`.
+5. **Octop wiring**: `DelegationProcessor`, assembly, tool registration, delete old paths; regress with `uv run pytest -m "not live"`.
 
 ---
 
-## 11. 决策（已确认）
+## 11. Decisions (confirmed)
 
-1. **inbox 并发**：全局**单 worker 串行**。不按 target 分队列。
-2. **持久化**：**纯内存**，不入库；历史靠 langgraph checkpoint。
-3. **`on_reply` 投递**：**整段推送**（`call` 不产 token），不走流式。
-4. **`compose_followup` 归属**：放 `TeamProcessor`，**宿主可定制**（teams 提供默认实现）。
-5. **失败语义**：target 失败时**仍 `on_reply(status=failed)`**，让 source agent 给用户兜底说明。
-6. **`InboxMessage` 字段**：不保存 `result_text` / `reply_text`（worker 局部变量），消息仅保留路由/状态信息。
+1. **inbox concurrency**: a single **global serial worker**. No per-target queues.
+2. **Persistence**: **purely in-memory**, not persisted; history comes from the langgraph checkpoint.
+3. **`on_reply` delivery**: **whole-segment push** (`call` produces no tokens), not streaming.
+4. **`compose_followup` ownership**: belongs to `TeamProcessor`, **customizable by the host** (teams provides a default implementation).
+5. **Failure semantics**: when target fails, **still `on_reply(status=failed)`**, letting the source agent give the user a fallback explanation.
+6. **`InboxMessage` fields**: do not store `result_text` / `reply_text` (worker-local variables); the message keeps only routing/status information.

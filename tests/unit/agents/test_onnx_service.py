@@ -61,7 +61,7 @@ def test_download_sync_reports_tqdm_bytes(monkeypatch, tmp_path) -> None:
         seen.append(mgr.state.progress)
         on_progress(100, 100, "Reconstructing")
         seen.append(mgr.state.progress)
-        return "hf-mirror"
+        return "huggingface.co"
 
     monkeypatch.setattr(mod, "download_model_raced", fake_raced)
     monkeypatch.setattr(mod, "mark_model_downloaded", lambda _name: None)

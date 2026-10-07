@@ -2,7 +2,6 @@ import opencodeIcon from "../../../assets/acp/opencode.svg";
 import codebuddyIcon from "../../../assets/acp/codebuddy.png";
 import anthropicIcon from "../../../assets/providers/anthropic.png";
 import openaiIcon from "../../../assets/providers/openai.png";
-import moonshotIcon from "../../../assets/acp/moonshot.png";
 import cursorIcon from "../../../assets/acp/cursor.png";
 import piIcon from "../../../assets/acp/pi.png";
 import customRunnerIcon from "../../../assets/providers/custom-provider.svg";
@@ -13,7 +12,6 @@ export const BUILTIN_RUNNER_ORDER = [
   "codebuddy",
   "claude_code",
   "codex",
-  "kimi_code",
   "cursor_cli",
   "pi",
 ] as const;
@@ -29,7 +27,6 @@ export const RUNNER_ICONS: Record<string, string> = {
   codebuddy: codebuddyIcon,
   claude_code: anthropicIcon,
   codex: openaiIcon,
-  kimi_code: moonshotIcon,
   cursor_cli: cursorIcon,
   pi: piIcon,
 };
@@ -39,7 +36,6 @@ export const RUNNER_LABEL_KEYS: Record<string, string> = {
   codebuddy: "acp.runner_codebuddy",
   claude_code: "acp.runner_claude_code",
   codex: "acp.runner_codex",
-  kimi_code: "acp.runner_kimi_code",
   cursor_cli: "acp.runner_cursor_cli",
   pi: "acp.runner_pi",
 };
@@ -49,7 +45,6 @@ export const RUNNER_INTRO_KEYS: Record<string, string> = {
   codebuddy: "acp.intro_codebuddy",
   claude_code: "acp.intro_claude_code",
   codex: "acp.intro_codex",
-  kimi_code: "acp.intro_kimi_code",
   cursor_cli: "acp.intro_cursor_cli",
   pi: "acp.intro_pi",
 };

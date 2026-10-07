@@ -18,7 +18,7 @@ from octop.infra.gateway.slash.runner import try_handle_slash
 def ctx():
     coordinator = MagicMock()
     coordinator.start_chat.return_value = 2
-    coordinator.preview_chat.return_value = [{"name": "助手", "agent_id": "mine"}]
+    coordinator.preview_chat.return_value = [{"name": "assistant", "agent_id": "mine"}]
     return SlashCtx(
         agent_id="mine",
         user_id=1,
@@ -44,10 +44,10 @@ async def test_registered_command_starts_owned_job_and_returns_ack(ctx, command,
         command, dispatcher=build_default_dispatcher(), ctx=ctx
     )
     assert handled
-    assert "已确认整理 2 个" in "\n".join(lines)
+    assert "Confirmed maintenance for 2 agents" in "\n".join(lines)
     assert not actions
     ctx.agent_manager.memory_slim.start_chat.assert_called_once_with(
-        "mine", 1, all_agents=all_agents, locale="zh"
+        "mine", 1, all_agents=all_agents, locale="en"
     )
 
 
@@ -69,7 +69,7 @@ async def test_missing_or_disabled_user_cannot_start(ctx, user):
     handled, lines, _ = await try_handle_slash(
         "/memory slim", dispatcher=build_default_dispatcher(), ctx=ctx
     )
-    assert handled and "当前登录用户" in "\n".join(lines)
+    assert handled and "owned by your signed-in user" in "\n".join(lines)
     ctx.agent_manager.memory_slim.start_chat.assert_not_called()
 
 
@@ -81,7 +81,7 @@ async def test_unknown_arguments_show_usage_without_start(ctx, command):
     handled, lines, _ = await try_handle_slash(
         command, dispatcher=build_default_dispatcher(), ctx=ctx
     )
-    assert handled and "用法" in "\n".join(lines)
+    assert handled and "Usage: /memory" in "\n".join(lines)
     ctx.agent_manager.memory_slim.start_chat.assert_not_called()
 
 
@@ -108,17 +108,17 @@ async def test_status_shows_counts_and_completion_without_restart(ctx):
     )
     text = "\n".join(lines)
     assert handled and "1/3" in text and "100/300" in text
-    assert "2.00 → 1.00" in text and "等待前一个" in text
+    assert "2.00 -> 1.00" in text and "Waiting for the previous agent." in text
     ctx.agent_manager.memory_slim.start_chat.assert_not_called()
 
 
 @pytest.mark.asyncio
 async def test_busy_or_permission_failure_returns_error_not_llm_fallback(ctx):
-    ctx.agent_manager.memory_slim.start_chat.side_effect = ValueError("任务正在进行")
+    ctx.agent_manager.memory_slim.start_chat.side_effect = ValueError("job already running")
     handled, lines, _ = await try_handle_slash(
         "/memory slim --confirm", dispatcher=build_default_dispatcher(), ctx=ctx
     )
-    assert handled and "任务正在进行" in "\n".join(lines)
+    assert handled and "job already running" in "\n".join(lines)
 
 
 @pytest.mark.asyncio
@@ -137,8 +137,8 @@ async def test_existing_agent_manager_context_runs_maintenance_command():
     handled, lines, _ = await try_handle_slash(
         "/memory slim --confirm", dispatcher=build_default_dispatcher(), ctx=ctx
     )
-    assert handled and "已确认整理 1 个" in "\n".join(lines)
-    manager.memory_slim.start_chat.assert_called_once_with("mine", 1, all_agents=False, locale="zh")
+    assert handled and "Confirmed maintenance for 1 agent" in "\n".join(lines)
+    manager.memory_slim.start_chat.assert_called_once_with("mine", 1, all_agents=False, locale="en")
 
 
 @pytest.mark.asyncio
@@ -193,10 +193,10 @@ async def test_slim_explains_impact_and_requires_confirmation(ctx, suffix):
     )
     text = "\n".join(lines)
     assert handled
-    assert "尚未开始整理" in text and "所有会话会暂停发送" in text
-    assert "助手 [mine]" in text
+    assert "maintenance has not started" in text and "sending is paused in all chats" in text
+    assert "assistant [mine]" in text
     assert "/memory slim" + suffix + " --confirm" in text
     ctx.agent_manager.memory_slim.start_chat.assert_not_called()
     ctx.agent_manager.memory_slim.preview_chat.assert_called_once_with(
-        "mine", 1, all_agents=bool(suffix), locale="zh"
+        "mine", 1, all_agents=bool(suffix), locale="en"
     )

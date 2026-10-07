@@ -1,4 +1,4 @@
-"""Shared subprocess runner for official connector CLIs (lark-cli / wecom-cli)."""
+"""Shared subprocess runner for official connector CLIs."""
 
 from __future__ import annotations
 
@@ -16,9 +16,9 @@ def resolve_binary(name: str) -> str:
     path = shutil.which(name)
     if not path:
         raise ValueError(
-            f"未找到主机命令 {name!r}。"
-            "请打开 Octop「连接器」抽屉，由管理员安装 CLI，或在主机 PATH 中自行安装。"
-            "禁止在 Agent 终端中查找或安装该命令。"
+            f"host command {name!r} not found. "
+            "Open the Octop \"Connectors\" drawer and have an admin install the CLI, or install it yourself in the host PATH. "
+            "It is forbidden to look for or install that command in an Agent terminal."
         )
     return path
 
@@ -46,9 +46,9 @@ def run_cli(
             check=False,
         )
     except FileNotFoundError as exc:
-        raise ValueError(f"未找到命令 {argv[0]!r}，请检查 PATH") from exc
+        raise ValueError(f"command {argv[0]!r} not found; check PATH") from exc
     except subprocess.TimeoutExpired as exc:
-        raise ValueError(f"CLI 超时（>{timeout_s:.0f}s）: {' '.join(argv[:4])}") from exc
+        raise ValueError(f"CLI timed out (>{timeout_s:.0f}s): {' '.join(argv[:4])}") from exc
 
     stdout = (completed.stdout or "").strip()
     stderr = (completed.stderr or "").strip()

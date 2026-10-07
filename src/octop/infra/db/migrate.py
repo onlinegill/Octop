@@ -722,7 +722,7 @@ def _ensure_sso_oidc_schema(db: DatabasePool) -> None:
               role                TEXT NOT NULL,
               display_name        TEXT,
               disabled            INTEGER NOT NULL DEFAULT 0,
-              locale              TEXT NOT NULL DEFAULT 'zh',
+              locale              TEXT NOT NULL DEFAULT 'en',
               created_at          INTEGER NOT NULL,
               login_failed_count  INTEGER NOT NULL DEFAULT 0,
               login_locked_until  INTEGER NOT NULL DEFAULT 0,
@@ -1044,7 +1044,7 @@ def _seed_user_roles(db: DatabasePool) -> None:
                 "INSERT INTO user_role("
                 "user_role_id, user_role_name, permissions, policies, created_at, updated_at"
                 ") VALUES ('user', ?, ?, '[]', ?, ?)",
-                ("用户", payload, ts, ts),
+                ("User", payload, ts, ts),
             )
 
 
@@ -1615,7 +1615,7 @@ def _ensure_bridge_connections_schema(db: DatabasePool) -> None:
 def _repair_legacy_schema(db: DatabasePool) -> None:
     """Idempotent compatibility repairs for local databases from old builds."""
     if _table_exists(db, "users"):
-        _ensure_column(db, "users", "locale", "TEXT NOT NULL DEFAULT 'zh'")
+        _ensure_column(db, "users", "locale", "TEXT NOT NULL DEFAULT 'en'")
         _ensure_column(db, "users", "login_failed_count", "INTEGER NOT NULL DEFAULT 0")
         _ensure_column(db, "users", "login_locked_until", "INTEGER NOT NULL DEFAULT 0")
         _ensure_column(db, "users", "preferences_json", "TEXT NOT NULL DEFAULT '{}'")

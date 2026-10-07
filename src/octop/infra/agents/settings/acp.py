@@ -17,12 +17,6 @@ _SETTINGS_PREFIX = "acp_runners:user:"
 _HIDDEN_RUNNERS = frozenset({"qwen_code"})
 # Until octop-harness ships these builtins, merge Octop-side defaults.
 _OCTOP_BUILTIN_RUNNERS: dict[str, dict[str, Any]] = {
-    "kimi_code": {
-        "command": "kimi",
-        "args": ["acp"],
-        "trusted": True,
-        "tool_parse_mode": "update_detail",
-    },
     "cursor_cli": {
         "command": "agent",
         "args": ["acp"],

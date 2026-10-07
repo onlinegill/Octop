@@ -1,26 +1,26 @@
 [
     {
-        "stepTitle": "卸载 OCTOP",
+        "stepTitle": "Uninstall OCTOP",
         "items": [
             {
                 "type": "radio",
                 "field": "wizard_delete_data",
-                "label": "请选择数据清理方式。",
+                "label": "Choose how to clean up data.",
                 "initValue": "no",
                 "options": [
                     {
-                        "label": "保留数据（推荐 — 下次安装时可继续使用）",
+                        "label": "Keep data (recommended — it can be reused the next time you install)",
                         "value": "no"
                     },
                     {
-                        "label": "完全删除（包括对话历史、文件和配置）",
+                        "label": "Delete everything (including chat history, files and configuration)",
                         "value": "yes"
                     }
                 ],
                 "rules": [
                     {
                         "required": true,
-                        "message": "请选择是否删除应用数据"
+                        "message": "Please choose whether to delete application data"
                     }
                 ]
             }

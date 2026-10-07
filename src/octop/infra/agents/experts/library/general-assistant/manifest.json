@@ -1,15 +1,12 @@
 {
   "id": "general-assistant",
   "label": {
-    "zh": "Main · General Assistant",
     "en": "Main · General Assistant"
   },
   "description": {
-    "zh": "A friendly, no-skills default assistant — the safe starting point.",
     "en": "A friendly, no-skills default assistant — the safe starting point."
   },
   "welcome_message": {
-    "zh": "Share what's on your mind — work or life",
     "en": "Share what's on your mind — work or life"
   },
   "icon_name": "zap",
@@ -20,15 +17,12 @@
   "quick_prompts": [
     {
       "title": {
-        "zh": "Summarize a document",
         "en": "Summarize a document"
       },
       "description": {
-        "zh": "Paste an article or report and extract key points",
         "en": "Paste an article or report and extract key points"
       },
       "prompt": {
-        "zh": "Please summarize the following content and extract the key points and conclusions:\n\n",
         "en": "Please summarize the following content and extract the key points and conclusions:\n\n"
       },
       "color": "#e8f4ff",
@@ -36,15 +30,12 @@
     },
     {
       "title": {
-        "zh": "Draft an email",
         "en": "Draft an email"
       },
       "description": {
-        "zh": "Tell me the recipient and purpose, and I'll draft the email",
         "en": "Tell me the recipient and purpose, and I'll draft the email"
       },
       "prompt": {
-        "zh": "Please draft an email. Recipient:, purpose:, tone: formal/friendly.",
         "en": "Please draft an email. Recipient:, purpose:, tone: formal/friendly."
       },
       "color": "#fef3c7",
@@ -52,15 +43,12 @@
     },
     {
       "title": {
-        "zh": "Explain code",
         "en": "Explain code"
       },
       "description": {
-        "zh": "Paste a code snippet and I'll walk through the logic",
         "en": "Paste a code snippet and I'll walk through the logic"
       },
       "prompt": {
-        "zh": "Please explain the logic and behavior of the following code step by step:\n\n```\n\n```",
         "en": "Please explain the logic and behavior of the following code step by step:\n\n```\n\n```"
       },
       "color": "#f1f5f9",
@@ -68,15 +56,12 @@
     },
     {
       "title": {
-        "zh": "Make a plan",
         "en": "Make a plan"
       },
       "description": {
-        "zh": "Describe a goal and I'll break it into actionable tasks",
         "en": "Describe a goal and I'll break it into actionable tasks"
       },
       "prompt": {
-        "zh": "Please help me create a detailed action plan. The goal is:",
         "en": "Please help me create a detailed action plan. The goal is:"
       },
       "color": "#dcfce7",
@@ -84,15 +69,12 @@
     },
     {
       "title": {
-        "zh": "Translate & polish",
         "en": "Translate & polish"
       },
       "description": {
-        "zh": "Translate or rewrite text into more natural language",
         "en": "Translate or rewrite text into more natural language"
       },
       "prompt": {
-        "zh": "Please translate the following into natural, fluent English:\n\n",
         "en": "Please translate the following into natural, fluent English:\n\n"
       },
       "color": "#f3e8ff",
@@ -100,15 +82,12 @@
     },
     {
       "title": {
-        "zh": "Brainstorm ideas",
         "en": "Brainstorm ideas"
       },
       "description": {
-        "zh": "Give me a topic and I'll brainstorm creative directions",
         "en": "Give me a topic and I'll brainstorm creative directions"
       },
       "prompt": {
-        "zh": "Please brainstorm 5–8 creative directions or ideas around this topic:\n\n",
         "en": "Please brainstorm 5–8 creative directions or ideas around this topic:\n\n"
       },
       "color": "#fff1f2",
@@ -116,15 +95,12 @@
     },
     {
       "title": {
-        "zh": "Draft & edit",
         "en": "Draft & edit"
       },
       "description": {
-        "zh": "Describe a writing task or paste text to improve",
         "en": "Describe a writing task or paste text to improve"
       },
       "prompt": {
-        "zh": "Please help me write or improve the following:\n\n",
         "en": "Please help me write or improve the following:\n\n"
       },
       "color": "#fdf4e7",
@@ -132,15 +108,12 @@
     },
     {
       "title": {
-        "zh": "Deep research",
         "en": "Deep research"
       },
       "description": {
-        "zh": "Ask a question and get a thorough answer",
         "en": "Ask a question and get a thorough answer"
       },
       "prompt": {
-        "zh": "Please research the following topic in depth and give a comprehensive overview:\n\n",
         "en": "Please research the following topic in depth and give a comprehensive overview:\n\n"
       },
       "color": "#e8fdf5",
@@ -148,15 +121,12 @@
     },
     {
       "title": {
-        "zh": "Ask anything",
         "en": "Ask anything"
       },
       "description": {
-        "zh": "Ask me anything",
         "en": "Ask me anything"
       },
       "prompt": {
-        "zh": "I have a question for you:",
         "en": "I have a question for you:"
       },
       "color": "#eef2ff",
@@ -164,15 +134,12 @@
     },
     {
       "title": {
-        "zh": "Analyze data",
         "en": "Analyze data"
       },
       "description": {
-        "zh": "Paste data and I'll find patterns and trends",
         "en": "Paste data and I'll find patterns and trends"
       },
       "prompt": {
-        "zh": "Please analyze the following data, identify patterns, trends, or anomalies, and summarize conclusions:\n\n",
         "en": "Please analyze the following data, identify patterns, trends, or anomalies, and summarize conclusions:\n\n"
       },
       "color": "#e0f7f4",
@@ -180,15 +147,12 @@
     },
     {
       "title": {
-        "zh": "PPT outline",
         "en": "PPT outline"
       },
       "description": {
-        "zh": "Give me a topic and I'll outline a presentation",
         "en": "Give me a topic and I'll outline a presentation"
       },
       "prompt": {
-        "zh": "Please create a presentation outline. The topic is:",
         "en": "Please create a presentation outline. The topic is:"
       },
       "color": "#fff7ed",
@@ -196,15 +160,12 @@
     },
     {
       "title": {
-        "zh": "Polish a résumé",
         "en": "Polish a résumé"
       },
       "description": {
-        "zh": "Paste your résumé and I'll strengthen the highlights",
         "en": "Paste your résumé and I'll strengthen the highlights"
       },
       "prompt": {
-        "zh": "Please improve the following résumé to be more professional and highlight key strengths:\n\n",
         "en": "Please improve the following résumé to be more professional and highlight key strengths:\n\n"
       },
       "color": "#fdf2f8",
@@ -212,11 +173,6 @@
     }
   ],
   "task_examples": {
-    "zh": [
-      "Every weekday at 09:00, list today's todos ranked by priority — enable immediately",
-      "Every Sunday at 20:00, recap what got done this week and outline next week's plan",
-      "Every day at 22:00, remind me to pick the three things to handle tomorrow — start today and keep running"
-    ],
     "en": [
       "Every weekday at 09:00, list today's todos ranked by priority — enable immediately",
       "Every Sunday at 20:00, recap what got done this week and outline next week's plan",

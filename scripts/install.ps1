@@ -20,7 +20,7 @@ $OctopHome     = if ($env:OCTOP_HOME) { $env:OCTOP_HOME } else { Join-Path $HOME
 $OctopVenv     = Join-Path $OctopHome "venv"
 $OctopBin      = Join-Path $OctopHome "bin"
 $PythonVersion = "3.12"
-$OctopRepo     = if ($env:OCTOP_REPO) { $env:OCTOP_REPO } else { "https://github.com/TencentCloud/Octop.git" }
+$OctopRepo     = if ($env:OCTOP_REPO) { $env:OCTOP_REPO } else { "https://github.com/onlinegill/Octop.git" }
 
 function Write-Info { param([string]$Message) Write-Host "[octop] " -ForegroundColor Green  -NoNewline; Write-Host $Message }
 function Write-Warn { param([string]$Message) Write-Host "[octop] " -ForegroundColor Yellow -NoNewline; Write-Host $Message }

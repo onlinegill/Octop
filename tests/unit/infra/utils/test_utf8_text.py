@@ -19,11 +19,11 @@ def test_looks_like_text_path() -> None:
     assert not looks_like_text_path("assets/icon.png")
 
 
-def test_coerce_repairs_skillhub_le_corruption() -> None:
-    # Upstream ecommerce-copy-humanizer-zh shipped ``≤`` as ``e2 6a 24``.
-    raw = "每句 ".encode() + b"\xe2j$" + "15 字".encode()
+def test_coerce_repairs_le_corruption() -> None:
+    # An upstream package shipped ``≤`` as ``e2 6a 24``.
+    raw = "Each sentence ".encode() + b"\xe2j$" + "15 chars".encode()
     fixed = coerce_utf8_text_bytes(raw, path="notes.md")
-    assert fixed.decode("utf-8") == "每句 ≤15 字"
+    assert fixed.decode("utf-8") == "Each sentence ≤15 chars"
 
 
 def test_coerce_leaves_valid_utf8_unchanged() -> None:
@@ -47,8 +47,8 @@ def test_repair_known_returns_none_for_unknown_corruption() -> None:
 
 
 def test_require_utf8_skill_manifest_repairs_known_corruption() -> None:
-    raw = "每句 ".encode() + b"\xe2j$" + "15 字".encode()
-    assert require_utf8_skill_manifest(raw).decode("utf-8") == "每句 ≤15 字"
+    raw = "Each sentence ".encode() + b"\xe2j$" + "15 chars".encode()
+    assert require_utf8_skill_manifest(raw).decode("utf-8") == "Each sentence ≤15 chars"
 
 
 def test_require_utf8_skill_manifest_rejects_unknown_corruption() -> None:

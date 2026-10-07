@@ -17,10 +17,10 @@ from octop.i18n.domains.stream import (
 )
 
 
-def test_classify_stream_stall_from_minimax_timeout() -> None:
+def test_classify_stream_stall_from_model_timeout() -> None:
     msg = (
         "Model call failed after 3 attempts with StreamChunkTimeoutError: "
-        "No streaming chunk received for 120.0s (model=MiniMax-M2.7, chunks_received=122). "
+        "No streaming chunk received for 120.0s (model=Example-M2.7, chunks_received=122). "
         "The connection may be alive at the TCP layer but is not producing content."
     )
     assert classify_stream_error_message(msg) == STREAM_STALL
@@ -111,7 +111,7 @@ def test_classify_model_call_failed_fallback() -> None:
 
 def test_classify_path_outside_root() -> None:
     msg = (
-        r"Path:D:\octop-data\data\文章存稿\x.md outside root directory: "
+        r"Path:D:\octop-data\data\drafts\x.md outside root directory: "
         r"C:\Users\Administrator"
     )
     assert classify_stream_error_message(msg) == PATH_OUTSIDE_ROOT
@@ -120,12 +120,12 @@ def test_classify_path_outside_root() -> None:
 
 def test_format_path_outside_root_zh_guides_to_storage_root() -> None:
     msg = (
-        r"ValueError: Path:D:\octop-data\data\文章存稿\_核验与备选标题.md "
+        r"ValueError: Path:D:\octop-data\data\drafts\_notes.md "
         r"outside root directory: C:\Users\Administrator"
     )
     text = format_stream_error(msg, "zh")
-    assert "存储根目录" in text
-    assert "模型调用" not in text
+    assert "storage root" in text
+    assert "model call" not in text.lower()
     assert "ValueError" not in text
     assert "outside root" not in text
 
@@ -140,7 +140,7 @@ def test_format_stream_error_zh_guidance() -> None:
         "No streaming chunk received for 120.0s"
     )
     text = format_stream_error(msg, "zh")
-    assert "重试" in text
+    assert "Retry" in text
     assert "StreamChunkTimeoutError" not in text
     assert "LANGCHAIN" not in text
 
@@ -148,7 +148,7 @@ def test_format_stream_error_zh_guidance() -> None:
 def test_format_insufficient_balance_zh() -> None:
     msg = "Error code: 402 - {'error': {'message': 'Insufficient Balance'}}"
     text = format_stream_error(msg, "zh")
-    assert "余额" in text or "额度" in text
+    assert "insufficient balance" in text.lower()
     assert "402" not in text
     assert "Insufficient Balance" not in text
 
@@ -159,14 +159,14 @@ def test_format_recursion_limit_zh_guides_to_config() -> None:
         "You can increase the limit by setting the `recursion_limit` config key."
     )
     text = format_stream_error(msg, "zh")
-    assert "运行配置" in text
-    assert "最大迭代次数" in text
+    assert "Configuration" in text
+    assert "Max Iterations" in text
     assert "GRAPH_RECURSION_LIMIT" not in text
     assert "recursion_limit" not in text
 
 
 def test_stream_error_message_octop_key() -> None:
-    assert "重试" in stream_error_message(STREAM_STALL, "zh")
+    assert "Retry" in stream_error_message(STREAM_STALL, "zh")
 
 
 def test_format_stream_error_unknown_keeps_actual_cause() -> None:
@@ -182,7 +182,7 @@ def test_format_stream_error_passes_through_send_file_failures() -> None:
     )
     assert format_stream_error(msg, "zh") == msg
     assert format_stream_error(FileNotFoundError(msg), "en") == msg
-    assert "模型调用" not in format_stream_error(msg, "zh")
+    assert "model call" not in format_stream_error(msg, "zh").lower()
     # Unknown file errors keep the concrete cause instead of a generic retry line.
     assert "config.json" in format_stream_error("FileNotFoundError: config.json", "en")
 
@@ -214,5 +214,5 @@ def test_exception_display_message_empty_falls_back_to_type() -> None:
 def test_format_stream_error_empty_exception_still_localized() -> None:
     text = format_stream_error(TimeoutError(), "zh")
     assert text
-    assert "模型调用失败" in text
+    assert "model call failed" in text.lower()
     assert "TimeoutError" in text

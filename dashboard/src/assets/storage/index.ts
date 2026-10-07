@@ -1,7 +1,4 @@
-import cos from "./cos.png";
 import s3 from "./s3.svg";
-import oss from "./oss.svg";
-import obs from "./obs.svg";
 import filesystem from "./filesystem.svg";
 import shell from "./shell.svg";
 import docker from "./docker.svg";
@@ -10,10 +7,7 @@ import postgres from "./postgres.svg";
 import custom from "./custom.svg";
 
 export const STORAGE_LOGOS: Record<string, string> = {
-  cos,
   s3,
-  oss,
-  obs,
   filesystem,
   shell,
   docker,

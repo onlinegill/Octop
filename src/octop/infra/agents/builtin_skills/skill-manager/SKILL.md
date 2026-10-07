@@ -1,71 +1,69 @@
 ---
 name: skill-manager
-description: 必须用于通过对话管理当前专家实例的 Skill，包括查找、检查、安装、导入、更新、编辑、列出、恢复或删除。支持 skillhub.cn/skills/... 页面 URL、SkillHub CLI、本地及上传文件、SKILL.md、ZIP/TAR、Git/GitHub 和普通下载 URL；也用于把 PDF、Markdown、文档、代码、图片等任意资料整理成新 Skill。Must use for conversational Skill management from files, URLs, Git repositories, archives, or SkillHub.
+description: Must be used to manage the current expert instance's Skills through conversation, including finding, inspecting, installing, importing, updating, editing, listing, restoring, or deleting them. Supports SkillHub skill page URLs, the SkillHub CLI, local and uploaded files, SKILL.md, ZIP/TAR, Git/GitHub, and ordinary download URLs; it is also used to turn any material — PDFs, Markdown, documents, code, images — into a new Skill.
 metadata:
   octop:
     emoji: "🧩"
     label:
-      zh: "技能管理"
       en: "Skill Manager"
     summary:
-      zh: "在当前实例中查找、安装、导入、更新或删除技能。"
       en: "Find, install, import, update, or delete skills on this instance."
 ---
 
 # Skill Manager
 
-只管理当前实例的 `{{OCTOP_SKILLS}}/`。当前实例工作区固定为 `{{OCTOP_WORKSPACE}}`；上传文件通常位于其中的 `inbound/`。系统文件（skills、内置 skills、会话等）在 `{{OCTOP_SKILLS}}` 所在目录。不要用 `pwd`、`$HOME`、`~/.octop-harness/workspace`、记忆文件或搜索结果重新猜测工作区。不要改其他实例、全局 Skill 目录或 `{{OCTOP_BUILTIN_SKILLS}}/`。
+You only manage the current instance's `{{OCTOP_SKILLS}}/`. The current instance workspace is fixed at `{{OCTOP_WORKSPACE}}`; uploaded files usually live in its `inbound/`. System files (skills, built-in skills, sessions, and so on) live in the directory containing `{{OCTOP_SKILLS}}`. Do not re-guess the workspace with `pwd`, `$HOME`, `~/.octop-harness/workspace`, memory files, or search results. Do not modify other instances, the global skill directory, or `{{OCTOP_BUILTIN_SKILLS}}/`.
 
-## 操作入口
+## Entry point
 
-使用内置脚本完成检查、下载、安全解包、安装、列出和删除：
+Use the built-in script for inspecting, downloading, safe extraction, installing, listing, and removing:
 
 ```bash
 python "{{OCTOP_BUILTIN_SKILLS}}/skill-manager/scripts/manage_skills.py" <command>
 ```
 
 ```bash
-# 列出已安装技能
+# List installed skills
 ... list
 
-# 检查来源，不写入已安装 skills 目录
+# Inspect a source without writing to the installed skills directory
 ... inspect "<file-directory-url-or-skillhub:slug>"
 
-# 安装；仓库或压缩包内的多个 Skill 可一次安装
+# Install; multiple Skills in a repository or archive can be installed at once
 ... install "<source>" [--subpath "path/in/repo"] [--name "slug"]
 
-# 仅在用户明确同意替换后覆盖
+# Overwrite only after the user has explicitly agreed to a replacement
 ... install "<source>" --force
 
-# SkillHub 搜索；结果可用 skillhub:<slug> 检查或安装
+# SkillHub search; results can be inspected or installed with skillhub:<slug>
 ... skillhub-search "<query>" --limit 10
 
-# 仅在用户明确同意删除后执行；实际移动到 skills/.trash/
+# Run only after the user has explicitly agreed to deletion; moves the Skill to skills/.trash/
 ... remove "<slug>" --yes
 
-# 从回收站恢复
+# Restore from the trash
 ... restore "<trash-name>"
 ```
 
-## 来源处理
+## Handling sources
 
-1. **现成 Skill、目录或 ZIP/TAR**：先 `inspect`；检查通过且用户已要求安装时执行 `install`。
-2. **Git/GitHub URL**：可直接处理仓库、GitHub `tree` 子目录和指向 `SKILL.md` 的 `blob` URL。复杂仓库使用 `git+<url>` 和 `--subpath`。
-3. **SkillHub 页面 URL**：`https://skillhub.cn/skills/<namespace>/<slug>` 可直接传给 `inspect` 或 `install`；脚本会解析 namespace 和 slug。不要自行安装/升级 CLI，不要直接运行 `skillhub install`。
-4. **普通 HTTP(S) URL**：脚本处理直接文件和压缩包。若 URL 是其他介绍网页，先用现有网页工具读取并找到公开仓库、下载地址或 `SKILL.md`，再交给脚本。不得绕过登录、付费墙或访问控制。
-5. **SkillHub 搜索**：用户只描述能力时，先搜索并给出 1–3 个候选的 slug、名称、用途和来源，让用户选择；用户已点名具体 Skill 时，可直接检查并安装。
-6. **任意非 Skill 文件**：普通资料不会因复制而自动成为 Skill。先读取和理解材料，再使用内置 `skill-creator` 工作流，将可复用知识、步骤和必要资源整理为合法 Skill，写入 `{{OCTOP_SKILLS}}/<slug>/`，然后执行 `inspect` 校验。
+1. **Ready-made Skill, directory, or ZIP/TAR**: run `inspect` first; run `install` once it passes and the user has asked to install.
+2. **Git/GitHub URL**: repositories, GitHub `tree` subdirectories, and `blob` URLs pointing at a `SKILL.md` can all be handled directly. For complex repositories use `git+<url>` with `--subpath`.
+3. **SkillHub page URL**: a SkillHub skill page URL ending in `/skills/<namespace>/<slug>` can be passed straight to `inspect` or `install`; the script parses the namespace and slug. Do not install or upgrade the CLI yourself, and do not run `skillhub install` directly.
+4. **Plain HTTP(S) URL**: the script handles direct files and archives. If the URL points at some other landing page, read it with the existing web tools first, find the public repository, download address, or `SKILL.md`, and hand that to the script. Never bypass logins, paywalls, or access controls.
+5. **SkillHub search**: when the user only describes a capability, search first and offer 1–3 candidates with their slug, name, purpose, and source so the user can choose; when the user names a specific Skill, inspect and install it directly.
+6. **Any non-Skill file**: ordinary material does not become a Skill just by copying it. Read and understand the material first, then use the built-in `skill-creator` workflow to organize the reusable knowledge, steps, and necessary resources into a valid Skill, write it to `{{OCTOP_SKILLS}}/<slug>/`, and run `inspect` to validate it.
 
-## 变更规则
+## Change rules
 
-- 新安装请求本身即表示同意新增；目标已存在时停止并说明冲突，只有获得明确同意才使用 `--force`。
-- 编辑现有 Skill 前先读取其 `SKILL.md` 和相关资源，只改该 Skill 目录；修改后重新 `inspect`。
-- 删除前点名目标并取得明确确认。使用 `remove --yes`，不要直接 `rm -rf`。需要恢复时使用 `restore`。
-- 安装后报告 slug 和最终路径。新安装、更新或删除的 Skill 通常从下一次新会话开始完整生效。
+- A new install request is itself consent to add; if the target already exists, stop and explain the conflict, and only use `--force` with explicit consent.
+- Before editing an existing Skill, read its `SKILL.md` and related resources, change only that Skill's directory, and re-run `inspect` afterwards.
+- Before deleting, name the target and get explicit confirmation. Use `remove --yes`; do not `rm -rf` directly. Use `restore` when something needs to be recovered.
+- After installing, report the slug and the final path. A newly installed, updated, or deleted Skill usually takes full effect starting from the next new session.
 
-## 安全边界
+## Safety boundaries
 
-- 脚本限制下载及解包体积、文件数，拒绝路径穿越和符号链接，并通过暂存目录安装。
-- 不执行、导入或 source 下载包中的代码。安装表示部署 Skill 内容，不代表第三方代码已通过安全审计。
-- 不在输出中回显 URL 凭据；私有来源只使用环境中已有的 Git 或 SkillHub 凭据。
-- 若当前实例没有 Shell 执行能力，仍可用文件工具处理简单文本 Skill，但必须说明 URL 下载、安全解包和 SkillHub CLI 无法完成，不能假装成功。
+- The script limits download and extraction size and file count, rejects path traversal and symlinks, and installs through a staging directory.
+- Do not execute, import, or source code from downloaded packages. Installing deploys Skill content; it does not mean third-party code has passed a security audit.
+- Do not echo URL credentials in output; for private sources use only the Git or SkillHub credentials already present in the environment.
+- If the current instance has no shell execution capability, you can still handle simple text Skills with file tools, but you must say that URL downloads, safe extraction, and the SkillHub CLI cannot be done — never pretend they succeeded.

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import sys
 import zipfile
@@ -195,64 +194,3 @@ def test_manager_refuses_to_replace_itself(tmp_path: Path) -> None:
     assert result.returncode == 1
     assert "Octop-owned built-in" in result.stdout
     assert not (tmp_path / "skills" / "skill-manager").exists()
-
-
-def test_manager_installs_namespaced_skillhub_page_url(tmp_path: Path) -> None:
-    fake_bin = tmp_path / "fake-bin"
-    fake_bin.mkdir()
-    log_path = tmp_path / "skillhub-args.json"
-    fake_skillhub = fake_bin / ("skillhub.py" if os.name == "nt" else "skillhub")
-    fake_skillhub.write_text(
-        """#!/usr/bin/env python3
-import json
-import os
-import sys
-from pathlib import Path
-
-args = sys.argv[1:]
-Path(os.environ["FAKE_SKILLHUB_LOG"]).write_text(json.dumps(args), encoding="utf-8")
-slug = args[args.index("install") + 1]
-namespace = args[args.index("--namespace") + 1]
-root = Path(args[args.index("--dir") + 1]) / f"@{namespace}" / slug
-root.mkdir(parents=True)
-(root / "SKILL.md").write_text(
-    f"---\\nname: {slug}\\ndescription: Namespaced SkillHub test.\\n---\\n",
-    encoding="utf-8",
-)
-print(json.dumps({"installed": slug}))
-""",
-        encoding="utf-8",
-    )
-    if os.name == "nt":
-        (fake_bin / "skillhub.cmd").write_text(
-            f'@"{sys.executable}" "%~dp0skillhub.py" %*\n',
-            encoding="utf-8",
-        )
-    else:
-        fake_skillhub.chmod(0o755)
-    env = {
-        **os.environ,
-        "PATH": f"{fake_bin}{os.pathsep}{os.environ.get('PATH', '')}",
-        "FAKE_SKILLHUB_LOG": str(log_path),
-    }
-
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(_manager_script()),
-            "--workspace",
-            str(tmp_path),
-            "install",
-            "https://skillhub.cn/skills/user_741dc82b/dev-expert?from=skill-hunt",
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-        env=env,
-    )
-
-    assert result.returncode == 0, result.stderr or result.stdout
-    assert (tmp_path / "skills/dev-expert/SKILL.md").is_file()
-    args = json.loads(log_path.read_text(encoding="utf-8"))
-    assert args[args.index("install") + 1] == "dev-expert"
-    assert args[args.index("--namespace") + 1] == "user_741dc82b"

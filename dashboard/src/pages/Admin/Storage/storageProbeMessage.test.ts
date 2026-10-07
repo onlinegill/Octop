@@ -4,10 +4,10 @@ import { storageBrowseError, storageProbeMessage } from "./storageProbeMessage";
 
 function t(key: string, options?: string | Record<string, unknown>): string {
   const catalog: Record<string, string> = {
-    "storage.testFailed": "检测失败",
-    "storage.browseFailed": "浏览失败",
-    "storage.probe_no_such_bucket": "存储桶不存在，请检查 Bucket 名称",
-    "storage.probe_write_failed": "写入探测失败：{{detail}}",
+    "storage.testFailed": "Detection failed",
+    "storage.browseFailed": "Browsing failed",
+    "storage.probe_no_such_bucket": "Bucket does not exist, please check Bucket Name",
+    "storage.probe_write_failed": "Write probe failed:{{detail}}",
   };
   const template = catalog[key];
   if (!template) {
@@ -44,7 +44,7 @@ describe("storageProbeMessage", () => {
         t,
         "storage.testFailed",
       ),
-    ).toBe("存储桶不存在，请检查 Bucket 名称");
+    ).toBe("Bucket does not exist, please check Bucket Name");
   });
 
   it("interpolates leftover write details", () => {
@@ -58,7 +58,7 @@ describe("storageProbeMessage", () => {
         t,
         "storage.testFailed",
       ),
-    ).toBe("写入探测失败：widget exploded");
+    ).toBe("Write probe failed:widget exploded");
   });
 });
 
@@ -68,7 +68,7 @@ describe("storageBrowseError", () => {
       'Request failed: 400 - {"error":{"code":"STORAGE_BROWSE_FAILED","message":"Could not browse this storage backend.","details":{"message_key":"probe_no_such_bucket","reason":"The specified bucket does not exist. Check the bucket name."}}}',
     );
     expect(storageBrowseError(err, t as never)).toBe(
-      "存储桶不存在，请检查 Bucket 名称",
+      "Bucket does not exist, please check Bucket Name",
     );
   });
 });

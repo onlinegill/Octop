@@ -320,8 +320,8 @@ async def test_finish_saves_provider_with_admin_jwt(env: Any) -> None:
                 "base_url": "https://api.example.com/v1",
                 "models": [
                     {
-                        "id": "MiniMax-M2.7",
-                        "name": "MiniMax",
+                        "id": "Example-M2.7",
+                        "name": "Example",
                         "enabled": True,
                         "input": ["text"],
                     }
@@ -336,7 +336,7 @@ async def test_finish_saves_provider_with_admin_jwt(env: Any) -> None:
     assert providers[0].api_key == "sk-test"
     provider_name, model_id = srv.services.settings_repo.get_active_model()
     assert provider_name == "HAI"
-    assert model_id == "MiniMax-M2.7"
+    assert model_id == "Example-M2.7"
     registry = srv.app_runtime.agent_registry
     assert registry._harness_manager is not None
     assert registry._harness_manager.shared_factory is not None

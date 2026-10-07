@@ -6,14 +6,14 @@ import {
 } from "../browserTabs";
 
 const previous = [
-  { id: "a", title: "B站", url: "https://www.bilibili.com/", active: false },
+  { id: "a", title: "Video", url: "https://video.example.com/", active: false },
   {
     id: "b",
-    title: "小红书",
-    url: "https://www.xiaohongshu.com/explore",
+    title: "Social feed",
+    url: "https://social.example.com/explore",
     active: true,
   },
-  { id: "c", title: "微博", url: "https://weibo.com/", active: false },
+  { id: "c", title: "Social", url: "https://social.example.com/", active: false },
 ];
 
 describe("mergeBrowserTabsStable", () => {
@@ -21,26 +21,26 @@ describe("mergeBrowserTabsStable", () => {
     const incoming = [
       {
         id: "c",
-        title: "微博 - active",
-        url: "https://weibo.com/",
+        title: "Social - active",
+        url: "https://social.example.com/",
         active: true,
       },
       {
         id: "a",
-        title: "B站",
-        url: "https://www.bilibili.com/",
+        title: "Video",
+        url: "https://video.example.com/",
         active: false,
       },
       {
         id: "b",
-        title: "小红书",
-        url: "https://www.xiaohongshu.com/explore",
+        title: "Social feed",
+        url: "https://social.example.com/explore",
         active: false,
       },
       {
         id: "d",
-        title: "中国天气网",
-        url: "https://www.weather.com.cn/",
+        title: "Weather Network",
+        url: "https://www.weather.com/",
         active: false,
       },
     ];
@@ -48,16 +48,16 @@ describe("mergeBrowserTabsStable", () => {
     const merged = mergeBrowserTabsStable(previous, incoming);
 
     expect(merged.map((tab) => tab.id)).toEqual(["a", "b", "c", "d"]);
-    expect(merged.find((tab) => tab.id === "c")?.title).toBe("微博 - active");
+    expect(merged.find((tab) => tab.id === "c")?.title).toBe("Social - active");
   });
 
   it("removes closed tabs while preserving the surviving order", () => {
     const incoming = [
-      { id: "c", title: "微博", url: "https://weibo.com/", active: true },
+      { id: "c", title: "Social", url: "https://social.example.com/", active: true },
       {
         id: "a",
-        title: "B站",
-        url: "https://www.bilibili.com/",
+        title: "Video",
+        url: "https://video.example.com/",
         active: false,
       },
     ];

@@ -30,7 +30,7 @@ def test_seeded_roles_leave_existing_users_unchanged(tmp_path: Path) -> None:
     roles = UserRoleRepo(db)
     admin = roles.get("admin")
     user = roles.get("user")
-    assert admin is not None and admin.user_role_name == "管理员"
+    assert admin is not None and admin.user_role_name == "Admin"
     assert admin.policies == []
     assert user is not None
     assert set(user.permissions) == set(BASELINE_PERMISSIONS)
@@ -60,16 +60,16 @@ def test_role_repo_roundtrip(tmp_path: Path) -> None:
     run_migrations(db)
     roles = UserRoleRepo(db)
     created = roles.create(
-        user_role_name="分析师",
-        description="分析角色",
+        user_role_name="Analyst",
+        description="Analyst role",
         permissions=["browser"],
         policies=[("token_quota", "10")],
     )
     assert created.user_role_id
     assert created.user_role_id not in {"admin", "user"}
-    loaded = roles.get_by_name("分析师")
+    loaded = roles.get_by_name("Analyst")
     assert loaded is not None
-    assert loaded.description == "分析角色"
+    assert loaded.description == "Analyst role"
     assert loaded.policies == [("token_quota", "10")]
     assert loaded.policy_value("max_agents") is None
     assert loaded.policy_value("workspace_root_dir") is None
@@ -92,7 +92,7 @@ def test_cli_and_seed_follow_preset_user_role(tmp_path: Path) -> None:
     row = UserRepo(db).get_by_username("cliuser")
     assert row is not None
     assert row.role == "user"
-    assert row.role_name == "用户"
+    assert row.role_name == "User"
     assert set(row.permissions) == set(BASELINE_PERMISSIONS)
 
     assignment = seeded_user_role_assignment(db)

@@ -26,7 +26,7 @@ function WikiSummary(props) {
           target: "_blank",
           rel: "noopener noreferrer",
           style: { fontWeight: 800, fontSize: 16, color: "inherit", textDecoration: "none" },
-          children: d.title || d.query || "维基",
+          children: d.title || d.query || "Wiki",
         }),
         _jsx("p", { style: { margin: "10px 0 0", lineHeight: 1.55, fontSize: 14, opacity: 0.9 }, children: d.extract || "" }),
       ] }),

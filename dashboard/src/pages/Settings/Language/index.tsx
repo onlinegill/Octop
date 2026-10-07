@@ -5,10 +5,7 @@ import { message } from "@/utils/antdMessage";
 import { preferencesApi } from "../../../api/modules/preferences";
 import { applyUserLocale } from "../../../utils/locale";
 
-const languages = [
-  { value: "en", label: "English" },
-  { value: "zh", label: "简体中文" },
-];
+const languages = [{ value: "en", label: "English" }];
 
 export default function LanguagePage() {
   const { t, i18n } = useTranslation();

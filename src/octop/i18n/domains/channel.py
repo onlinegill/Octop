@@ -30,7 +30,7 @@ def channel_probe_field_label(field: str, locale: str | Locale = "en") -> str:
 
 def channel_probe_incomplete(missing: list[str], locale: str | Locale = "en") -> str:
     """Localized 'missing credentials' message from structured field names."""
-    sep = "、" if str(locale).startswith("zh") else ", "
+    sep = ", "
     fields = sep.join(channel_probe_field_label(name, locale) for name in missing)
     return tr("channel.probe.incomplete", locale, fields=fields)
 

@@ -38,12 +38,12 @@ async def test_read_workspace_manifest_welcome() -> None:
             json.dumps(
                 {
                     "id": "demo",
-                    "welcome_message": {"zh": "你好", "en": "Hi"},
+                    "welcome_message": {"zh": "Hello", "en": "Hi"},
                     "quick_prompts": [
                         {
-                            "title": {"zh": "标题", "en": "Title"},
-                            "description": {"zh": "描述", "en": "Desc"},
-                            "prompt": {"zh": "提示", "en": "Prompt"},
+                            "title": {"zh": "Title", "en": "Title"},
+                            "description": {"zh": "Desc", "en": "Desc"},
+                            "prompt": {"zh": "Prompt", "en": "Prompt"},
                             "color": "#eee",
                             "icon_name": "zap",
                         }
@@ -54,7 +54,7 @@ async def test_read_workspace_manifest_welcome() -> None:
         )
         payload = await read_workspace_manifest_welcome(workspace)
         assert payload is not None
-        assert payload["welcome_message"]["zh"] == "你好"
+        assert payload["welcome_message"]["en"] == "Hi"
         assert len(payload["quick_prompts"]) == 1
         assert payload["quick_prompts"][0]["title"]["en"] == "Title"
 
@@ -65,12 +65,12 @@ async def test_read_workspace_manifest_welcome_falls_back_to_root() -> None:
         workspace = _workspace(ws_dir)
         await workspace.awrite_text(
             "manifest.json",
-            json.dumps({"welcome_message": {"zh": "旧路径", "en": "Legacy"}}),
+            json.dumps({"welcome_message": {"zh": "Legacy path", "en": "Legacy"}}),
             force=True,
         )
         payload = await read_workspace_manifest_welcome(workspace)
         assert payload is not None
-        assert payload["welcome_message"]["zh"] == "旧路径"
+        assert payload["welcome_message"]["en"] == "Legacy"
 
 
 @pytest.mark.asyncio
@@ -101,13 +101,10 @@ async def test_seed_expert_directory_includes_manifest() -> None:
 
 def test_welcome_payload_has_content() -> None:
     assert (
-        welcome_payload_has_content({"welcome_message": {"zh": "", "en": ""}, "quick_prompts": []})
-        is False
+        welcome_payload_has_content({"welcome_message": {"en": ""}, "quick_prompts": []}) is False
     )
     assert (
-        welcome_payload_has_content(
-            {"welcome_message": {"zh": "hi", "en": ""}, "quick_prompts": []}
-        )
+        welcome_payload_has_content({"welcome_message": {"en": "hi"}, "quick_prompts": []})
         is True
     )
 
@@ -136,24 +133,20 @@ def test_parse_task_examples_missing_field_is_none() -> None:
 
 
 def test_parse_task_examples_plain_string_list() -> None:
-    assert parse_task_examples({"task_examples": ["  早报  ", "", "复盘"]}) == {
-        "zh": ["早报", "复盘"],
-        "en": ["早报", "复盘"],
+    assert parse_task_examples({"task_examples": ["  Morning report  ", "", "Retrospective"]}) == {
+        "en": ["Morning report", "Retrospective"],
     }
 
 
 def test_parse_task_examples_locale_keyed_lists() -> None:
-    assert parse_task_examples({"task_examples": {"zh": ["中文", " "], "en": ["English"]}}) == {
-        "zh": ["中文"],
+    assert parse_task_examples({"task_examples": {"zh": ["Chinese text", " "], "en": ["English"]}}) == {
         "en": ["English"],
     }
 
 
 def test_default_task_examples_are_six_and_named() -> None:
-    examples = default_task_examples("巡检专家", "Patrol Expert")
-    assert len(examples["zh"]) == 6
+    examples = default_task_examples("Patrol Expert")
     assert len(examples["en"]) == 6
-    assert "巡检专家" in examples["zh"][0]
     assert "Patrol Expert" in examples["en"][0]
 
 
@@ -161,18 +154,16 @@ def test_resolve_display_task_examples_prefers_workspace() -> None:
     from octop.infra.agents.experts.catalog import resolve_display_task_examples
 
     out = resolve_display_task_examples(
-        parsed={"zh": ["工作区"], "en": ["Workspace"]},
-        label_zh="忽略",
-        label_en="Ignored",
+        parsed={"en": ["Workspace"]},
+        label="Ignored",
     )
-    assert out == {"zh": ["工作区"], "en": ["Workspace"]}
+    assert out == {"en": ["Workspace"]}
 
 
 def test_resolve_display_task_examples_empty_lists_stay_empty() -> None:
     from octop.infra.agents.experts.catalog import resolve_display_task_examples
 
-    assert resolve_display_task_examples(parsed={"zh": [], "en": []}) == {
-        "zh": [],
+    assert resolve_display_task_examples(parsed={"en": []}) == {
         "en": [],
     }
 
@@ -182,11 +173,9 @@ def test_resolve_display_task_examples_falls_back_to_name() -> None:
 
     out = resolve_display_task_examples(
         parsed=None,
-        label_zh="巡检专家",
-        label_en="Patrol Expert",
+        label="Patrol Expert",
     )
-    assert len(out["zh"]) == 6
-    assert "巡检专家" in out["zh"][0]
+    assert len(out["en"]) == 6
     assert "Patrol Expert" in out["en"][0]
 
 
@@ -197,63 +186,55 @@ def test_display_task_examples_for_agent_reads_row_labels() -> None:
 
     named = display_task_examples_for_agent(
         parsed=None,
-        row=SimpleNamespace(name="巡检专家", template_name=None),
+        row=SimpleNamespace(name="Patrol Expert", template_name=None),
     )
-    assert "巡检专家" in named["zh"][0]
+    assert "Patrol Expert" in named["en"][0]
 
     preferred = display_task_examples_for_agent(
-        parsed={"zh": ["工作区"], "en": ["Workspace"]},
-        row=SimpleNamespace(name="忽略", template_name=None),
+        parsed={"en": ["Workspace"]},
+        row=SimpleNamespace(name="Ignored", template_name=None),
     )
-    assert preferred == {"zh": ["工作区"], "en": ["Workspace"]}
+    assert preferred == {"en": ["Workspace"]}
 
 
 def test_normalize_task_examples_for_display_keeps_three_or_six() -> None:
     assert normalize_task_examples_for_display(None) is None
-    assert normalize_task_examples_for_display({"zh": ["a", "b"], "en": ["A"]}) == {
-        "zh": ["a", "b"],
+    assert normalize_task_examples_for_display({"en": ["A"]}) == {
         "en": ["A"],
     }
     assert normalize_task_examples_for_display(
-        {"zh": ["1", "2", "3", "4", "5"], "en": ["a", "b", "c", "d", "e"]}
-    ) == {"zh": ["1", "2", "3"], "en": ["a", "b", "c"]}
+        {"en": ["a", "b", "c", "d", "e"]}
+    ) == {"en": ["a", "b", "c"]}
     assert (
         len(
             normalize_task_examples_for_display(
-                {"zh": [str(i) for i in range(8)], "en": [str(i) for i in range(8)]}
-            )["zh"]
+                {"en": [str(i) for i in range(8)]}
+            )["en"]
         )
         == 6
     )
 
 
 def test_snap_task_examples_keeps_three_or_six() -> None:
-    fillers_zh = [f"补位中文 {idx}" for idx in range(1, 7)]
     fillers_en = [f"filler {idx}" for idx in range(1, 7)]
     three = snap_task_examples(
-        ["每天巡检"],
         ["Daily patrol"],
-        fillers_zh=fillers_zh,
         fillers_en=fillers_en,
     )
     assert three == {
-        "zh": ["每天巡检", "补位中文 1", "补位中文 2"],
         "en": ["Daily patrol", "filler 1", "filler 2"],
     }
     six = snap_task_examples(
         ["a", "b", "c", "d"],
-        ["A", "B", "C", "D"],
-        fillers_zh=fillers_zh,
         fillers_en=fillers_en,
     )
-    assert len(six["zh"]) == 6
-    assert six["zh"][:4] == ["a", "b", "c", "d"]
+    assert len(six["en"]) == 6
+    assert six["en"][:4] == ["a", "b", "c", "d"]
 
 
 def test_parse_task_examples_empty_lists_stay_present() -> None:
-    assert parse_task_examples({"task_examples": []}) == {"zh": [], "en": []}
+    assert parse_task_examples({"task_examples": []}) == {"en": []}
     assert parse_task_examples({"task_examples": {"zh": [], "en": []}}) == {
-        "zh": [],
         "en": [],
     }
 
@@ -264,11 +245,10 @@ async def test_read_workspace_manifest_task_examples() -> None:
         workspace = _workspace(ws_dir)
         await workspace.awrite_text(
             ".octop/manifest.json",
-            json.dumps({"id": "demo", "task_examples": {"zh": ["巡检"], "en": ["Patrol"]}}),
+            json.dumps({"id": "demo", "task_examples": {"zh": ["Patrol"], "en": ["Patrol"]}}),
             force=True,
         )
         assert await read_workspace_manifest_task_examples(workspace) == {
-            "zh": ["巡检"],
             "en": ["Patrol"],
         }
 

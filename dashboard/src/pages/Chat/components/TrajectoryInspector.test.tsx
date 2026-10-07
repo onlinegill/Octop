@@ -264,7 +264,7 @@ describe("TrajectoryInspector", () => {
           result: [
             {
               type: "text",
-              text: '{\n  "id": "1",\n  "name": "工作"\n}',
+              text: '{\n  "id": "1",\n  "name": "Work"\n}',
             },
           ],
         },
@@ -285,7 +285,7 @@ describe("TrajectoryInspector", () => {
             result: [
               {
                 type: "text",
-                text: '{\n  "id": "1",\n  "name": "工作"\n}',
+                text: '{\n  "id": "1",\n  "name": "Work"\n}',
               },
             ],
           },
@@ -298,7 +298,7 @@ describe("TrajectoryInspector", () => {
 
     await waitFor(() => {
       const preview = screen.getByTestId("trajectory-preview");
-      expect(preview).toHaveTextContent('"name": "工作"');
+      expect(preview).toHaveTextContent('"name": "Work"');
       expect(preview).not.toHaveTextContent("tool list_projects");
       expect(preview).not.toHaveTextContent('"type": "text"');
     });

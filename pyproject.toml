@@ -23,7 +23,6 @@ dependencies = [
     "pyjwt>=2.8",
     "octop-harness[all]>=1.0.1",
     "octop-memory>=1.0.0",
-    "lark-oapi>=1.7.3",
     "octop-gateway>=1.0.0",
     "cryptography>=41",
     "scalar-fastapi>=1.0",

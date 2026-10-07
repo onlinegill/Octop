@@ -47,9 +47,7 @@ _OCR_REFUSAL_RE = re.compile(
     r"|(?:don'?t|do not|can'?t|cannot|unable to|didn'?t) "
     r"(?:see|find|detect|receive|locate)[^.\n]{0,30}(?:image|picture|photo|scan|attachment)"
     r"|please (?:attach|upload|provide|send|share)[^.\n]{0,40}"
-    r"(?:image|picture|photo|scan|attachment|file)"
-    r"|未(?:收到|看到|检测到|获取到)[^。\n]{0,10}(?:图片|图像|照片|附件)"
-    r"|请(?:上传|提供|重新上传|发送)[^。\n]{0,10}(?:图片|图像|照片|附件|文件)",
+    r"(?:image|picture|photo|scan|attachment|file)",
     re.IGNORECASE,
 )
 

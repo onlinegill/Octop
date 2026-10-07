@@ -34,7 +34,6 @@ import {
   Pencil,
   Plus,
   RefreshCw,
-  Store,
   Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -68,7 +67,6 @@ import {
   SkillImportModal,
   type ZipImportSummary,
 } from "../Agent/Skills/components/SkillImportModal";
-import SkillHubTab from "../Agent/Skills/components/SkillHubTab";
 import skillStyles from "../Agent/Skills/index.module.less";
 import type { ParsedZipSkill } from "../Agent/Skills/components/parseSkillZip";
 import {
@@ -80,7 +78,6 @@ import { createDetailRequestGate } from "../../utils/detailRequestGate";
 import { PackageIcon } from "./PackageIcon";
 import { PackageSkillCard } from "./PackageSkillCard";
 import PackageSkillsTable from "./PackageSkillsTable";
-import { SkillsetFromHubDrawer } from "./SkillsetFromHubDrawer";
 import styles from "./index.module.less";
 
 type PackageFormValues = {
@@ -172,8 +169,6 @@ export default function SkillPackagesPage() {
   const [packageDrawerOpen, setPackageDrawerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [hubOpen, setHubOpen] = useState(false);
-  const [skillsetHubOpen, setSkillsetHubOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
   const [editingSkill, setEditingSkill] =
@@ -619,12 +614,6 @@ export default function SkillPackagesPage() {
               onClick: openCreatePackage,
               icon: <Plus size={14} />,
             }}
-            secondaryAction={{
-              label: t("skillPackages.fromSkillHub"),
-              onClick: () => setSkillsetHubOpen(true),
-              icon: <Store size={14} />,
-              type: "default",
-            }}
           />
         </div>
       ) : (
@@ -665,13 +654,6 @@ export default function SkillPackagesPage() {
                 >
                   {t("skillPackages.createPackage")}
                 </Button>
-                <Tooltip title={t("skillPackages.fromSkillHub")}>
-                  <Button
-                    icon={<Store size={15} />}
-                    aria-label={t("skillPackages.fromSkillHub")}
-                    onClick={() => setSkillsetHubOpen(true)}
-                  />
-                </Tooltip>
               </div>
               {loading && packages.length === 0 ? (
                 <div className={styles.centered}>
@@ -898,14 +880,6 @@ export default function SkillPackagesPage() {
                             <button
                               type="button"
                               className={skillStyles.toolbarBtn}
-                              onClick={() => setHubOpen(true)}
-                            >
-                              <Store size={14} />
-                              {t("skills.tencentSkillHub")}
-                            </button>
-                            <button
-                              type="button"
-                              className={skillStyles.toolbarBtn}
                               onClick={() => setImportModalOpen(true)}
                             >
                               <Download size={14} />
@@ -1041,19 +1015,6 @@ export default function SkillPackagesPage() {
         urlPrefixes={SKILL_URL_PREFIXES}
       />
 
-      <SkillsetFromHubDrawer
-        open={skillsetHubOpen}
-        onClose={() => setSkillsetHubOpen(false)}
-        onCreated={async (pkg) => {
-          await loadPackages({ silent: true });
-          setSelected(pkg);
-          setSelectedId(pkg.id);
-          if (isMobile) setMobilePane("detail");
-          setSkillsetHubOpen(false);
-          message.success(t("skillPackages.created"));
-        }}
-      />
-
       <SkillDrawer
         open={drawerOpen}
         editingSkill={
@@ -1075,21 +1036,6 @@ export default function SkillPackagesPage() {
         onSubmit={(values) => void saveSkill(values)}
         readOnly={!canMutate}
       />
-
-      <Drawer
-        title={t("skills.tencentSkillHub")}
-        open={hubOpen}
-        onClose={() => setHubOpen(false)}
-        width={860}
-        destroyOnHidden
-      >
-        {selected ? (
-          <SkillHubTab
-            target={{ type: "package", packageId: selected.id }}
-            onInstalled={() => void refreshSelected()}
-          />
-        ) : null}
-      </Drawer>
     </PageShell>
   );
 }

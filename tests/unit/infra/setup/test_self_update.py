@@ -74,7 +74,7 @@ def test_parse_changelog_for_beta_version() -> None:
     description = (
         "## [Unreleased]\n\n"
         "## [1.0.2b5] - 2026-09-29\n\n"
-        "### 新增\n- remote bridge\n\n"
+        "### Added\n- remote bridge\n\n"
         "## [1.0.1] - 2026-09-21\n\n"
         "- stable only\n"
     )
@@ -285,7 +285,7 @@ def test_index_label_prefers_hostname() -> None:
     assert index_label("https://pypi.org/simple") == "pypi.org"
     assert index_label("https://PyPI.org/simple") == "pypi.org"
     assert (
-        index_label("https://mirrors.cloud.tencent.com/pypi/simple") == "mirrors.cloud.tencent.com"
+        index_label("https://mirror.example.com/pypi/simple") == "mirror.example.com"
     )
     assert index_label("https://notpypi.org/simple") == "notpypi.org"
     assert index_label("https://pypi.org.evil.example/simple") == "pypi.org.evil.example"
@@ -328,6 +328,17 @@ def test_rank_install_indexes_skips_missing_prefers_fast_hit(
 ) -> None:
     from octop.infra.setup import self_update
 
+    monkeypatch.setattr(
+        self_update,
+        "_MIRRORS",
+        [
+            "https://mirror-slow.example/simple",
+            "https://mirror-fast.example/simple",
+            "https://mirror-missing.example/simple",
+            "https://mirror-down.example/simple",
+        ],
+    )
+
     def fake_probe(
         index_url: str,
         *,
@@ -335,28 +346,28 @@ def test_rank_install_indexes_skips_missing_prefers_fast_hit(
         timeout: float = 8,
     ) -> self_update.IndexProbe:
         label = self_update.index_label(index_url)
-        if "tencent" in index_url:
+        if "mirror-missing" in index_url:
             return self_update.IndexProbe(
                 index_url, label, 0.05, "missing_version", "missing_version 1.2.3"
             )
-        if "aliyun" in index_url:
-            return self_update.IndexProbe(index_url, label, 0.02, "has_version")
-        if "tuna" in index_url:
+        if "mirror-slow" in index_url:
+            return self_update.IndexProbe(index_url, label, 0.2, "has_version")
+        if "mirror-fast" in index_url:
             return self_update.IndexProbe(index_url, label, 0.01, "has_version")
-        if "ustc" in index_url:
+        if "mirror-down" in index_url:
             return self_update.IndexProbe(index_url, label, 0.2, "unreachable", "unreachable: down")
         return self_update.IndexProbe(index_url, label, 0.03, "has_version")
 
     monkeypatch.setattr(self_update, "probe_index", fake_probe)
     ordered, skips = rank_install_indexes("1.2.3")
     labels = [label for _url, label in ordered]
-    assert labels[0] == "pypi.tuna.tsinghua.edu.cn"
-    assert labels[1] == "mirrors.aliyun.com"
+    assert labels[0] == "mirror-fast.example"
+    assert labels[1] == "mirror-slow.example"
     assert labels[-1] == "pypi.org"
-    assert any("tencent" in err and "missing_version" in err for err in skips)
-    assert any("ustc" in err and "unreachable" in err for err in skips)
-    assert "mirrors.cloud.tencent.com" not in labels
-    assert "mirrors.ustc.edu.cn" not in labels
+    assert any("mirror-missing" in err and "missing_version" in err for err in skips)
+    assert any("mirror-down" in err and "unreachable" in err for err in skips)
+    assert "mirror-missing.example" not in labels
+    assert "mirror-down.example" not in labels
 
 
 def test_all_mirrors_failed_enriches_error_with_install_detail() -> None:

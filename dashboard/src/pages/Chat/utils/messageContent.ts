@@ -88,7 +88,7 @@ function joinAnswerParts(parts: string[]): string {
     const needSpace =
       !/\s$/u.test(out) &&
       !/^\s/u.test(part) &&
-      !/^[，。！？、,.!?;:]/u.test(part);
+      !/^[,.!?;:]/u.test(part);
     out += needSpace ? ` ${part}` : part;
   }
   return out;

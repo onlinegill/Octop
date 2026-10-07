@@ -1,5 +1,5 @@
 /**
- * Markdown helpers for workspace / SkillHub documents that often carry a
+ * Markdown helpers for workspace documents that often carry a
  * leading YAML frontmatter block (``---`` ... ``---``).
  */
 
@@ -124,7 +124,7 @@ function yamlChildList(block: string): string[] {
   return items;
 }
 
-/** Extract a few UI-friendly fields from SkillHub workflow frontmatter. */
+/** Extract a few UI-friendly fields from workflow frontmatter. */
 export function parseWorkflowFrontmatterMeta(
   raw: string | null | undefined,
 ): WorkflowFrontmatterMeta {

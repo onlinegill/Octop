@@ -17,7 +17,7 @@ export default function ScrollToBottomButton({
 }: ScrollToBottomButtonProps) {
   const { t } = useTranslation();
   const label = hasNewActivity
-    ? t("chat.newRepliesBelow", { defaultValue: "有新回复" })
+    ? t("chat.newRepliesBelow", { defaultValue: "There are new replies" })
     : t("chat.scrollToBottom");
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [overlapsTool, setOverlapsTool] = useState(false);

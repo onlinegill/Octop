@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestDesktopTextLooksUpLocaleWithEnglishDefault(t *testing.T) {
-	if got := desktopText(LocaleZH, copyStatusReady); got != "Octop 已就绪" {
+	if got := desktopText(LocaleZH, copyStatusReady); got != "Octop is ready" {
 		t.Fatalf("zh: %s", got)
 	}
 	if got := desktopText(LocaleEN, copyStatusReady); got != "Octop is ready" {

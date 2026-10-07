@@ -1,19 +1,19 @@
 #!/bin/bash
-# Octop 本地版 — 卸载后回调
-# 根据卸载向导选择：完全删除时清理 data-share 用户数据；保留数据时不作处理。
-# 无论是否删除数据，都清理本包安装时写入的特权（sudoers）与可能残留的桌面服务。
+# Octop (native) — post-uninstall callback
+# Based on the uninstall wizard choice: on complete deletion, clean up the data-share user data; when keeping data, do nothing.
+# Regardless of whether data is deleted, clean up the privileges written at install time (sudoers) and any leftover desktop services.
 set -uo pipefail
 
-# 清理安装时写入的免密码 sudo 规则（install_callback 以 root 写入，这里同样以
-# root 删除；卸载后不应再保留对 octop-native 的 NOPASSWD 授权）。
+# Remove the passwordless sudo rule written at install time (install_callback wrote it as root, and here it is deleted as root too;
+# the NOPASSWD authorization for octop-native must not remain after uninstall).
 rm -f /etc/sudoers.d/octop-native 2>/dev/null || true
-echo "[octop-native] 已移除免密码 sudo 规则" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
+echo "[octop-native] passwordless sudo rule removed" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
 
-# 移除安装时注册到 PATH 的 octop / octop-cli 命令
+# Remove the octop / octop-cli commands registered on PATH at install time
 rm -f /usr/local/bin/octop /usr/local/bin/octop-cli 2>/dev/null || true
-echo "[octop-native] 已移除命令：octop / octop-cli" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
+echo "[octop-native] commands removed: octop / octop-cli" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
 
-# 停止并禁用可能残留的虚拟桌面 systemd 单元（若用户卸载前未在 UI 内卸载桌面）。
+# Stop and disable any leftover virtual desktop systemd units (in case the user did not uninstall the desktop in the UI before uninstalling).
 if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
     systemctl disable octop-desktop-xvnc octop-desktop-openbox octop-desktop-session 2>/dev/null || true
     systemctl stop octop-desktop-xvnc octop-desktop-openbox octop-desktop-session 2>/dev/null || true
@@ -26,7 +26,7 @@ if [ "${wizard_delete_data:-no}" = "yes" ]; then
     DATA_DIR="${DATA_DIR%%:*}"
     if [ -n "$DATA_DIR" ] && [ -d "$DATA_DIR" ]; then
         rm -rf "$DATA_DIR" 2>/dev/null || true
-        echo "[octop-native] 已删除用户数据: $DATA_DIR" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
+        echo "[octop-native] user data deleted: $DATA_DIR" > "${TRIM_TEMP_LOGFILE:-/dev/null}" 2>&1 || true
     fi
 fi
 

@@ -26,7 +26,6 @@ MAX_BYTES = 64 * 1024 * 1024
 MAX_DOWNLOAD_BYTES = 256 * 1024 * 1024
 RESERVED_SKILL_SLUGS = frozenset({"skill-manager"})
 _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
-_NAMESPACE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
 
 
 class SkillManagerError(RuntimeError):
@@ -93,36 +92,6 @@ def _skills_dir(workspace: Path) -> Path:
     skills_dir = workspace / "skills"
     skills_dir.mkdir(parents=True, exist_ok=True)
     return skills_dir
-
-
-def _skillhub_source(source: str) -> tuple[str, str] | None:
-    """Return ``(slug, namespace)`` for SkillHub shorthand or page URLs."""
-    if source.startswith("skillhub:"):
-        value = source.partition(":")[2].strip().strip("/")
-        parts = value.split("/")
-        if len(parts) == 1:
-            return _slug(parts[0]), ""
-        if len(parts) == 2:
-            namespace, slug = parts
-            if not _NAMESPACE_RE.fullmatch(namespace):
-                raise SkillManagerError(f"invalid SkillHub namespace: {namespace!r}")
-            return _slug(slug), namespace
-        raise SkillManagerError(
-            "SkillHub source must be skillhub:<slug> or skillhub:<namespace>/<slug>"
-        )
-
-    parsed = urlparse(source)
-    if parsed.hostname not in {"skillhub.cn", "www.skillhub.cn"}:
-        return None
-    parts = [unquote(part) for part in parsed.path.strip("/").split("/") if part]
-    if len(parts) != 3 or parts[0] != "skills":
-        raise SkillManagerError(
-            "unsupported SkillHub URL; expected https://skillhub.cn/skills/<namespace>/<slug>"
-        )
-    namespace, slug = parts[1:]
-    if not _NAMESPACE_RE.fullmatch(namespace):
-        raise SkillManagerError(f"invalid SkillHub namespace: {namespace!r}")
-    return _slug(slug), namespace
 
 
 def _safe_relative(name: str) -> Path:
@@ -227,14 +196,6 @@ def _run(command: list[str], *, timeout: int = 120) -> subprocess.CompletedProce
     return result
 
 
-def _command(name: str, *args: str) -> list[str]:
-    """Resolve a CLI entry point, including Windows ``.cmd`` shims."""
-    executable = shutil.which(name)
-    if executable is None:
-        raise SkillManagerError(f"required command is not installed: {name}")
-    return [executable, *args]
-
-
 def _github_source(source: str) -> tuple[str, str, str] | None:
     parsed = urlparse(source)
     if parsed.hostname not in {"github.com", "www.github.com"}:
@@ -317,18 +278,6 @@ def _select_subpath(root: Path, subpath: str) -> Path:
 
 
 def _materialize(source: str, target: Path) -> Path:
-    skillhub_source = _skillhub_source(source)
-    if skillhub_source is not None:
-        slug, namespace = skillhub_source
-        installed = target / "skillhub"
-        installed.mkdir()
-        command = _command("skillhub", "--skip-self-upgrade", "install", slug)
-        if namespace:
-            command.extend(["--namespace", namespace])
-        command.extend(["--dir", str(installed), "--json"])
-        _run(command)
-        return installed
-
     local = Path(source).expanduser()
     if local.exists():
         resolved = local.resolve()
@@ -556,10 +505,8 @@ def _restore(workspace: Path, trash_name: str) -> dict[str, str]:
 
 
 def _effective_name(source: str, name: str) -> str:
-    if name:
-        return name
-    skillhub_source = _skillhub_source(source)
-    return skillhub_source[0] if skillhub_source is not None else ""
+    del source
+    return name
 
 
 def _inspect(source: str, *, subpath: str, name: str) -> list[dict[str, Any]]:
@@ -593,25 +540,6 @@ def _install_source(
         return _install(workspace, found, force=force)
 
 
-def _skillhub_search(query: str, limit: int) -> None:
-    result = _run(
-        _command(
-            "skillhub",
-            "--skip-self-upgrade",
-            "search",
-            "--json",
-            "--search-limit",
-            str(max(1, min(limit, 100))),
-            query,
-        ),
-        timeout=30,
-    )
-    try:
-        _emit(json.loads(result.stdout))
-    except json.JSONDecodeError as exc:
-        raise SkillManagerError("SkillHub returned invalid JSON") from exc
-
-
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -626,7 +554,7 @@ def _parser() -> argparse.ArgumentParser:
     for command in ("inspect", "install"):
         item = commands.add_parser(
             command,
-            help=f"{command} a file, directory, URL, or skillhub:slug",
+            help=f"{command} a file, directory, URL, or git repository",
         )
         item.add_argument("source")
         item.add_argument("--subpath", default="")
@@ -641,9 +569,6 @@ def _parser() -> argparse.ArgumentParser:
     restore = commands.add_parser("restore", help="restore an entry from skills/.trash")
     restore.add_argument("trash_name")
 
-    search = commands.add_parser("skillhub-search", help="search with the SkillHub CLI")
-    search.add_argument("query")
-    search.add_argument("--limit", type=int, default=10)
     return parser
 
 
@@ -669,8 +594,6 @@ def main() -> int:
             _emit(_remove(workspace, args.name, confirmed=args.yes))
         elif args.command == "restore":
             _emit(_restore(workspace, args.trash_name))
-        elif args.command == "skillhub-search":
-            _skillhub_search(args.query, args.limit)
         else:
             raise SkillManagerError(f"unknown command: {args.command}")
     except SkillManagerError as exc:

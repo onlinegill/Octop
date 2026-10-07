@@ -8,14 +8,14 @@ from octop.infra.gateway.slash.help import format_help
 
 def test_help_groups_by_category_zh():
     text = format_help(list_specs(origin="ui"), "zh")
-    assert "**可用指令**" in text
-    assert "**核心命令**" in text
-    assert "**会话管理**" in text
-    assert "**系统**" in text
+    assert "**Available commands**" in text
+    assert "**Core**" in text
+    assert "**Sessions**" in text
+    assert "**System**" in text
     assert "`/status`" in text
     assert "`/help`" in text
     # Core section should appear before session section
-    assert text.index("核心命令") < text.index("会话管理")
+    assert text.index("Core") < text.index("Sessions")
 
 
 def test_help_groups_by_category_en():

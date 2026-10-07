@@ -1,30 +1,16 @@
-import qqIcon from "../../../../assets/channels/qq.svg";
 import discordIcon from "../../../../assets/channels/discord.svg";
-import dingtalkIcon from "../../../../assets/channels/dingtalk.svg";
-import feishuIcon from "../../../../assets/channels/feishu.svg";
 import dashboardIcon from "../../../../assets/channels/dashboard.svg";
-import yuanbaoIcon from "../../../../assets/channels/yuanbao.svg";
-import wecomIcon from "../../../../assets/channels/wecom.svg";
-import weixinIcon from "../../../../assets/channels/weixin.svg";
 import octopIcon from "../../../../assets/channels/octop.svg";
 import consoleIcon from "../../../../assets/channels/console.svg";
 import telegramIcon from "../../../../assets/channels/telegram.svg";
 import mqttIcon from "../../../../assets/channels/mqtt.png";
-import xiaoyiIcon from "../../../../assets/channels/xiaoyi.png";
 
 /**
  * Catalogue of channel kinds the octop backend's ``ChannelFactory`` knows
  * how to build. Source of truth: ``octop/channels/factory.py``.
  */
 export type ChannelKey =
-  | "feishu"
-  | "dingtalk"
-  | "wecom"
-  | "qq"
-  | "weixin"
   | "discord"
-  | "yuanbao"
-  | "xiaoyi"
   | "mqtt"
   | "telegram"
   | "dashboard"
@@ -41,8 +27,8 @@ export const CHANNEL_KEYS: ChannelKey[] = [
   "mqtt",
 ];
 
-/** Overseas / less-common kinds hidden behind "更多通道" until expanded. */
-const COLLAPSED_CHANNEL_KEYS = new Set<ChannelKey>([]);
+/** Less-common kinds hidden behind "More channels" until expanded. */
+const COLLAPSED_CHANNEL_KEYS = new Set<ChannelKey>(["telegram"]);
 
 export function isCollapsedChannelKey(key: ChannelKey): boolean {
   return COLLAPSED_CHANNEL_KEYS.has(key);
@@ -70,14 +56,7 @@ export function partitionChannelKeys(
 
 /** i18n key for each channel's display name (``channels.label_{key}``). */
 export const CHANNEL_LABEL_KEYS: Record<ChannelKey, string> = {
-  feishu: "channels.label_feishu",
-  dingtalk: "channels.label_dingtalk",
-  wecom: "channels.label_wecom",
-  qq: "channels.label_qq",
-  weixin: "channels.label_weixin",
   discord: "channels.label_discord",
-  yuanbao: "channels.label_yuanbao",
-  xiaoyi: "channels.label_xiaoyi",
   mqtt: "channels.label_mqtt",
   telegram: "channels.label_telegram",
   dashboard: "channels.label_dashboard",
@@ -85,32 +64,18 @@ export const CHANNEL_LABEL_KEYS: Record<ChannelKey, string> = {
   octopbot: "channels.label_octopbot",
 };
 
-/** Hardcoded Chinese labels used as fallback when t() returns the key. */
+/** Hardcoded English labels used as fallback when t() returns the key. */
 export const CHANNEL_LABELS: Record<ChannelKey, string> = {
-  weixin: "微信",
-  qq: "QQ",
-  wecom: "企业微信",
-  feishu: "飞书",
-  yuanbao: "元宝",
-  dingtalk: "钉钉",
   discord: "Discord",
-  xiaoyi: "小艺",
   mqtt: "MQTT",
   telegram: "Telegram",
-  dashboard: "控制台",
+  dashboard: "Console",
   agentchat: "AgentChat",
   octopbot: "OctopBot",
 };
 
 export const CHANNEL_ICONS: Record<ChannelKey, string> = {
-  feishu: feishuIcon,
-  dingtalk: dingtalkIcon,
-  wecom: wecomIcon,
-  qq: qqIcon,
-  weixin: weixinIcon,
   discord: discordIcon,
-  yuanbao: yuanbaoIcon,
-  xiaoyi: xiaoyiIcon,
   mqtt: mqttIcon,
   telegram: telegramIcon,
   dashboard: dashboardIcon,
@@ -120,14 +85,7 @@ export const CHANNEL_ICONS: Record<ChannelKey, string> = {
 
 /** Brand accent per channel — used for cron task card stripes, badges, etc. */
 export const CHANNEL_COLORS: Record<ChannelKey, string> = {
-  weixin: "#07C160",
-  qq: "#12B7F5",
-  wecom: "#0188FB",
-  feishu: "#3370FF",
-  yuanbao: "#E8A317",
-  dingtalk: "#0089FF",
   telegram: "#229ED9",
-  xiaoyi: "#CF0A2C",
   mqtt: "#7C3AED",
   discord: "#5865F2",
   dashboard: "#6366F1",
@@ -144,21 +102,15 @@ export function getChannelColor(channel: string): string {
 
 /** External onboarding/credential URLs. */
 export const CHANNEL_URLS: Partial<Record<ChannelKey, string>> = {
-  feishu: "https://open.feishu.cn/app",
-  dingtalk: "https://open-dev.dingtalk.com/",
-  qq: "https://q.qq.com/qqbot/openclaw/",
   discord: "https://discord.com/developers/applications",
-  yuanbao: "https://yuanbao.tencent.com/bot",
-  wecom: "https://work.weixin.qq.com/wework_admin/frame#/aiHelper/create",
   telegram: "https://t.me/BotFather",
-  octopbot: "https://octop.cloud.tencent.com",
 };
 
 /** A single field of a channel's config form. */
 export interface ChannelField {
   /** ``config`` JSON key. */
   name: string;
-  /** Visible label (Chinese; falls back when no i18n key). */
+  /** Visible label (English; falls back when no i18n key). */
   label: string;
   /** Antd input type. */
   type?: "text" | "password" | "textarea" | "json" | "switch";
@@ -170,145 +122,12 @@ export interface ChannelField {
   helpKey?: string;
 }
 
-export const QQ_GROUP_VISIBILITIES = [
-  "auto",
-  "mention_only",
-  "mention_recent",
-  "all",
-] as const;
-
-export type QqGroupVisibility = (typeof QQ_GROUP_VISIBILITIES)[number];
-export type QqGroupActivation = "mention" | "always";
-
-export interface QqGroupContextConfig {
-  enabled: boolean;
-  visibility: QqGroupVisibility;
-  activation: QqGroupActivation;
-  history: "recent" | "none";
-  history_limit: number;
-  history_ttl_seconds: number;
-  clear_after_reply: boolean;
-  groups?: Record<
-    string,
-    Record<string, string | number | boolean | null | undefined>
-  >;
-}
-
-export const DEFAULT_QQ_GROUP_CONTEXT_CONFIG: QqGroupContextConfig = {
-  enabled: true,
-  visibility: "auto",
-  activation: "mention",
-  history: "recent",
-  history_limit: 10,
-  history_ttl_seconds: 300,
-  clear_after_reply: true,
-};
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object" && !Array.isArray(value);
-}
-
-/** Normalize saved config and old JSON form drafts into the typed QQ policy. */
-export function normalizeQqGroupContextConfig(
-  value: unknown,
-): QqGroupContextConfig {
-  let parsed = value;
-  if (typeof parsed === "string") {
-    try {
-      parsed = JSON.parse(parsed) as unknown;
-    } catch {
-      return { ...DEFAULT_QQ_GROUP_CONTEXT_CONFIG };
-    }
-  }
-  if (!isRecord(parsed)) {
-    return { ...DEFAULT_QQ_GROUP_CONTEXT_CONFIG };
-  }
-
-  const visibility = QQ_GROUP_VISIBILITIES.includes(
-    parsed.visibility as QqGroupVisibility,
-  )
-    ? (parsed.visibility as QqGroupVisibility)
-    : DEFAULT_QQ_GROUP_CONTEXT_CONFIG.visibility;
-  const activation =
-    parsed.activation === "always" ? "always" : ("mention" as const);
-  const rawLimit = Number(parsed.history_limit);
-  const rawTtl = Number(parsed.history_ttl_seconds);
-
-  return {
-    ...parsed,
-    enabled:
-      typeof parsed.enabled === "boolean"
-        ? parsed.enabled
-        : DEFAULT_QQ_GROUP_CONTEXT_CONFIG.enabled,
-    visibility,
-    activation: visibility === "all" ? activation : "mention",
-    history:
-      visibility === "mention_only"
-        ? "none"
-        : parsed.history === "none"
-        ? "none"
-        : "recent",
-    history_limit: Number.isFinite(rawLimit)
-      ? Math.max(0, Math.trunc(rawLimit))
-      : DEFAULT_QQ_GROUP_CONTEXT_CONFIG.history_limit,
-    history_ttl_seconds: Number.isFinite(rawTtl)
-      ? Math.max(0, rawTtl)
-      : DEFAULT_QQ_GROUP_CONTEXT_CONFIG.history_ttl_seconds,
-    clear_after_reply:
-      typeof parsed.clear_after_reply === "boolean"
-        ? parsed.clear_after_reply
-        : DEFAULT_QQ_GROUP_CONTEXT_CONFIG.clear_after_reply,
-  };
-}
-
 /**
  * Per-kind config field schema. Drives ``ChannelDrawer``'s manual config
  * form. Kinds not listed here fall back to a JSON textarea so any
  * octop-gateway channel still works without UI changes.
  */
 export const CHANNEL_FIELDS: Partial<Record<ChannelKey, ChannelField[]>> = {
-  feishu: [
-    { name: "app_id", label: "App ID", placeholder: "cli_xxx", required: true },
-    {
-      name: "app_secret",
-      label: "App Secret",
-      type: "password",
-      required: true,
-    },
-    { name: "encrypt_key", label: "Encrypt Key", type: "password" },
-    {
-      name: "verification_token",
-      label: "Verification Token",
-      type: "password",
-    },
-  ],
-  dingtalk: [
-    {
-      name: "client_id",
-      label: "Client ID",
-      placeholder: "dingxxxxxx",
-      required: true,
-    },
-    {
-      name: "client_secret",
-      label: "Client Secret",
-      type: "password",
-      required: true,
-    },
-  ],
-  wecom: [
-    { name: "bot_id", label: "Bot ID", required: true },
-    { name: "secret", label: "Secret", type: "password", required: true },
-    {
-      name: "websocket_url",
-      label: "WebSocket URL",
-      placeholder: "wss://openws.work.weixin.qq.com",
-    },
-  ],
-  qq: [
-    { name: "app_id", label: "App ID", required: true },
-    { name: "secret", label: "App Secret", type: "password", required: true },
-  ],
   discord: [
     { name: "bot_token", label: "Bot Token", type: "password", required: true },
     {
@@ -339,40 +158,9 @@ export const CHANNEL_FIELDS: Partial<Record<ChannelKey, ChannelField[]>> = {
       placeholder: "user:password",
     },
   ],
-  yuanbao: [
-    { name: "app_key", label: "App Key", required: true },
-    {
-      name: "app_secret",
-      label: "App Secret",
-      type: "password",
-      required: true,
-    },
-    {
-      name: "api_domain",
-      label: "API Domain",
-      placeholder: "bot.yuanbao.tencent.com",
-    },
-    {
-      name: "ws_url",
-      label: "WebSocket URL",
-      placeholder: "wss://bot-wss.yuanbao.tencent.com/wss/connection",
-    },
-  ],
-  weixin: [
-    { name: "bot_uin", label: "机器人 UIN", required: true },
-    { name: "token", label: "Token", type: "password", required: true },
-    { name: "base_url", label: "Base URL" },
-  ],
   octopbot: [
     { name: "api_key", label: "API Key", type: "password", required: true },
     { name: "api_base_url", label: "API Base URL", required: true },
-  ],
-  xiaoyi: [
-    { name: "ak", label: "Access Key (AK)", required: true },
-    { name: "sk", label: "Secret Key (SK)", type: "password", required: true },
-    { name: "agent_id", label: "Agent ID", required: true },
-    { name: "ws_url", label: "WebSocket URL" },
-    { name: "ws_url_backup", label: "备用 WebSocket URL" },
   ],
   mqtt: [
     { name: "host", label: "Broker Host", required: true },
@@ -417,19 +205,6 @@ export const DEFAULT_CHANNEL_DISPLAY_CONFIG = {
   show_tool_hints: false,
 } as const;
 
-/** Persist QQ C2C stream on, and drop QQ-only leftovers. Other channels unchanged. */
-export function applyQqChannelSaveConfig(
-  config: Record<string, unknown>,
-  kind: string,
-): void {
-  if (kind !== "qq") {
-    return;
-  }
-  config.c2c_streaming = true;
-  delete config.streaming;
-  delete config.show_progress;
-}
-
 /** Parse structured values from schema-driven channel form fields. */
 export function normalizeChannelFieldValue(
   fieldName: string,
@@ -447,8 +222,7 @@ export function normalizeChannelFieldValue(
     }
     return [...new Set(entries.map(String))];
   }
-  if (fieldName !== "group_context") return value;
-  return normalizeQqGroupContextConfig(value);
+  return value;
 }
 
 /** Required field names per kind — used for "missing creds" UX. */

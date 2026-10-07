@@ -29,10 +29,10 @@ interface UseSkillRecordingWorkflowParams {
 }
 
 // Keywords that trigger "stop recording and generate skill"
-const END_KEYWORDS = ["结束", "end", "stop recording", "结束录制"];
+const END_KEYWORDS = ["End", "end", "stop recording", "End recording"];
 
 // Keywords that trigger "confirm and apply skill"
-const CONFIRM_KEYWORDS = ["确认", "confirm", "ok", "确认应用", "apply"];
+const CONFIRM_KEYWORDS = ["Confirm", "confirm", "ok", "Confirm application", "apply"];
 
 export function useSkillRecordingWorkflow({
   agentId,
@@ -108,20 +108,20 @@ export function useSkillRecordingWorkflow({
         const previewText = previewLines.join("\n");
         const truncationNotice =
           data.skillContent.split("\n").length > 20
-            ? `\n\n... (共 ${
+            ? `\n\n... (Total ${
                 data.skillContent.split("\n").length
-              } 行，完整内容将在确认后保存)`
+              } OK, the complete content will be saved after confirmation)`
             : "";
 
         chatStore.appendPushMessage(
-          `✅ 录制完成！已生成 ${data.steps ?? 0} 个回放步骤。\n\n` +
-            `📝 **技能脚本预览：**\n\n${previewText}${truncationNotice}\n\n` +
-            `回复"确认"即可应用此技能，之后可以一键回放相同操作流程。`,
+          `✅ Recording is complete! Generated ${data.steps ?? 0} Playback steps.\n\n` +
+            `📝 **Skill script preview:**\n\n${previewText}${truncationNotice}\n\n` +
+            `Reply"Confirm"You can apply this skill, and then you can replay the same operation process with one click.`,
         );
       } else {
         chatStore.appendPushMessage(
-          `✅ 录制完成！已生成 ${data.steps ?? 0} 个回放步骤。\n\n` +
-            `⚠️ 技能脚本生成失败，请稍后重试或手动生成。`,
+          `✅ Recording is complete! Generated ${data.steps ?? 0} Playback steps.\n\n` +
+            `⚠️ Skill script generation failed, please try again later or generate manually.`,
         );
       }
 
@@ -178,8 +178,8 @@ export function useSkillRecordingWorkflow({
 
       // Push confirmation message to chat
       chatStore.appendPushMessage(
-        `🎉 技能 **${result.name || pendingSkillName}** 已成功应用！\n\n` +
-          `之后可以通过聊天输入相关指令，一键回放相同的浏览器操作流程。`,
+        `🎉 Skills **${result.name || pendingSkillName}** Successfully applied!\n\n` +
+          `You can then enter relevant instructions through chat and replay the same browser operation process with one click.`,
       );
 
       antMessage.success(

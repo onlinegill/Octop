@@ -21,33 +21,16 @@ def test_every_bundled_expert_declares_task_examples() -> None:
         data = json.loads(path.read_text(encoding="utf-8"))
         parsed = parse_task_examples(data)
         assert parsed is not None, f"{path.parent.name} missing task_examples"
-        assert parsed["zh"], f"{path.parent.name} has empty zh task_examples"
         assert parsed["en"], f"{path.parent.name} has empty en task_examples"
-        assert len(parsed["zh"]) == len(parsed["en"]), path.parent.name
-        assert len(parsed["zh"]) in (3, 6), path.parent.name
-        assert all(item.strip() for item in parsed["zh"] + parsed["en"])
-
-
-def test_domain_experts_offer_six_task_examples() -> None:
-    """Recurring-work templates keep a full two-column empty state."""
-    richer = (
-        "news-trend",
-        "stock-assistant",
-        "ops-engineer",
-        "parenting-companion",
-    )
-    for expert_id in richer:
-        data = json.loads((_LIBRARY / expert_id / "manifest.json").read_text(encoding="utf-8"))
-        parsed = parse_task_examples(data)
-        assert parsed is not None
-        assert len(parsed["zh"]) == 6, expert_id
+        assert len(parsed["en"]) in (3, 6), path.parent.name
+        assert all(item.strip() for item in parsed["en"])
 
 
 def test_general_templates_do_not_copy_dashboard_default_cards() -> None:
     """i18n defaults stay the no-field fallback; bundled templates keep their own copy."""
-    dashboard_zh = "根据我的星座"
+    dashboard_default = "based on my zodiac sign"
     for expert_id in ("general-assistant", "default"):
         data = json.loads((_LIBRARY / expert_id / "manifest.json").read_text(encoding="utf-8"))
         parsed = parse_task_examples(data)
         assert parsed is not None
-        assert all(dashboard_zh not in item for item in parsed["zh"])
+        assert all(dashboard_default not in item for item in parsed["en"])

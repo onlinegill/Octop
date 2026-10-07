@@ -6,10 +6,10 @@ import re
 from dataclasses import dataclass
 
 _MODEL_SET_RE = re.compile(
-    r"(?:→|->)\s*([^\s\n\.]+)|模型覆盖[：:]\s*([^\s\n]+)|Model override:\s*([^\s\n]+)",
+    r"(?:→|->)\s*([^\s\n\.]+)|Model override:\s*([^\s\n]+)",
     re.IGNORECASE,
 )
-_MODEL_CLEARED_RE = re.compile(r"已清除模型覆盖|Model override cleared", re.IGNORECASE)
+_MODEL_CLEARED_RE = re.compile(r"Model override cleared", re.IGNORECASE)
 
 
 @dataclass
@@ -55,5 +55,5 @@ class ReplSession:
                 continue
             picked = next((g for g in m.groups() if g), None)
             if picked:
-                self.model = picked.strip().rstrip(".。，,")
+                self.model = picked.strip().rstrip(".,")
                 return

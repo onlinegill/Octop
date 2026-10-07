@@ -21,7 +21,7 @@ describe("publishedExpertsApi", () => {
     publishedExpertsApi.refresh("expert/1", {
       name: "Updated",
       description: "New description",
-      welcome_message: { zh: "欢迎", en: "Welcome" },
+      welcome_message: { zh: "Welcome", en: "Welcome" },
     });
     publishedExpertsApi.unpublish("expert/1");
 

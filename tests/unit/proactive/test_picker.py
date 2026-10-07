@@ -172,13 +172,13 @@ def test_pick_dedup_by_people():
     now = datetime.now(UTC)
     # ep1 and ep2 both involve the same person; ep1 scores higher (intensity 5 vs 3).
     ep1 = _make_episode(
-        ep_id="ep1", emotion="sad", intensity=5, people=["老婆"], days_ago=0.5, now=now
+        ep_id="ep1", emotion="sad", intensity=5, people=["spouse"], days_ago=0.5, now=now
     )
     ep2 = _make_episode(
-        ep_id="ep2", emotion="sad", intensity=3, people=["老婆"], days_ago=0.5, now=now
+        ep_id="ep2", emotion="sad", intensity=3, people=["spouse"], days_ago=0.5, now=now
     )
     ep3 = _make_episode(
-        ep_id="ep3", emotion="sad", intensity=4, people=["老板"], days_ago=0.5, now=now
+        ep_id="ep3", emotion="sad", intensity=4, people=["manager"], days_ago=0.5, now=now
     )
 
     result = EpisodePicker(top_k=3).pick([ep1, ep2, ep3], pushed_ids=set(), now=now)

@@ -19,7 +19,7 @@ function MovieSearch(props) {
     },
     "data-octop-plugin-ui": "movie-search",
     children: [
-      _jsxs("div", { style: { fontWeight: 800, marginBottom: 10 }, children: ["🎬 ", d.query || "搜索"] }),
+      _jsxs("div", { style: { fontWeight: 800, marginBottom: 10 }, children: ["🎬 ", d.query || "Search"] }),
       items.map((row, i) =>
         _jsxs(
           "div",
@@ -37,7 +37,7 @@ function MovieSearch(props) {
                   style: { fontWeight: 700, color: "inherit", textDecoration: "none" },
                   children: row.title || "",
                 }),
-                _jsx("div", { style: { fontSize: 12, opacity: 0.7 }, children: row.score != null ? `评分 ${row.score}` : "" }),
+                _jsx("div", { style: { fontSize: 12, opacity: 0.7 }, children: row.score != null ? `Score ${row.score}` : "" }),
                 _jsx("div", { style: { fontSize: 12, opacity: 0.65, marginTop: 4 }, children: row.summary || "" }),
               ] }),
             ],

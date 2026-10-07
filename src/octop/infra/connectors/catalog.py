@@ -112,6 +112,7 @@ _CATALOG: tuple[ConnectorCatalogEntry, ...] = (
         auth_hint="Authorize with Notion or manually enter your integration token",
         oauth_issuer="https://mcp.notion.com",
         mcp_url="https://mcp.notion.com/mcp",
+        mcp_user_agent="octop-connector/0.1",
         oauth_scopes="read:content write:content",
     ),
     ConnectorCatalogEntry(

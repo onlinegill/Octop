@@ -113,7 +113,7 @@ async def exchange_pasted_auth_code(
     del settings_repo, extra
     code = code.strip()
     if not code:
-        raise ValueError("授权码不能为空")
+        raise ValueError("authorization code must not be empty")
 
     if kind in _AUTH_CODE_PASSTHROUGH_KINDS:
         return {"cookie": code}

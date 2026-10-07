@@ -1,64 +1,64 @@
-# 专家团队模式
+# Expert Team Mode
 
-主持专家是团队主持人：独立工作区、记忆、通道，负责调度。成员仍是普通专家，可单独聊天、可加入多个团队。过程是群聊上墙，收尾由主持人总结并判断是否收工。
+The host expert is the team host: it has its own workspace, memory, and channels, and owns scheduling. Members are still ordinary experts — they can be chatted with individually and can join multiple teams. The process is a group chat posted to the timeline, and the host wraps up by summarizing and judging whether the work is done.
 
-## 已确认决策
+## Confirmed decisions
 
-### 身份与编制
+### Identity and roster
 
-| # | 决策 |
+| # | Decision |
 |---|------|
-| 1 | 成员仍是独立专家，可同时加入多个团队 |
-| 2 | 创建团队至少 2 个成员（不含主持人） |
-| 3 | 成员只能是普通专家，不能套团队 |
-| 4 | 可加入：自己的专家 + 分享给自己的专家 |
-| 5 | 分享来的专家可以真正派工；产出进对方工作区/聊天，不能改对方配置 |
-| 6 | 第一版团队不分享，只有创建者能聊、改成员、绑通道 |
-| 7 | 有在途派工时，不能移出该成员、不能删除该专家 |
+| 1 | Members remain independent experts and can join multiple teams at once |
+| 2 | Creating a team requires at least 2 members (not counting the host) |
+| 3 | Members can only be ordinary experts; teams cannot be nested |
+| 4 | You can add: your own experts + experts shared with you |
+| 5 | Shared experts can genuinely be assigned work; output goes into the other party's workspace/chat, but you cannot change the other party's config |
+| 6 | The first version does not share teams; only the creator can chat, change members, and bind channels |
+| 7 | While work is in flight, you cannot remove that member or delete that expert |
 
-### 说话与调度
+### Speaking and scheduling
 
-| # | 决策 |
+| # | Decision |
 |---|------|
-| 8 | 真群聊：成员气泡直接上时间线 |
-| 9 | 主持人只调度：寒暄/说明派工可短答；专业工作一律异步派给成员 |
-| 10 | `@` 只提示优先，不强制只派给被点名的人 |
-| 11 | 成员结束后仍回叫主持人；主持人总结并判断是否收工 |
-| 12 | 用户新消息一律先到主持人（即使成员还在说） |
-| 13 | 成员可同步 `ask_agent` 问同事，不能再异步往群里拉人 |
-| 14 | 主持人一轮可并行 `dispatch` 多人 |
-| 15 | 对方没运行则派工失败，主持人权走失败回叫，不自动启动 |
-| 16 | 停止只停主持人本轮；成员继续跑完再回叫 |
+| 8 | True group chat: member bubbles post directly to the timeline |
+| 9 | The host only schedules: small talk/assignment notes can be short answers; professional work is always dispatched asynchronously to members |
+| 10 | `@` only hints at priority; it does not force the work to go only to the person named |
+| 11 | Members call back to the host after finishing; the host summarizes and judges whether the work is done |
+| 12 | New user messages always go to the host first (even if members are still speaking) |
+| 13 | Members can synchronously `ask_agent` their colleagues, but can no longer asynchronously pull people into the group |
+| 14 | The host can `dispatch` multiple people in parallel in one round |
+| 15 | If the other party is not running, dispatch fails, and the host falls back to the failure callback; it does not auto-start them |
+| 16 | Stop only stops the host's current round; members keep running to completion and then call back |
 
-### 会话、存储、通道、UI
+### Sessions, storage, channels, UI
 
-| # | 决策 |
+| # | Decision |
 |---|------|
-| 17 | 房间 ID = 主持人 `thread_id`；成员 checkpoint = `主thread~成员id`；网关转播 + `speaker_agent_id` |
-| 18 | 各写各的工作区；团队准则/团体记忆只在主持人侧，派工时写进任务消息 |
-| 19 | 通道只绑主持人 |
-| 20 | 两边都能看：团队房间转播；成员侧栏多一条「来自团队 XXX」会话 |
-| 21 | 团队出现在现有聊天侧栏，用徽章区分；「我的团队」tab 只做创建和编辑 |
-| 22 | 右侧成员条只放成员，不含主持人 |
-| 23 | 主持人权能只有成员相关工具：`agent_list` + 异步 `ask_agent` + 记忆/时间；不挂文件系统/浏览器/搜索/MCP/技能/插件；创建编辑无 skill / subagent / 插件 / 人格 |
+| 17 | Room ID = host `thread_id`; member checkpoint = `host_thread~member_id`; gateway relay + `speaker_agent_id` |
+| 18 | Each writes its own workspace; team guidelines/team memory live only on the host side, and are written into the task message when dispatching |
+| 19 | Channels bind only to the host |
+| 20 | Visible on both sides: the team room is relayed; the member sidebar gets an extra "From team XXX" conversation |
+| 21 | Teams appear in the existing chat sidebar, distinguished by a badge; the "My Teams" tab only creates and edits |
+| 22 | The right-side member bar lists only members, not the host |
+| 23 | The host's capabilities are limited to member-related tools: `agent_list` + async `ask_agent` + memory/time; no filesystem/browser/search/MCP/skills/plugins; create/edit has no skill / subagent / plugin / persona |
 
-## 身份模型
+## Identity model
 
-团队不是平行实体，而是 `agents.kind = team` 的特殊专家：
+A team is not a parallel entity but a special expert with `agents.kind = team`:
 
-| | 专家 (`kind=expert`) | 团队主持人 (`kind=team`) |
+| | Expert (`kind=expert`) | Team host (`kind=team`) |
 |--|--|--|
-| 工作区 / checkpoint / 记忆 | 有 | 有（团队记忆根） |
-| 系统提示 | 专家模板 | 隐藏调度模板 + 运行时「先消化再改写」约束（用户不可见专家库） |
-| 工具 | 干活用的全套 | 轻量 + `agent_list` + 异步 `ask_agent` |
-| 可见 peer | 默认同用户其它专家 | 仅 `team_peers` = 团队成员 |
-| 通道 | 可绑（1:1） | 可绑（团队入口） |
+| Workspace / checkpoint / memory | Yes | Yes (team memory root) |
+| System prompt | Expert template | Hidden scheduling template + runtime "digest then rewrite" constraint (invisible in the user's expert library) |
+| Tools | The full working set | Lightweight + `agent_list` + async `ask_agent` |
+| Visible peers | Other experts of the same user by default | Only `team_peers` = team members |
+| Channels | Bindable (1:1) | Bindable (team entry point) |
 
-`team_id` = 主持人 `agent_id`。成员编制只写在主持人工作区 `.octop/manifest.json`（`kind` + `members`）。`agents.kind = team` 只作列表索引。
+`team_id` = host `agent_id`. The member roster is written only in the host workspace's `.octop/manifest.json` (`kind` + `members`). `agents.kind = team` is only a list index.
 
-## 数据
+## Data
 
-团队主持人仍是普通 `agents` 行（`kind=team`，迁移 `016_agent_teams`）。编制只在工作区清单里：
+A team host is still an ordinary `agents` row (`kind=team`, migration `016_agent_teams`). The roster lives only in the workspace manifest:
 
 ```json
 {
@@ -67,96 +67,96 @@
 }
 ```
 
-`GET /api/teams` / `GET /api/agents` 的 `member_ids` 都从这份清单读。没有成员表。
+The `member_ids` of `GET /api/teams` / `GET /api/agents` are both read from this manifest. There is no members table.
 
-不拆 `threads.thread_id` 的 UNIQUE。LangGraph checkpoint 仍按专家隔离。
+The UNIQUE constraint on `threads.thread_id` is not split. LangGraph checkpoints are still isolated per expert.
 
-历史归属：fan-in 到主持人对话的消息在 `additional_kwargs.speaker_agent_id`（及 history JSON 的 `agent_id`）上标记说话人。不把多个专家写进同一条 checkpoint。
+History attribution: messages fanned in to the host conversation mark the speaker on `additional_kwargs.speaker_agent_id` (and the history JSON's `agent_id`). Multiple experts are not written into the same checkpoint.
 
-在途派工：进程内 `TeamJobTracker`，按 inbox `job_id` 幂等记账（`prepare_peer_session` 开始；`record_peer_turn` / `on_reply` 任一路径结束，失败也会释放）。重启后锁消失，可再改编制。
+In-flight dispatch: in-process `TeamJobTracker`, idempotently accounted per inbox `job_id` (`prepare_peer_session` starts it; either `record_peer_turn` / `on_reply` ends it, and failures also release it). Locks disappear after a restart, so the roster can be changed again.
 
-专家互调（非团队）只要带了 `source_thread_id`，会话也走 `peer:{房间}`，不再复用被叫方 1:1 DM。升级后旧 DM 里的 peer 历史不会自动跟过来。
+For expert peer calls (non-team), as long as a `source_thread_id` is carried, the session also goes through `peer:{room}` instead of reusing the callee's 1:1 DM. After upgrading, peer history in old DMs is not carried over automatically.
 
-## 运行时
+## Runtime
 
 ### octop-harness
 
-octop-harness 增加 `peer_invoke_mode: "sync" | "async" | "both"`（默认 `both`，保持旧行为）：
+octop-harness adds `peer_invoke_mode: "sync" | "async" | "both"` (default `both`, preserving old behavior):
 
-- `sync`：只注入同步 `ask_agent`
-- `async`：只注入异步派工（发完即返回）
-- `both`：一个工具两个 mode
+- `sync`: inject only synchronous `ask_agent`
+- `async`: inject only async dispatch (fire-and-forget)
+- `both`: one tool with two modes
 
-Octop 普通专家设 `peer_invoke_mode=sync`（单聊：结果回工具）；团队主持人设 `async` 且 `team_peers` = 成员 id（群聊：上墙）。主持人自己的对话请求也会带上 `peer_invoke_mode=async`。在仍默认 `ask_agent mode=sync` 的运行时上，Octop 会把主持人对成员的 `call_peer` 改写成 inbox `submit_peer`，保证发完即返回。异步管道按 inbox / 房间走群聊双写，不按 `kind=team` 决定要不要上墙。
+Octop sets ordinary experts to `peer_invoke_mode=sync` (1:1 chat: the result returns to the tool); team hosts are set to `async` with `team_peers` = member ids (group chat: posts to the timeline). The host's own conversation requests also carry `peer_invoke_mode=async`. On runtimes that still default to `ask_agent mode=sync`, Octop rewrites the host's `call_peer` to members into an inbox `submit_peer` to guarantee fire-and-forget. The async pipeline does group-chat dual-write by inbox / room, and does not decide whether to post to the timeline based on `kind=team`.
 
-inbox 按 callee 并发：同一成员串行，不同成员并行；主持人回叫按源 `thread_id` 串行。
+The inbox is concurrent per callee: the same member is serial, different members are parallel; host callbacks are serial by source `thread_id`.
 
-回叫闭环保持现状：inbox 完成后平台再叫醒主持人（`compose_followup`），不是成员自己调主持人。团队主持人的回叫提示要求判收工、不复述成员已上墙的正文。收口走房间 stream（与成员直播同一条 WS），不再整段 `team_snapshot`。
+The callback loop stays as it is: after the inbox completes, the platform wakes the host (`compose_followup`), rather than the member calling the host itself. The team host's callback prompt requires judging completion, not restating the member's body already posted to the timeline. The wrap-up goes through the room stream (the same WS as member live-posting), no longer a full `team_snapshot`.
 
-成员被团队派工时，请求级覆盖 `peer_invoke_mode=sync` 且 `team_peers` 收窄为同事，禁止再异步往群里拉人。成员收到的 Human 是主持人改写后的任务说明书，不是用户原话；群聊记录（用户 / 主持人 / 已上墙成员）只作为 System 背景。成员 checkpoint 仍是 `主thread~成员id`。主持人系统提示会要求先消化再改写，禁止原样转发。
+When a member is dispatched by a team, the request-level override sets `peer_invoke_mode=sync` and narrows `team_peers` to colleagues, forbidding further async pulls into the group. The Human the member receives is the task spec rewritten by the host, not the user's original words; the group chat record (user / host / already-posted members) is only System background. The member checkpoint remains `host_thread~member_id`. The host system prompt asks it to digest first and then rewrite, forbidding forwarding verbatim.
 
-### Octop 主持人装配
+### Octop host assembly
 
-`_build_harness_config` 在 `kind=team` 时：
+`_build_harness_config` when `kind=team`:
 
-- 不挂 cron / knowledge / mobile / plugin / MCP / 技能包
-- 启动时 `init_workspace=False`，不拷贝 harness `_builtin_skills` / 内置 subagent
-- `tools_disabled` 只保留 `agent_list` / `ask_agent` / 记忆 / `current_time`（含原本不可关的文件系统与 `task`）
-- `team_peers` = 成员
-- 种子写入工作区 `SOUL.md`（主持人人格）+ `AGENTS.md`（协调/派工准则）+ `.octop/manifest.json`（`kind=team` 与 `members`）
+- Does not mount cron / knowledge / mobile / plugin / MCP / skill packs
+- On startup uses `init_workspace=False`, so it does not copy harness `_builtin_skills` / built-in subagents
+- `tools_disabled` keeps only `agent_list` / `ask_agent` / memory / `current_time` (including the filesystem and `task`, which are otherwise non-disableable)
+- `team_peers` = members
+- Seeds into the workspace `SOUL.md` (host persona) + `AGENTS.md` (coordination/dispatch guidelines) + `.octop/manifest.json` (`kind=team` and `members`)
 
-成员被派工时仍用自己的工作区。对方 `last_state` 非 running 则 harness 调用失败，主持人走失败回叫。
+A dispatched member still uses its own workspace. If the other party's `last_state` is not running, the harness call fails and the host falls back to the failure callback.
 
-停止：Dashboard 取消只取消主持人当前 stream；inbox 里已排队/在跑的成员任务不取消。
+Stop: Dashboard cancellation cancels only the host's current stream; member tasks queued/running in the inbox are not cancelled.
 
-## 房间与转播
+## Room and relay
 
 ```text
-conversation_id = 主持人 thread_id
-  ├── 主持人 LangGraph thread = conversation_id
-  ├── 成员 A checkpoint = conversation_id~A
-  └── 成员 B checkpoint = conversation_id~B
+conversation_id = host thread_id
+  ├── host LangGraph thread = conversation_id
+  ├── member A checkpoint = conversation_id~A
+  └── member B checkpoint = conversation_id~B
 ```
 
-- 用户始终跟主持人说话；WS 订房间 `conversation_id`
-- 房间流式帧带说话人：`agent` 与 `agent_id`（主持人自己的 token 也打主持人 id；主持人 `done` 不带，方便前端结束本轮）
-- 成员自己的会话列表多一条 thread（派生 id），标题「来自团队 {name}」；session_key 为 `team:{房间thread}`，不占用成员 1:1 的 `dm` 会话
-- `@` 列表在团队聊天里收窄为成员；只作提示，不预调用
+- The user always talks to the host; the WS subscribes to the room `conversation_id`
+- Room streaming frames carry the speaker: `agent` and `agent_id` (the host's own tokens are also tagged with the host id; the host's `done` is not, making it easy for the frontend to end the round)
+- A member's own conversation list gets an extra thread (a derived id), titled "From team {name}"; its session_key is `team:{room_thread}`, not occupying the member's 1:1 `dm` conversation
+- The `@` list narrows to members in team chat; it is only a hint and does not pre-invoke
 
-房间 WS 逐 token 转播成员回复；fan-in 只在未 live 推送时补一条 snapshot。流式帧用 `agent` / `agent_id` 标识说话人。IM 通道看不到房间 WS：派工成功后会立刻推一条「已请 {成员} 处理，请稍候…」；成员收口后再推带说话人姓名的完整消息；主持人收口补推为「【主持人总结】…」。团队主持人绑定的通道在注册时强制 `response_mode=stream`，避免 invoke 折叠丢掉派工叙述。
+The room WS relays member replies token by token; fan-in only adds a snapshot when there was no live push. Streaming frames identify the speaker with `agent` / `agent_id`. IM channels cannot see the room WS: after a successful dispatch it immediately pushes "Asked {member} to handle it, please wait…"; after the member wraps up it pushes the full message with the speaker's name; the host's wrap-up is pushed as "[Host summary]…". A channel bound to a team host is forced to `response_mode=stream` at registration, to avoid an invoke folding away the dispatch narrative.
 
 ## HTTP
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/teams` | 当前用户的团队（含成员摘要） |
-| POST | `/api/teams` | 创建主持人 + 至少 2 名成员 |
-| GET | `/api/teams/{team_id}` | 详情 |
-| PATCH | `/api/teams/{team_id}` | 改名称/模型/欢迎语/成员（在途则拒改该成员） |
-| DELETE | `/api/teams/{team_id}` | 删除团队主持人 |
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/teams` | The current user's teams (with member summaries) |
+| POST | `/api/teams` | Create a host + at least 2 members |
+| GET | `/api/teams/{team_id}` | Details |
+| PATCH | `/api/teams/{team_id}` | Change name/model/greeting/members (rejected for a member that is in flight) |
+| DELETE | `/api/teams/{team_id}` | Delete the team host |
 
-`GET /api/agents` 增加 `kind`；团队行带 `member_ids`。`kind=team` 不可 `is_shared`。
+`GET /api/agents` gains `kind`; team rows carry `member_ids`. `kind=team` cannot be `is_shared`.
 
-错误码：`TEAM_NOT_FOUND`、`TEAM_MEMBERS_TOO_FEW`、`TEAM_MEMBER_INVALID`、`TEAM_MEMBER_BUSY`、`TEAM_NOT_SHAREABLE`。
+Error codes: `TEAM_NOT_FOUND`, `TEAM_MEMBERS_TOO_FEW`, `TEAM_MEMBER_INVALID`, `TEAM_MEMBER_BUSY`, `TEAM_NOT_SHAREABLE`.
 
-## 前端
+## Frontend
 
-专家页 tab：`我的专家 | 我的团队 | 专家库 | 市场`。
+Experts page tabs: `My Experts | My Teams | Expert Library | Market`.
 
-- 我的专家：过滤 `kind !== team`
-- 我的团队：卡片/空态指引；创建/编辑只要名称、模型、颜色、欢迎语、成员；通道走现有通道配置（绑在主持人）
-- 侧栏：团队带团队徽章
-- 团队聊天右侧：成员条（不含主持人）
-- 气泡：`speaker_agent_id` 对应专家头像/名称；主持人用自己的头像
+- My Experts: filter `kind !== team`
+- My Teams: cards/empty-state guidance; create/edit only needs name, model, color, greeting, members; channels go through the existing channel config (bound to the host)
+- Sidebar: teams get a team badge
+- Right side of team chat: member bar (not including the host)
+- Bubbles: `speaker_agent_id` maps to the expert's avatar/name; the host uses its own avatar
 
-## 隐藏模板
+## Hidden template
 
-`src/octop/infra/agents/teams/template/`，不进 `GET /api/experts`。`template_name = team-host` 仅内部标记。
+`src/octop/infra/agents/teams/template/`, not exposed through `GET /api/experts`. `template_name = team-host` is an internal marker only.
 
-## 非目标（第一版）
+## Non-goals (first version)
 
-- 团队分享、嵌套团队、自动拉起停用成员
-- 多个专家共用同一 `threads.thread_id`
-- 成员异步往群里拉人
-- 共享团队工作区
-- harness inbox 进程外持久化（重启丢在途任务）
+- Team sharing, nested teams, auto-starting disabled members
+- Multiple experts sharing the same `threads.thread_id`
+- Members asynchronously pulling people into the group
+- Shared team workspace
+- Out-of-process persistence of the harness inbox (in-flight tasks are lost on restart)

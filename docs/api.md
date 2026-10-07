@@ -42,9 +42,9 @@ routes until the wizard finishes.
 Password login may require a vendor captcha token. `GET /api/auth/captcha`
 returns `{provider: "slider"}` by default (dashboard slider only; no server
 check). When a strong provider is active (`turnstile`, `hcaptcha`,
-`recaptcha`, `recaptcha-v3`, `tencent`), `POST /api/auth/login` must include
-`captcha_token` (max 4096 characters; for `tencent` the dashboard sends the
-callback pair as `ticket:randstr`, verified via GET with the client IP).
+`recaptcha`, `recaptcha-v3`), `POST /api/auth/login` must include
+`captcha_token` (max 4096 characters; the dashboard sends the provider's
+callback payload, verified via GET with the client IP).
 Captcha failures do not increment
 login lockout. OIDC login is unchanged. A request for an unknown username
 with a garbage token still triggers one outbound siteverify request (bounded
@@ -61,9 +61,8 @@ process starts. `GET /api/envs` redacts `OCTOP_CAPTCHA_SECRET` as
 
 If you serve the dashboard behind a CSP, allow
 `challenges.cloudflare.com`; `js.hcaptcha.com`, `newassets.hcaptcha.com`,
-`api.hcaptcha.com`; `www.google.com`, `www.gstatic.com`;
-`turing.captcha.qcloud.com`, `captcha.qq.com`, `ssl.captcha.qq.com`. Octop
-does not set these headers itself.
+`api.hcaptcha.com`; `www.google.com`, `www.gstatic.com`. Octop does not set
+these headers itself.
 
 ## Setup & auth
 
@@ -89,12 +88,12 @@ does not set these headers itself.
 | `POST`   | `/auth/oidc/config/test` | admin | Verify configured discovery metadata and JWKS endpoint |
 | `GET`    | `/auth/oauth/status` | public | `{providers:[{kind, display_name, enabled}]}` |
 | `POST`   | `/auth/oauth/start` | public | body `{kind, redirect_after?}` → authorization URL |
-| `GET`    | `/auth/oauth/callback` | public | App OAuth callback (`code` or DingTalk `authCode`); same completion page as OIDC |
+| `GET`    | `/auth/oauth/callback` | public | App OAuth callback (`code`); same completion page as OIDC |
 | `POST`   | `/auth/oauth/exchange` | public | Same one-time code exchange as `/auth/oidc/exchange` |
 | `POST`   | `/auth/oauth/bind/start` | user | body `{kind, redirect_after?}` → bind the identity to the current user |
 | `POST`   | `/auth/oauth/unbind` | user | Unlink one SSO identity by `kind` (requires a local password when it is the last login method) |
-| `GET`    | `/auth/oauth/providers/{kind}` | admin | Provider config; `kind` is `oidc`, `feishu`, `dingtalk`, or `wecom` |
-| `PUT`    | `/auth/oauth/providers/{kind}` | admin | Upsert provider config; `client_secret` is write-only; WeCom uses `extra.agent_id` |
+| `GET`    | `/auth/oauth/providers/{kind}` | admin | Provider config; `kind` is `oidc` |
+| `PUT`    | `/auth/oauth/providers/{kind}` | admin | Upsert provider config; `client_secret` is write-only |
 | `POST`   | `/auth/oauth/providers/{kind}/test` | admin | Test provider credentials |
 | `GET`    | `/auth/ldap/status` | public | `{enabled, display_name}` for the login page hint |
 | `GET`    | `/auth/ldap/config` | admin | Directory settings; `bind_password` is never returned (`has_bind_password` instead) |
@@ -203,7 +202,7 @@ plugin returns a large `octop_ui` payload, the backend offloads the envelope's
 | `DELETE` | `/agents/{aid}/channels/{cid}` | owner | `204` |
 | `POST`   | `/agents/{aid}/channels/{cid}/test` | owner | `{ok, error?}` (instantiate → start → stop) |
 | `POST`   | `/agents/{aid}/channels/probe` | owner | `{ok, reason?, detail?}` — preflight a candidate config |
-| `POST`   | `/agents/{aid}/channels/{platform}/qrcode/generate` | owner | platform-specific bot creator (wecom, weixin, feishu, yuanbao) |
+| `POST`   | `/agents/{aid}/channels/{platform}/qrcode/generate` | owner | platform-specific bot creator |
 | `POST`   | `/agents/{aid}/channels/{platform}/qrcode/poll` | owner | poll bot creator state |
 | `POST`   | `/agents/{aid}/channels/{platform}/bot-creator/start` | owner | start a bot-creator flow |
 | `POST`   | `/agents/{aid}/channels/{platform}/bot-creator/poll` | owner | poll progress |
@@ -260,13 +259,13 @@ the server derives one from `prompt`.
 ### Media generation models
 
 These instance-wide endpoints require the `providers` permission (administrators bypass
-permission checks). The Ark API key is write-only and encrypted at rest. Saving settings
+permission checks). The media-generation API key is write-only and encrypted at rest. Saving settings
 reloads running agents so the image and video tools receive the new configuration.
 
 | Method | Path | Auth | Notes |
 |--------|------|------|-------|
-| `GET` | `/admin/media-generation` | providers | Return Volcengine Ark image/video settings; never returns the API key |
-| `PUT` | `/admin/media-generation` | providers | Save enabled tools and Seedream/Seedance model IDs; an included API key is verified before saving |
+| `GET` | `/admin/media-generation` | providers | Return image/video generation settings; never returns the API key |
+| `PUT` | `/admin/media-generation` | providers | Save enabled tools and image/video model IDs; an included API key is verified before saving |
 | `POST` | `/admin/media-generation/test` | providers | Test credentials or a selected image/video model; model tests submit real, potentially billable requests |
 
 ## Voice

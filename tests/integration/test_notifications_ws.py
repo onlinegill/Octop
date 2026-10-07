@@ -56,14 +56,14 @@ async def test_notifications_ws_receives_user_push(env: Any) -> None:
                 "type": "dashboard_push",
                 "agent_id": "a1",
                 "thread_id": "thr_1",
-                "text": "记得喝水",
-                "agent_name": "助手",
+                "text": "Remember to drink water",
+                "agent_name": "Assistant",
             },
         )
         assert await ws.receive_json() == {
             "type": "dashboard_push",
             "agent_id": "a1",
             "thread_id": "thr_1",
-            "text": "记得喝水",
-            "agent_name": "助手",
+            "text": "Remember to drink water",
+            "agent_name": "Assistant",
         }

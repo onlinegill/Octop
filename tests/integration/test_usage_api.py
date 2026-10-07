@@ -243,7 +243,7 @@ async def test_user_export_xlsx(env: Any) -> None:
     )
     r = await c.get(
         "/api/usage/export.xlsx?window=all",
-        headers={**alice_auth, "Accept-Language": "zh"},
+        headers={**alice_auth, "Accept-Language": "en"},
     )
     assert r.status_code == 200
     assert "spreadsheetml" in r.headers.get("content-type", "")
@@ -251,19 +251,19 @@ async def test_user_export_xlsx(env: Any) -> None:
     assert "filename*" in disposition
     assert "_all.xlsx" in disposition
     wb = load_workbook(BytesIO(r.content))
-    assert "明细" in wb.sheetnames
-    assert "按天" in wb.sheetnames
-    assert "按专家" in wb.sheetnames
-    assert "按模型" in wb.sheetnames
-    detail = wb["明细"]
+    assert "Detail" in wb.sheetnames
+    assert "By day" in wb.sheetnames
+    assert "By expert" in wb.sheetnames
+    assert "By model" in wb.sheetnames
+    detail = wb["Detail"]
     headers = [cell.value for cell in detail[1]]
-    assert "专家名称" in headers
-    name_col = headers.index("专家名称") + 1
+    assert "Expert name" in headers
+    name_col = headers.index("Expert name") + 1
     assert any(row[name_col - 1].value == "Export Expert" for row in detail.iter_rows(min_row=2))
-    time_col = headers.index(next(h for h in headers if h and h.startswith("时间"))) + 1
+    time_col = headers.index(next(h for h in headers if h and h.startswith("Time"))) + 1
     # TOTAL sits two rows below the last data row (blank spacer in between)
-    # so Excel Sort does not treat 合计 as part of the contiguous data block.
-    assert detail.cell(detail.max_row, 1).value == "合计"
+    # so Excel Sort does not treat Total as part of the contiguous data block.
+    assert detail.cell(detail.max_row, 1).value == "Total"
     assert all(detail.cell(detail.max_row - 1, col).value is None for col in range(1, 5))
     assert detail.auto_filter.ref == f"A1:P{detail.max_row - 2}"
     time_vals = [
@@ -278,9 +278,9 @@ async def test_user_export_xlsx(env: Any) -> None:
         isinstance(v, str) and len(v) == 19 and v[4] == "-" and v[10] == " " and "+" not in v
         for v in time_vals
     )
-    assert wb["按天"]._charts
-    assert wb["按专家"]._charts
-    assert wb["按模型"]._charts
+    assert wb["By day"]._charts
+    assert wb["By expert"]._charts
+    assert wb["By model"]._charts
 
 
 async def test_admin_export_requires_admin(env: Any) -> None:
@@ -432,13 +432,13 @@ async def test_admin_filters_by_user_agent_and_windows(env: Any) -> None:
 
     r = await c.get(
         f"/api/admin/usage/export.xlsx?window=all&user_id={bob_id}",
-        headers={**admin_auth, "Accept-Language": "zh"},
+        headers={**admin_auth, "Accept-Language": "en"},
     )
     assert r.status_code == 200
     wb = load_workbook(BytesIO(r.content))
-    detail = wb["明细"]
+    detail = wb["Detail"]
     headers = [cell.value for cell in detail[1]]
-    uid_col = headers.index("用户 ID")
+    uid_col = headers.index("User ID")
     user_ids = {
         row[uid_col].value
         for row in detail.iter_rows(min_row=2, max_row=detail.max_row - 2)

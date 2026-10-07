@@ -19,6 +19,19 @@ from tests.support.auth import auth_header, bootstrap_admin, create_user, resolv
 from tests.support.http import ws_chat_turn
 
 
+DIFY_MCP_URL = "https://dify.example.com/mcp/server/srv123/mcp"
+
+
+def _dify_payload(display_name: str, **extra: object) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "kind": "dify",
+        "display_name": display_name,
+        "credentials": {"mcp_url": DIFY_MCP_URL},
+    }
+    payload.update(extra)
+    return payload
+
+
 @pytest.fixture
 async def env(env_with_agent):
     yield env_with_agent
@@ -28,89 +41,76 @@ async def test_catalog(env):
     c, _, auth, _ = env
     r = await c.get("/api/connectors/catalog", headers=auth)
     assert r.status_code == 200
-    kinds = {e["kind"] for e in r.json()}
-    assert "tencent-docs" in kinds
-    assert "notion" in kinds
+    entries = r.json()
+    kinds = {e["kind"] for e in entries}
+    assert kinds == {"notion", "openalex", "dify"}
     assert "figma" not in kinds
-    assert "baidu-netdisk" not in kinds
-    for kind in (
-        "openalex",
-        "tencent-meeting",
-        "tencent-lexiang",
-        "notion",
-        "tencent-news",
-        "wechat-reading",
-        "tencent-ardot",
-        "dida365",
-        "youdao-note",
-        "tencent-weiyun",
-        "qq-music",
-        "fliggy",
-        "baidu-map",
-        "ctrip-wendao",
-        "meituan-travel",
-        "didi",
-        "yuandian",
-        "qcc",
-    ):
-        entry = next(e for e in r.json() if e["kind"] == kind)
+    for kind in ("notion", "openalex", "dify"):
+        entry = next(e for e in entries if e["kind"] == kind)
         assert entry["phase"] == "available", kind
-    docs = next(e for e in r.json() if e["kind"] == "tencent-docs")
-    assert docs.get("color")
-    assert docs.get("quick_auth_url")
-    assert docs["category"] == "office"
-    assert "tools" not in docs
-    weiyun = next(e for e in r.json() if e["kind"] == "tencent-weiyun")
-    assert weiyun["auth_kind"] == "personal_token"
-    assert weiyun["mcp_mode"] == "remote"
-    assert weiyun["category"] == "office"
-    assert weiyun.get("quick_auth_url") == "https://www.weiyun.com/act/openclaw"
-    qcc = next(e for e in r.json() if e["kind"] == "qcc")
-    assert qcc["auth_kind"] == "oauth2"
-    assert qcc["mcp_mode"] == "internal"
-    assert qcc["oauth_mode"] == "dynamic"
-    assert qcc["oauth_ready"] is True
-    assert qcc["category"] == "professional"
-    openalex = next(e for e in r.json() if e["kind"] == "openalex")
+
+    notion = next(e for e in entries if e["kind"] == "notion")
+    assert notion["auth_kind"] == "oauth2"
+    assert notion["mcp_mode"] == "remote"
+    assert notion["category"] == "knowledge"
+    assert notion["oauth_mode"] == "dynamic"
+    assert notion["oauth_ready"] is True
+    assert notion.get("color")
+    assert notion.get("quick_auth_url") is None
+    assert "tools" not in notion
+
+    dify = next(e for e in entries if e["kind"] == "dify")
+    assert dify["auth_kind"] == "custom_fields"
+    assert dify["mcp_mode"] == "remote"
+    assert dify["category"] == "self_hosted"
+    assert dify["oauth_ready"] is False
+
+    openalex = next(e for e in entries if e["kind"] == "openalex")
     assert openalex == {
         "kind": "openalex",
         "name": "OpenAlex",
-        "description": "官方 MCP：检索学术文献、引文、研究实体与统计分析",
-        "auth_kind": "oauth2",
-        "doc_url": "https://help.openalex.org/access/connector/",
+        "description": "Open catalog of academic research, authors, venues, and institutions",
+        "auth_kind": "custom_fields",
+        "doc_url": "https://openalex.org/",
         "icon": "openalex",
-        "color": "#1f6feb",
+        "color": "#ff7f50",
         "phase": "available",
         "mcp_mode": "remote",
         "category": "knowledge",
         "quick_auth_url": None,
         "login_url": None,
-        "guide_url": "https://help.openalex.org/access/connector/",
-        "manual_url": "https://help.openalex.org/access/connector/",
-        "auth_hint": "点击「一键授权」登录 OpenAlex（桌面端请用系统浏览器）；查询将使用你自己的 API Key 与每日预算。",
-        "oauth_mode": "dynamic",
-        "oauth_ready": True,
-        "credential_fields": [],
+        "guide_url": "https://openalex.org/",
+        "manual_url": "https://openalex.org/",
+        "auth_hint": "OpenAlex API is free; optionally provide an email for the polite pool",
+        "oauth_mode": None,
+        "oauth_ready": False,
+        "credential_fields": [
+            {
+                "key": "email",
+                "label": "Email (Polite pool)",
+                "field_type": "text",
+                "required": False,
+                "placeholder": "your.email@example.com",
+                "help": "Recommended by OpenAlex for faster rate limits",
+                "secret": False,
+            }
+        ],
         "supports_quick_auth": True,
     }
 
 
-async def test_create_tencent_instance(env):
+async def test_create_dify_instance(env):
     c, _, auth, _ = env
     r = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "我的文档",
-            "credentials": {"token": "test-token"},
-        },
+        json=_dify_payload("My docs"),
     )
     assert r.status_code == 201
     inst = r.json()
-    assert inst["kind"] == "tencent-docs"
+    assert inst["kind"] == "dify"
     assert inst["description"]
-    assert inst["mcp_server_name"].startswith("tencent-docs__")
+    assert inst["mcp_server_name"].startswith("dify__")
     assert inst.get("default_open") is False
 
 
@@ -119,12 +119,7 @@ async def test_create_instance_default_open(env):
     r = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "我的文档",
-            "credentials": {"token": "test-token"},
-            "default_open": True,
-        },
+        json=_dify_payload("My docs", default_open=True),
     )
     assert r.status_code == 201
     inst = r.json()
@@ -146,20 +141,12 @@ async def test_same_connector_kind_supports_multiple_named_instances(env):
     first = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "文档一",
-            "credentials": {"token": "token-1"},
-        },
+        json=_dify_payload("Doc one"),
     )
     second = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "文档二",
-            "credentials": {"token": "token-2"},
-        },
+        json=_dify_payload("Doc two"),
     )
     assert first.status_code == 201
     assert second.status_code == 201
@@ -169,9 +156,9 @@ async def test_same_connector_kind_supports_multiple_named_instances(env):
         "/api/connector-instances",
         headers=auth,
         json={
-            "kind": "qq-mail",
-            "display_name": "文档一",
-            "credentials": {"email": "a@qq.com", "password": "code"},
+            "kind": "notion",
+            "display_name": "Doc one",
+            "credentials": {"access_token": "token"},
         },
     )
     assert duplicate.status_code == 409
@@ -186,7 +173,7 @@ async def test_connector_names_are_unique_across_builtin_and_custom(env):
         json={
             "servers": {
                 "custom-server": {
-                    "display_name": "重复名称",
+                    "display_name": "Duplicate name",
                     "transport": "streamable_http",
                     "url": "https://mcp.example.com/mcp",
                 }
@@ -198,11 +185,7 @@ async def test_connector_names_are_unique_across_builtin_and_custom(env):
     builtin = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "重复名称",
-            "credentials": {"token": "test-token"},
-        },
+        json=_dify_payload("Duplicate name"),
     )
     assert builtin.status_code == 409
     assert builtin.json()["error"]["code"] == "CONNECTOR_NAME_TAKEN"
@@ -213,11 +196,7 @@ async def test_custom_name_cannot_duplicate_builtin_connector(env):
     builtin = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "内置名称",
-            "credentials": {"token": "test-token"},
-        },
+        json=_dify_payload("Builtin name"),
     )
     assert builtin.status_code == 201
 
@@ -227,7 +206,7 @@ async def test_custom_name_cannot_duplicate_builtin_connector(env):
         json={
             "servers": {
                 "custom-server": {
-                    "display_name": "内置名称",
+                    "display_name": "Builtin name",
                     "transport": "streamable_http",
                     "url": "https://mcp.example.com/mcp",
                 }
@@ -243,13 +222,7 @@ async def test_shared_connector_is_visible_but_not_manageable_by_other_user(env)
     created = await c.post(
         "/api/connector-instances",
         headers=admin_auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "共享文档",
-            "credentials": {"token": "shared-token"},
-            "shared": True,
-            "default_open": True,
-        },
+        json=_dify_payload("Shared docs", shared=True, default_open=True),
     )
     assert created.status_code == 201
     instance_id = created.json()["instance_id"]
@@ -265,27 +238,9 @@ async def test_shared_connector_is_visible_but_not_manageable_by_other_user(env)
     patched = await c.patch(
         f"/api/connector-instances/{instance_id}",
         headers=user_auth,
-        json={"display_name": "不能修改"},
+        json={"display_name": "cannot change"},
     )
     assert patched.status_code == 403
-
-
-async def test_chat_accepts_user_instance_mcp(env):
-    c, _, auth, agent_id = env
-    r = await c.post(
-        "/api/connector-instances",
-        headers=auth,
-        json={
-            "kind": "qq-mail",
-            "display_name": "邮箱",
-            "credentials": {"email": "a@qq.com", "password": "code"},
-        },
-    )
-    assert r.status_code == 201
-    mcp_name = r.json()["mcp_server_name"]
-
-    chunks = await ws_chat_turn(c, agent_id, auth, mcp_servers=[mcp_name])
-    assert chunks[-1].get("type") == "done"
 
 
 async def test_chat_rejects_unknown_mcp(env):
@@ -299,19 +254,14 @@ async def test_get_instance_detail(env):
     r = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "qq-mail",
-            "display_name": "邮箱",
-            "credentials": {"email": "a@qq.com", "password": "code"},
-        },
+        json=_dify_payload("Workflows"),
     )
     inst = r.json()
     r2 = await c.get(f"/api/connector-instances/{inst['instance_id']}", headers=auth)
     assert r2.status_code == 200
     detail = r2.json()
-    assert detail["display_name"] == "邮箱"
-    assert detail["credentials_preview"]["email"] == "a@qq.com"
-    assert detail["credentials_preview"]["password_configured"] is True
+    assert detail["display_name"] == "Workflows"
+    assert detail["credentials_preview"]["mcp_url_configured"] is True
 
 
 async def test_create_and_edit_instance_description(env):
@@ -319,93 +269,41 @@ async def test_create_and_edit_instance_description(env):
     created = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "文档",
-            "description": "团队文档连接",
-            "credentials": {"token": "test-token"},
-        },
+        json=_dify_payload("Docs", description="Team docs connector"),
     )
     assert created.status_code == 201, created.text
     instance_id = created.json()["instance_id"]
-    assert created.json()["description"] == "团队文档连接"
+    assert created.json()["description"] == "Team docs connector"
 
     listed = await c.get("/api/connector-instances", headers=auth)
     row = next(item for item in listed.json() if item["instance_id"] == instance_id)
-    assert row["description"] == "团队文档连接"
+    assert row["description"] == "Team docs connector"
 
     patched = await c.patch(
         f"/api/connector-instances/{instance_id}",
         headers=auth,
-        json={"description": "更新后的说明"},
+        json={"description": "Updated description"},
     )
     assert patched.status_code == 200, patched.text
-    assert patched.json()["description"] == "更新后的说明"
+    assert patched.json()["description"] == "Updated description"
 
     detail = await c.get(f"/api/connector-instances/{instance_id}", headers=auth)
     assert detail.status_code == 200, detail.text
-    assert detail.json()["description"] == "更新后的说明"
-    assert detail.json()["config"]["description"] == "更新后的说明"
-
-
-async def test_probe_returns_tools(env, monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(
-        "octop.infra.connectors.gateway.adapters.qq_mail.probe_credentials",
-        lambda _creds: None,
-    )
-    c, _, auth, _ = env
-    r = await c.post(
-        "/api/connectors/test-credentials",
-        headers=auth,
-        json={
-            "kind": "qq-mail",
-            "credentials": {"email": "a@qq.com", "password": "code"},
-        },
-    )
-    assert r.status_code == 200
-    data = r.json()
-    assert data["ok"] is True
-    assert data["tool_count"] == 3
-    assert len(data["tools"]) == 3
-    assert data["tools"][0]["name"]
-
-
-async def test_internal_mcp_tools_list(env, monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(
-        "octop.infra.connectors.gateway.adapters.qq_mail.probe_credentials",
-        lambda _creds: None,
-    )
-    c, _, auth, _ = env
-    r = await c.post(
-        "/api/connector-instances",
-        headers=auth,
-        json={
-            "kind": "qq-mail",
-            "display_name": "邮箱",
-            "credentials": {"email": "a@qq.com", "password": "code"},
-        },
-    )
-    inst = r.json()
-    # Fetch internal token via test endpoint path — decrypt not exposed; use gateway test
-    r2 = await c.post(f"/api/connector-instances/{inst['instance_id']}/test", headers=auth)
-    assert r2.status_code == 200
-    assert r2.json()["ok"] is True
-    assert r2.json()["tool_count"] == 3
-    assert len(r2.json()["tools"]) == 3
+    assert detail.json()["description"] == "Updated description"
+    assert detail.json()["config"]["description"] == "Updated description"
 
 
 async def test_auth_info(env):
     c, _, auth, _ = env
-    r = await c.get("/api/connectors/auth/wechat-reading/info", headers=auth)
+    r = await c.get("/api/connectors/auth/notion/info", headers=auth)
     assert r.status_code == 200
     data = r.json()
     assert data["login_url"] is None
-    assert data["authorize_url"] == "https://weread.qq.com/r/weread-skills"
+    assert data["guide_url"] == "https://developers.notion.com/guides/mcp/get-started-with-mcp"
     assert data["auth_hint"]
 
 
-@pytest.mark.parametrize("kind", ["notion", "qcc"])
-async def test_oauth_start_public_http_notion_error_is_actionable(tmp_octop_home: Path, kind: str):
+async def test_oauth_start_public_http_notion_error_is_actionable(tmp_octop_home: Path):
     write_octop_config(tmp_octop_home)
     async with octop_client(tmp_octop_home) as (c, _srv):
         await bootstrap_admin(c, tmp_octop_home)
@@ -413,8 +311,8 @@ async def test_oauth_start_public_http_notion_error_is_actionable(tmp_octop_home
         mocked_start = AsyncMock()
         with patch("octop.api.routers.connectors.start_oauth_for_target", mocked_start):
             r = await c.post(
-                f"/api/connectors/oauth/{kind}/start",
-                headers={**auth, "host": "58.87.70.170"},
+                "/api/connectors/oauth/notion/start",
+                headers={**auth, "host": "203.0.113.10"},
                 json={"redirect_after": "/connectors"},
             )
     assert r.status_code == 400
@@ -430,11 +328,7 @@ async def test_patch_instance_status(env):
     r = await c.post(
         "/api/connector-instances",
         headers=auth,
-        json={
-            "kind": "tencent-docs",
-            "display_name": "doc",
-            "credentials": {"token": "tok"},
-        },
+        json=_dify_payload("doc"),
     )
     inst = r.json()
     r2 = await c.patch(
@@ -444,75 +338,6 @@ async def test_patch_instance_status(env):
     )
     assert r2.status_code == 200
     assert r2.json()["status"] == "disabled"
-
-
-async def test_catalog_weknora_dify_last(env):
-    c, _, auth, _ = env
-    r = await c.get("/api/connectors/catalog", headers=auth)
-    assert r.status_code == 200
-    kinds = [e["kind"] for e in r.json()]
-    assert "feishu-cli" in kinds
-    assert "wecom-cli" in kinds
-    assert kinds.index("feishu-cli") < kinds.index("weknora")
-    assert kinds.index("wecom-cli") < kinds.index("dify")
-    assert kinds.index("didi") < kinds.index("weknora")
-    assert kinds[-2:] == ["weknora", "dify"]
-
-
-async def test_install_cli_forbidden_for_non_admin(env):
-    c, _, admin_auth, _ = env
-    user_auth = await create_user(c, admin_auth, username="cli_user", permissions=[])
-    r = await c.post("/api/connectors/feishu-cli/install-cli", headers=user_auth)
-    assert r.status_code == 403
-    assert r.json()["error"]["code"] == "FORBIDDEN"
-
-
-async def test_install_cli_admin_ok_mocked(env, monkeypatch: pytest.MonkeyPatch):
-    c, _, auth, _ = env
-
-    def _fake_install(kind: str) -> dict:
-        return {
-            "ok": True,
-            "kind": kind,
-            "installed": True,
-            "already_installed": True,
-            "binary": "lark-cli",
-            "version": "0.0.0-test",
-            "install_command": "npm install -g @larksuite/cli",
-            "doc_url": "https://example.com",
-            "guide_url": "https://example.com",
-        }
-
-    monkeypatch.setattr(
-        "octop.api.routers.connectors.install_connector_cli",
-        _fake_install,
-    )
-    r = await c.post("/api/connectors/feishu-cli/install-cli", headers=auth)
-    assert r.status_code == 200
-    body = r.json()
-    assert body["ok"] is True
-    assert body["already_installed"] is True
-
-
-async def test_cli_status_available_to_non_admin(env, monkeypatch: pytest.MonkeyPatch):
-    c, _, admin_auth, _ = env
-    user_auth = await create_user(c, admin_auth, username="cli_status_user")
-    monkeypatch.setattr(
-        "octop.api.routers.connectors.cli_install_status",
-        lambda kind: {
-            "ok": True,
-            "kind": kind,
-            "installed": False,
-            "binary": None,
-            "version": None,
-            "install_command": "npm install -g @larksuite/cli",
-            "doc_url": "https://example.com",
-            "guide_url": "https://example.com",
-        },
-    )
-    r = await c.get("/api/connectors/feishu-cli/cli-status", headers=user_auth)
-    assert r.status_code == 200
-    assert r.json()["installed"] is False
 
 
 async def test_patch_custom_mcp_server_default_open_only(env):
@@ -700,60 +525,6 @@ async def test_custom_mcp_oauth_start_unified(env):
     call_kwargs = mocked_start.await_args.kwargs
     assert call_kwargs["target"] == {"type": "custom_mcp", "server_name": "oauth-srv"}
     assert call_kwargs["mcp_url"] == "https://mcp.example.com/mcp"
-
-
-@pytest.mark.parametrize("oauth", [False, True])
-async def test_qcc_gateway_auth_five_resources_and_disconnect(env, monkeypatch, oauth):
-    from octop.api.routers.internal_mcp import _service
-    from octop.infra.connectors import qcc
-
-    c, srv, auth, _ = env
-    revoke = AsyncMock()
-    monkeypatch.setattr(qcc, "revoke", revoke)
-    credentials = (
-        {
-            "access_token": "synthetic",
-            "refresh_token": "refresh",
-            "oauth_client_id": "client",
-            "expires_at": 9999999999,
-        }
-        if oauth
-        else {"api_key": "synthetic"}
-    )
-    created = await c.post(
-        "/api/connector-instances",
-        headers=auth,
-        json={
-            "kind": "qcc",
-            "display_name": "QCC",
-            "credentials": credentials,
-        },
-    )
-    assert created.status_code == 201
-    instance_id = created.json()["instance_id"]
-    svc = _service(srv)
-    token = svc.decrypt(instance_id)["internal_token"]
-    path = f"/api/internal/mcp/qcc/{instance_id}"
-    request = AsyncMock(
-        return_value={"tools": [{"name": "lookup", "inputSchema": {"type": "object"}}]}
-    )
-    monkeypatch.setattr(qcc, "request_resource", request)
-    bad = await c.post(path, params={"token": "wrong"}, json={"id": 1, "method": "tools/list"})
-    assert bad.status_code == 401
-    request.assert_not_awaited()
-    listed = await c.post(path, params={"token": token}, json={"id": 1, "method": "tools/list"})
-    assert listed.status_code == 200
-    assert {t["name"] for t in listed.json()["result"]["tools"]} == {
-        f"{r}__lookup" for r in qcc.RESOURCES
-    }
-    other = await create_user(c, auth, username="qcc_reader")
-    denied = await c.delete(f"/api/connector-instances/{instance_id}", headers=other)
-    assert denied.status_code == 403
-    deleted = await c.delete(f"/api/connector-instances/{instance_id}", headers=auth)
-    assert deleted.status_code == 204
-    assert revoke.await_count == int(oauth)
-    gone = await c.post(path, params={"token": token}, json={"id": 2, "method": "tools/list"})
-    assert gone.status_code == 404
 
 
 @pytest.mark.parametrize(

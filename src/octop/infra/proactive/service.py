@@ -46,8 +46,6 @@ def _today_in_timezone(now: datetime, timezone_name: str, *, locale: str) -> str
         local = now.astimezone(ZoneInfo(timezone_name))
     except Exception:
         local = now.astimezone()
-    if locale == "zh":
-        return local.strftime("%Y-%m-%d")
     return local.strftime("%B %d, %Y")
 
 

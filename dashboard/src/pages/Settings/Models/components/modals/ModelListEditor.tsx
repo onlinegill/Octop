@@ -280,7 +280,6 @@ export function ModelListEditor({
             | "openai_reasoning_effort"
             | "anthropic_adaptive"
             | "anthropic_budget"
-            | "dashscope"
             | "openrouter") || "thinking",
       };
     }
@@ -678,7 +677,7 @@ export function ModelListEditor({
                                       value: "disabled",
                                       label: t(
                                         "chat.reasoningDisabled",
-                                        "关闭",
+                                        "Close",
                                       ),
                                     },
                                   ]}
@@ -689,7 +688,7 @@ export function ModelListEditor({
                               name="reasoning_efforts"
                               label={t(
                                 "models.reasoningEfforts",
-                                "支持的思考强度",
+                                "Supported thinking intensity",
                               )}
                               style={{ marginBottom: 10 }}
                             >
@@ -704,7 +703,7 @@ export function ModelListEditor({
                                 name="reasoning_default_effort"
                                 label={t(
                                   "models.reasoningDefaultEffort",
-                                  "默认强度",
+                                  "Default intensity",
                                 )}
                                 style={{ flex: 1, marginBottom: 10 }}
                               >
@@ -714,7 +713,7 @@ export function ModelListEditor({
                                 name="reasoning_effort_type"
                                 label={t(
                                   "models.reasoningEffortType",
-                                  "强度类型",
+                                  "Intensity type",
                                 )}
                                 initialValue="enum"
                                 style={{ flex: 1, marginBottom: 10 }}
@@ -725,14 +724,14 @@ export function ModelListEditor({
                                       value: "enum",
                                       label: t(
                                         "models.reasoningEffortEnum",
-                                        "强度档位",
+                                        "Strength level",
                                       ),
                                     },
                                     {
                                       value: "token_budget",
                                       label: t(
                                         "models.reasoningEffortBudget",
-                                        "Token 预算",
+                                        "Token Budget",
                                       ),
                                     },
                                   ]}
@@ -751,7 +750,7 @@ export function ModelListEditor({
                                     value: "status_only",
                                     label: t(
                                       "models.reasoningAdapterStatusOnly",
-                                      "仅标记（始终推理）",
+                                      "Tags only (always inferred)",
                                     ),
                                   },
                                   {
@@ -779,21 +778,14 @@ export function ModelListEditor({
                                     value: "thinking",
                                     label: t(
                                       "models.reasoningAdapterThinking",
-                                      "DeepSeek / GLM / Kimi",
+                                      "Reasoning / thinking",
                                     ),
                                   },
                                   {
                                     value: "thinking_nested_effort",
                                     label: t(
                                       "models.reasoningAdapterNestedEffort",
-                                      "TokenHub 嵌套强度",
-                                    ),
-                                  },
-                                  {
-                                    value: "dashscope",
-                                    label: t(
-                                      "models.reasoningAdapterDashScope",
-                                      "DashScope / 阿里云",
+                                      "Nested effort",
                                     ),
                                   },
                                   {

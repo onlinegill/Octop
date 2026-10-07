@@ -163,7 +163,7 @@ async def test_upload_then_download_binary(env: Any) -> None:
 
 async def test_download_non_ascii_filename(env: Any) -> None:
     c, _srv, auth, aid = env
-    fname = "1783510288_地球介绍.pptx"
+    fname = "1783510288_café.pptx"
     path = f"/outbound/{fname}"
     r = await c.post(
         f"/api/agents/{aid}/workspace/upload",
@@ -183,7 +183,7 @@ async def test_download_non_ascii_filename(env: Any) -> None:
     cd = r.headers.get("content-disposition", "")
     assert 'filename="download.pptx"' in cd
     assert "filename*" in cd
-    assert "%E5%9C%B0%E7%90%83" in cd
+    assert "%C3%A9" in cd
 
 
 async def test_upload_with_explicit_path_query(env: Any) -> None:

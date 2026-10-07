@@ -1,30 +1,31 @@
 #!/bin/bash
 #
-# Octop 本地版 — 卸载前回调
-# 根据卸载向导 wizard_delete_data 的选择：
-#   - 保留数据：不清理 /vol1/@appshare/octop-native/data，由飞牛保留。
-#   - 完全删除：在 uninstall_callback 中清理 data-share。
-# 同时释放 Octop 端口（8088=Docker 版，8089=本地版），避免卸载后残留进程占端口。
+# Octop (native) — pre-uninstall callback
+# Based on the uninstall wizard's wizard_delete_data choice:
+#   - Keep data: do not clean /vol1/@appshare/octop-native/data; it is kept by FnOS.
+#   - Delete everything: clean up the data-share in uninstall_callback.
+# Also release the Octop ports (8088=Docker edition, 8089=native edition) so that
+# leftover processes do not hold the port after uninstall.
 #
 set -uo pipefail
 
-# 共享函数库（find_python312 / fix_ownership_and_perms / free_octop_ports）
-# 打包时由 scripts/build-fpk.sh 注入；仓库内运行无此文件时跳过（函数缺失时再报错）。
+# Shared function library (find_python312 / fix_ownership_and_perms / free_octop_ports)
+# Injected at packaging time by scripts/build-fpk.sh; when running inside the repository this file is absent and is skipped (missing functions raise later).
 _OCTOP_COMMON=""$(dirname "$0")/common.sh""
 [ -f "$_OCTOP_COMMON" ] && source "$_OCTOP_COMMON"
 
 LOG="${TRIM_TEMP_LOGFILE:-/dev/null}"
 log() { echo "[octop-native] $1" > "$LOG" 2>/dev/null || true; }
 
-# 卸载时一并释放 Octop 端口（8088=Docker 版，8089=本地版），杀掉残留/孤儿进程，避免卸载不干净。
+# On uninstall also release the Octop ports (8088=Docker edition, 8089=native edition) and kill leftover/orphan processes so that the uninstall is clean.
 
 
 free_octop_ports
 
 if [ "${wizard_delete_data:-no}" = "yes" ]; then
-    log "用户选择完全删除数据，将在 uninstall_callback 中清理 /vol1/@appshare/octop-native/data"
+    log "user chose to delete data completely; /vol1/@appshare/octop-native/data will be cleaned up in uninstall_callback"
 else
-    log "用户选择保留数据，/vol1/@appshare/octop-native/data 将保留"
+    log "user chose to keep data; /vol1/@appshare/octop-native/data will be preserved"
 fi
 
 exit 0

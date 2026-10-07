@@ -78,7 +78,7 @@ function cellLooksLikeImageRef(value: string): boolean {
 }
 
 function columnLooksLikeImage(title: string): boolean {
-  return /截图|设计稿|图片|image|screenshot|photo|附图|缩略图|draft/i.test(
+  return /Screenshot|Design draft|Pictures|image|screenshot|photo|Attached pictures|Thumbnail|draft/i.test(
     title,
   );
 }
@@ -511,7 +511,7 @@ export default function DocumentPreviewCore({
       } catch (err) {
         if (cancelled || isAbortError(err)) return;
         // Surface the real cause (chunk load / ZIP parse / library error) —
-        // the UI only shows a generic "无法加载预览".
+        // the UI only shows a generic "Unable to load preview".
         console.error(
           "[DocumentPreviewCore] preview failed",
           { kind, filename },

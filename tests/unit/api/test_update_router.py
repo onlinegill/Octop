@@ -385,7 +385,7 @@ def _settings_server(stable_only: bool | None = None) -> Any:
 
 
 def test_build_status_success_reports_source(monkeypatch: pytest.MonkeyPatch) -> None:
-    info = self_update.PyPIInfo(version="1.2.3", description="desc", source="mirrors.aliyun.com")
+    info = self_update.PyPIInfo(version="1.2.3", description="desc", source="mirrors.example.com")
     monkeypatch.setattr(update_router, "fetch_pypi_info", lambda: info)
 
     payload = update_router._build_status()
@@ -393,7 +393,7 @@ def test_build_status_success_reports_source(monkeypatch: pytest.MonkeyPatch) ->
     assert payload["latest_version"] == "1.2.3"
     assert payload["error"] is None
     assert payload["error_code"] is None
-    assert payload["source"] == "mirrors.aliyun.com"
+    assert payload["source"] == "mirrors.example.com"
 
 
 def test_build_status_failure_via_check_keeps_error_code(

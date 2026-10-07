@@ -315,7 +315,7 @@ async def test_enrich_send_file_keeps_absolute_path_without_copy() -> None:
         workspace = _workspace(ws, virtual_mode=False)
         generated = Path(ws) / "generated" / "water-ppt"
         generated.mkdir(parents=True)
-        pptx = generated / "保护地球节约用水.pptx"
+        pptx = generated / "water-conservation.pptx"
         pptx.write_bytes(b"PKDATA")
         abs_path = str(pptx.resolve())
         chunk = {
@@ -333,7 +333,7 @@ async def test_enrich_send_file_keeps_absolute_path_without_copy() -> None:
                                 ".presentationml.presentation"
                             ),
                         },
-                        "filename": "保护地球节约用水.pptx",
+                        "filename": "water-conservation.pptx",
                     },
                 },
             ],
@@ -347,7 +347,7 @@ async def test_enrich_send_file_keeps_absolute_path_without_copy() -> None:
         assert isinstance(content, dict)
         assert content["type"] == "file"
         assert content.get("path") == abs_path
-        assert content["filename"] == "保护地球节约用水.pptx"
+        assert content["filename"] == "water-conservation.pptx"
         assert "preview_url" not in content
         assert "source" not in content
         outbound = Path(ws) / "outbound"
@@ -361,7 +361,7 @@ async def test_enrich_send_file_rewrites_path_to_dashboard_api() -> None:
         workspace = _workspace(ws, virtual_mode=False)
         outbound = Path(ws) / "outbound"
         outbound.mkdir()
-        pptx = outbound / "1783513904_地球介绍.pptx"
+        pptx = outbound / "1783513904_intro.pptx"
         pptx.write_bytes(b"PKDATA")
         chunk = {
             "type": "tool_result",
@@ -378,8 +378,8 @@ async def test_enrich_send_file_rewrites_path_to_dashboard_api() -> None:
                                 ".presentationml.presentation"
                             ),
                         },
-                        "filename": "地球介绍.pptx",
-                        "path": "outbound/1783513904_地球介绍.pptx",
+                        "filename": "intro.pptx",
+                        "path": "outbound/1783513904_intro.pptx",
                     },
                 },
             ],
@@ -393,8 +393,8 @@ async def test_enrich_send_file_rewrites_path_to_dashboard_api() -> None:
         assert isinstance(content, dict)
         assert "preview_url" not in content
         assert "source" not in content
-        assert content["path"] == "outbound/1783513904_地球介绍.pptx"
-        assert content["filename"] == "地球介绍.pptx"
+        assert content["path"] == "outbound/1783513904_intro.pptx"
+        assert content["filename"] == "intro.pptx"
         assert content.get("media_type", "").endswith("presentation")
         assert "/home/" not in json.dumps(content, ensure_ascii=False)
         assert not str(content["path"]).startswith("/api/")

@@ -307,7 +307,7 @@ export function useChatSend({
               const pushMsg = {
                 id: generateId(),
                 role: "assistant" as const,
-                content: `🎬 录制已开始！请在浏览器中进行你想要自动化的操作。\n\n操作完成后，输入"结束"即可结束录制，系统将自动生成技能脚本。`,
+                content: `🎬 Recording has started! Please perform the actions you want to automate in your browser.\n\nAfter the operation is completed, enter"End"The recording ends and the system will automatically generate the skill script.`,
                 timestamp: Date.now(),
                 status: "done" as const,
               };

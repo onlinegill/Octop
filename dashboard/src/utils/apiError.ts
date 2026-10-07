@@ -77,8 +77,8 @@ export function apiErrorMessage(
     if (translated !== key) {
       const reason = parsed.details?.reason;
       if (typeof reason === "string" && reason.trim()) {
-        const base = translated.replace(/[。.]\s*$/, "");
-        return `${base}：${reason.trim()}`;
+        const base = translated.replace(/\.\s*$/, "");
+        return `${base}:${reason.trim()}`;
       }
       // Prefer server detail when it carries more than the generic code message.
       if (

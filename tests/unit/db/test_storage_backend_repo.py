@@ -25,7 +25,7 @@ def test_create_and_get(repo: BackendRepo) -> None:
         access_key="AK",
         secret_key="SK",
         bucket="my-bucket",
-        region="ap-guangzhou",
+        region="us-east-1",
     )
     row = repo.get(rid)
     assert row is not None

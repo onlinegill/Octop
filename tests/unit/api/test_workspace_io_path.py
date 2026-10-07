@@ -6,7 +6,7 @@ from octop.api.routers.workspace import _workspace_io_path
 
 
 def test_from_workspace_false_slash_is_host_absolute() -> None:
-    abs_path = "/Users/jubaoliang/Desktop/IronMan_PPT/钢铁侠.pptx"
+    abs_path = "/Users/alice/Desktop/ironman-ppt/ironman.pptx"
     assert _workspace_io_path(abs_path, from_workspace=False) == abs_path
     assert _workspace_io_path("/logo.png", from_workspace=False) == "/logo.png"
 

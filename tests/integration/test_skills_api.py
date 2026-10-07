@@ -97,11 +97,11 @@ description: Agent trigger description
 metadata:
   octop:
     label:
-      zh: PDF 阅读
-      en: PDF Reader
+      zh: PDF Reader
+      en: PDF Document Reader
     summary:
-      zh: 阅读和处理 PDF
-      en: Read and process PDFs
+      zh: Read and process PDFs
+      en: Read and process PDF documents
     emoji: 📄
 ---
 """
@@ -127,8 +127,8 @@ metadata:
 
     zh = next(row for row in zh_rows if row["slug"] == "pdf-reader")
     en = next(row for row in en_rows if row["slug"] == "pdf-reader")
-    assert (zh["name"], zh["description"]) == ("PDF 阅读", "阅读和处理 PDF")
-    assert (en["name"], en["description"]) == ("PDF Reader", "Read and process PDFs")
+    assert (zh["name"], zh["description"]) == ("PDF Reader", "Read and process PDFs")
+    assert (en["name"], en["description"]) == ("PDF Document Reader", "Read and process PDF documents")
 
 
 async def test_list_empty_when_no_workspace_skills(env: Any) -> None:
@@ -155,7 +155,7 @@ async def test_list_includes_builtin_skills(env: Any) -> None:
 
     manager = next(row for row in builtin if row["slug"] == "skill-manager")
     assert manager["enabled"] is True
-    assert manager["name"] in {"技能管理", "Skill Manager"}
+    assert manager["name"] == "Skill Manager"
     assert manager["description"]
 
 

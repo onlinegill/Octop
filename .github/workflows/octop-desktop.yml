@@ -1,8 +1,8 @@
 name: Octop Desktop Package
 
-# 正式发版：Auto Tag 在打 v* 后与 Release / Docker Publish 一并 dispatch。
-# 产物 upsert 到同一 GitHub Release。手工补包：workflow_dispatch + release_tag
-# （不必跑在 v* ref 上）。attach_from_run 只挂已有 artifact、不重打。
+# Official release: after tagging v*, Auto Tag dispatches this together with Release / Docker Publish.
+# Artifacts are upserted to the same GitHub Release. Manual re-packaging: workflow_dispatch + release_tag
+# (does not have to run on a v* ref). attach_from_run only attaches existing artifacts and does not rebuild.
 
 on:
   push:
@@ -49,7 +49,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.attach_from_run == '' }}
 
 env:
-  # Prefer GitHub upstream on Actions runners (npmmirror is for CN local builds).
+  # Prefer GitHub upstream on Actions runners.
   PBS_BASE_URL: https://github.com/astral-sh/python-build-standalone/releases/download/20251209
   PBS_TAG: "20251209"
   PBS_PY: "3.12.12"

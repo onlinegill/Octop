@@ -1265,7 +1265,7 @@ function ChatPageInner() {
                     }
                     setSidebarOpen(!sidebarOpen);
                   }}
-                  title={t("nav.chatHistory") || "会话列表"}
+                  title={t("nav.chatHistory") || "Conversation list"}
                 >
                   <PanelLeftOpen size={18} strokeWidth={1.8} />
                 </button>
@@ -1317,11 +1317,11 @@ function ChatPageInner() {
                         onClick={() => openFileList()}
                         title={t("chat.modifiedFiles", {
                           count: panelFilePaths.length,
-                          defaultValue: "已修改文件（{{count}}）",
+                          defaultValue: "File modified ({{count}})",
                         })}
                         aria-label={t("chat.modifiedFiles", {
                           count: panelFilePaths.length,
-                          defaultValue: "已修改文件（{{count}}）",
+                          defaultValue: "File modified ({{count}})",
                         })}
                       >
                         <FilePen size={18} strokeWidth={1.8} />
@@ -1495,7 +1495,7 @@ function ChatPageInner() {
                     <Tooltip
                       title={t("chat.modifiedFiles", {
                         count: panelFilePaths.length,
-                        defaultValue: "已修改文件（{{count}}）",
+                        defaultValue: "File modified ({{count}})",
                       })}
                       mouseEnterDelay={0.35}
                       placement="left"
@@ -1507,7 +1507,7 @@ function ChatPageInner() {
                           onClick={() => openFileList()}
                           aria-label={t("chat.modifiedFiles", {
                             count: panelFilePaths.length,
-                            defaultValue: "已修改文件（{{count}}）",
+                            defaultValue: "File modified ({{count}})",
                           })}
                         >
                           <FilePen size={20} strokeWidth={2.1} />

@@ -72,12 +72,6 @@ def test_parse_plain_text_and_markdown(tmp_path: Path) -> None:
     assert parse_document(markdown) == "# Heading\n\nbody"
 
 
-def test_parse_gbk_plain_text_without_mojibake(tmp_path: Path) -> None:
-    path = tmp_path / "notes.txt"
-    path.write_bytes("知识库编码检测".encode("gbk"))
-    assert parse_document(path) == "知识库编码检测"
-
-
 def test_parse_utf8_plain_text_still_preferred(tmp_path: Path) -> None:
     path = tmp_path / "notes.txt"
     path.write_text("café", encoding="utf-8")
@@ -112,21 +106,21 @@ def test_parse_pdf_docx_and_pptx(tmp_path: Path) -> None:
 
 def test_parse_docx_reads_tables_content_controls_and_revisions(tmp_path: Path) -> None:
     body = (
-        _docx_paragraph("发布说明")
+        _docx_paragraph("Release notes")
         + "<w:p/>"
-        + f"<w:tbl><w:tr><w:tc>{_docx_paragraph('第一章 总则')}</w:tc></w:tr></w:tbl>"
-        + f"<w:sdt><w:sdtContent>{_docx_paragraph('第一条 为了规范')}</w:sdtContent></w:sdt>"
+        + f"<w:tbl><w:tr><w:tc>{_docx_paragraph('Chapter 1 General provisions')}</w:tc></w:tr></w:tbl>"
+        + f"<w:sdt><w:sdtContent>{_docx_paragraph('Article 1 Scope')}</w:sdtContent></w:sdt>"
         + '<w:ins w:id="1" w:author="u" w:date="2026-08-27T00:00:00Z">'
-        + f"{_docx_paragraph('第二条 本办法适用于')}</w:ins>"
+        + f"{_docx_paragraph('Article 2 Applicability')}</w:ins>"
     )
     path = _docx_with_body(tmp_path / "nested.docx", body)
 
-    assert parse_document(path) == "发布说明\n\n第一章 总则\n第一条 为了规范\n第二条 本办法适用于"
+    assert parse_document(path) == "Release notes\n\nChapter 1 General provisions\nArticle 1 Scope\nArticle 2 Applicability"
 
 
 def test_parse_docx_reads_text_box_once(tmp_path: Path) -> None:
-    text_box = f"<w:txbxContent>{_docx_paragraph('文本框内容')}</w:txbxContent>"
-    body = _docx_paragraph("正文段落") + (
+    text_box = f"<w:txbxContent>{_docx_paragraph('Text box content')}</w:txbxContent>"
+    body = _docx_paragraph("Body paragraph") + (
         "<w:p><w:r><mc:AlternateContent>"
         f'<mc:Choice Requires="wps"><wps:txbx>{text_box}</wps:txbx></mc:Choice>'
         f"<mc:Fallback><v:textbox>{text_box}</v:textbox></mc:Fallback>"
@@ -134,29 +128,29 @@ def test_parse_docx_reads_text_box_once(tmp_path: Path) -> None:
     )
     path = _docx_with_body(tmp_path / "textbox.docx", body)
 
-    assert parse_document(path) == "正文段落\n\n文本框内容"
+    assert parse_document(path) == "Body paragraph\n\nText box content"
 
 
 def test_parse_docx_expands_html_alt_chunk(tmp_path: Path) -> None:
-    chunk = "<html><body><p>第一章 总则</p><p>第一条 为了规范</p></body></html>".encode()
+    chunk = "<html><body><p>Chapter 1 General provisions</p><p>Article 1 Scope</p></body></html>".encode()
     path = _docx_with_body(
         tmp_path / "html_chunk.docx",
-        _docx_paragraph("发布说明") + '<w:altChunk r:id="rId99"/>',
+        _docx_paragraph("Release notes") + '<w:altChunk r:id="rId99"/>',
         alt_chunk=("chunk.xhtml", "application/xhtml+xml", chunk),
     )
 
-    assert parse_document(path) == "发布说明\n第一章 总则\n第一条 为了规范"
+    assert parse_document(path) == "Release notes\nChapter 1 General provisions\nArticle 1 Scope"
 
 
 def test_parse_docx_expands_word_alt_chunk(tmp_path: Path) -> None:
-    nested = _docx_with_body(tmp_path / "nested.docx", _docx_paragraph("嵌套正文"))
+    nested = _docx_with_body(tmp_path / "nested.docx", _docx_paragraph("Nested body"))
     path = _docx_with_body(
         tmp_path / "word_chunk.docx",
-        _docx_paragraph("发布说明") + '<w:altChunk r:id="rId99"/>',
+        _docx_paragraph("Release notes") + '<w:altChunk r:id="rId99"/>',
         alt_chunk=("chunk.docx", _DOCX_MAIN_TYPE, nested.read_bytes()),
     )
 
-    assert parse_document(path) == "发布说明\n嵌套正文"
+    assert parse_document(path) == "Release notes\nNested body"
 
 
 def test_parse_csv_xlsx_and_xls(tmp_path: Path) -> None:

@@ -11,38 +11,20 @@ from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel, Field
 
 from octop.api.deps import get_server, require_permission
-from octop.infra.agents.experts.skillhub_market import (
-    SkillHubMarketError,
-    SkillHubMarketErrorKind,
-)
 from octop.infra.db.repos.skill_packages import SkillPackageRow
 from octop.infra.errors import ErrorCode, OctopError
 from octop.infra.server import OctopServer
 from octop.infra.skills.install import valid_skillhub_icon_url
-from octop.infra.skills.skill_package_from_skillhub import create_package_from_skillhub
 from octop.infra.skills.skill_package_store import (
     SkillPackageStore,
     is_skill_package_name_conflict,
     raise_skill_package_name_taken,
 )
-from octop.infra.skills.skillhub_market import SkillHubMarketError as SkillHubDownloadError
 from octop.infra.users.identity import User
 from octop.infra.utils.frontmatter import parse_frontmatter
 from octop.infra.utils.locale import Locale, resolve_request_locale
 
 router = APIRouter(prefix="/skill-packages")
-
-_SAFE_SKILLHUB_REASONS: dict[SkillHubMarketErrorKind, str] = {
-    SkillHubMarketErrorKind.NOT_FOUND: "skillset not found",
-    SkillHubMarketErrorKind.INVALID_SLUG: "invalid skillset id",
-    SkillHubMarketErrorKind.UPSTREAM_TIMEOUT: "upstream timeout",
-    SkillHubMarketErrorKind.UPSTREAM_BAD_PAYLOAD: "invalid upstream response",
-    SkillHubMarketErrorKind.PACKAGE_INVALID: "invalid skillset package",
-    SkillHubMarketErrorKind.PACKAGE_TOO_LARGE: "skillset package too large",
-    SkillHubMarketErrorKind.UPSTREAM_FAILED: "upstream request failed",
-    SkillHubMarketErrorKind.SSL_ERROR: "ssl error",
-}
-
 
 class CreateSkillPackageBody(BaseModel):
     name: str
@@ -60,14 +42,6 @@ class UpdateSkillPackageBody(BaseModel):
         default=None,
         description="Who may copy this package's skills into a workspace (#770).",
     )
-
-
-class FromSkillHubBody(BaseModel):
-    slug: str
-    name: str | None = None
-    description: str | None = None
-    icon_name: str | None = None
-    icon_url: str | None = None
 
 
 class SkillFilePart(BaseModel):
@@ -116,20 +90,6 @@ def _files_from_package_skill_body(
 
 def _package_skill_exists(store: SkillPackageStore, package_id: str, slug: str) -> bool:
     return (store.package_skills_dir(package_id) / slug / "SKILL.md").is_file()
-
-
-class LocalizedSkillCopy(BaseModel):
-    zh: str | None = None
-    en: str | None = None
-
-
-class HubInstallPackageSkillBody(BaseModel):
-    skill_name: str
-    display_name: str | None = None
-    icon_url: str | None = None
-    label: LocalizedSkillCopy | None = None
-    summary: LocalizedSkillCopy | None = None
-    overwrite: bool = False
 
 
 def _store(server: OctopServer) -> SkillPackageStore:
@@ -209,32 +169,8 @@ def _required(value: str, field: str) -> str:
 def _icon_url(value: str) -> str:
     value = value.strip()
     if value and not valid_skillhub_icon_url(value):
-        raise OctopError(ErrorCode.SLASH_BAD_ARGS, "invalid SkillHub icon URL")
+        raise OctopError(ErrorCode.SLASH_BAD_ARGS, "invalid icon URL")
     return value
-
-
-def _map_skillhub_error(exc: BaseException) -> OctopError:
-    kind = getattr(exc, "kind", SkillHubMarketErrorKind.UPSTREAM_FAILED)
-    if kind in (
-        SkillHubMarketErrorKind.NOT_FOUND,
-        SkillHubMarketErrorKind.INVALID_SLUG,
-    ):
-        return OctopError(ErrorCode.NOT_FOUND, "skillhub skillset not found")
-    if kind == SkillHubMarketErrorKind.SSL_ERROR:
-        return OctopError(
-            ErrorCode.SKILLHUB_SSL_FAILED,
-            "skillhub ssl error",
-            details={"reason": "ssl_error", "kind": kind.value},
-        )
-    reason = _SAFE_SKILLHUB_REASONS.get(
-        kind,
-        _SAFE_SKILLHUB_REASONS[SkillHubMarketErrorKind.UPSTREAM_FAILED],
-    )
-    return OctopError(
-        ErrorCode.EXPERT_MARKET_FAILED,
-        f"skillhub market failed: {reason}",
-        details={"reason": reason, "kind": kind.value},
-    )
 
 
 def _package_skill_or_404(
@@ -272,50 +208,6 @@ async def list_skill_packages(
     ]
 
 
-@router.get("/hub/search", summary="Search SkillHub for installing into packages")
-async def package_hub_search(
-    q: str = "",
-    limit: int = 50,
-    _user: User = Depends(require_permission("skill_packages")),
-) -> list[dict[str, Any]]:
-    from fastapi import HTTPException  # noqa: PLC0415
-
-    from octop.infra.skills.skillhub_market import (  # noqa: PLC0415
-        SkillHubMarketError,
-        search_skillhub,
-    )
-
-    query = q.strip() or "a"
-    effective_limit = max(1, min(limit, 100))
-    try:
-        return await search_skillhub(query, limit=effective_limit)
-    except SkillHubMarketError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-
-@router.get("/hub/rankings", summary="SkillHub rankings for installing into packages")
-async def package_hub_rankings(
-    type: str = "all",
-    _user: User = Depends(require_permission("skill_packages")),
-) -> dict[str, Any]:
-    from fastapi import HTTPException  # noqa: PLC0415
-
-    from octop.infra.skills.skillhub_market import (  # noqa: PLC0415
-        SkillHubMarketError,
-        SkillHubMarketTimeout,
-        fetch_skillhub_rankings,
-    )
-
-    ranking_types = {"all", "hot", "featured", "newest", "recommended", "trending", "paid"}
-    rtype = type if type in ranking_types else "all"
-    try:
-        return await fetch_skillhub_rankings(rtype)
-    except SkillHubMarketTimeout as exc:
-        raise HTTPException(status_code=504, detail=str(exc)) from exc
-    except SkillHubMarketError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-
 @router.post("", summary="Create a global skill package")
 async def create_skill_package(
     body: CreateSkillPackageBody,
@@ -337,33 +229,6 @@ async def create_skill_package(
             raise_skill_package_name_taken(name)
         raise
     return _package_payload_with_creator(server, store, row)
-
-
-@router.post(
-    "/from-skillhub",
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a skill package from a SkillHub skillset",
-)
-async def create_from_skillhub(
-    body: FromSkillHubBody,
-    server: OctopServer = Depends(get_server),
-    user: User = Depends(require_permission("skill_packages")),
-) -> dict[str, Any]:
-    store = _store(server)
-    try:
-        result = await asyncio.to_thread(
-            create_package_from_skillhub,
-            store,
-            slug=_required(body.slug, "slug"),
-            created_by=str(user.id),
-            name=body.name.strip() if body.name is not None else None,
-            description=body.description.strip() if body.description is not None else None,
-            icon_name=body.icon_name.strip() if body.icon_name is not None else None,
-            icon_url=_icon_url(body.icon_url) if body.icon_url is not None else None,
-        )
-    except (SkillHubMarketError, SkillHubDownloadError) as exc:
-        raise _map_skillhub_error(exc) from exc
-    return _package_payload_with_creator(server, store, result.row)
 
 
 @router.get("/{package_id}", summary="Get a global skill package and its skills")
@@ -661,119 +526,3 @@ async def import_package_skill(
         ) from exc
 
     return _package_skill_or_404(store, package_id, package.slug)
-
-
-@router.post(
-    "/{package_id}/skills/hub/install",
-    status_code=status.HTTP_201_CREATED,
-    summary="Install a SkillHub skill into a global skill package",
-)
-async def hub_install_package_skill(
-    package_id: str,
-    body: HubInstallPackageSkillBody,
-    request: Request,
-    server: OctopServer = Depends(get_server),
-    user: User = Depends(require_permission("skill_packages")),
-) -> dict[str, Any]:
-    from fastapi import HTTPException  # noqa: PLC0415
-
-    from octop.infra.skills.install import (  # noqa: PLC0415
-        SkillAlreadyExistsError,
-        install_skill_from_skillhub,
-        valid_skillhub_icon_url,
-    )
-    from octop.infra.skills.skill_packages import (  # noqa: PLC0415
-        SkillPackageError,
-        SkillPackageTooLarge,
-        validate_skill_slug,
-    )
-    from octop.infra.skills.skillhub_market import (  # noqa: PLC0415
-        SkillHubMarketError,
-        SkillHubPackageError,
-        SkillHubPackageTooLarge,
-        download_skillhub_package,
-    )
-
-    locale = resolve_request_locale(request)
-    store = _store(server)
-    row = _package_or_404(store, package_id, locale=locale)
-    store.assert_can_mutate(row, user)
-
-    try:
-        skill_name = validate_skill_slug(body.skill_name)
-    except SkillPackageError:
-        raise HTTPException(
-            status_code=400,
-            detail="skill_name is required and must not contain path separators or start with .",
-        ) from None
-
-    display_name = (body.display_name or "").strip()
-    icon_url = (body.icon_url or "").strip()
-    label = (
-        {key: value.strip() for key, value in body.label.model_dump().items() if value}
-        if body.label
-        else {}
-    )
-    summary = (
-        {key: value.strip() for key, value in body.summary.model_dump().items() if value}
-        if body.summary
-        else {}
-    )
-    if len(display_name) > 200:
-        raise HTTPException(status_code=400, detail="display_name is too long")
-    if any(len(value) > 200 for value in label.values()):
-        raise HTTPException(status_code=400, detail="localized skill label is too long")
-    if any(len(value) > 1024 for value in summary.values()):
-        raise HTTPException(status_code=400, detail="localized skill summary is too long")
-    if len(icon_url) > 2048 or (icon_url and not valid_skillhub_icon_url(icon_url)):
-        raise HTTPException(status_code=400, detail="icon_url must be an HTTP(S) URL")
-
-    target = _PackageInstallTarget(store=store, package_id=package_id, server=server)
-    transport = "http"
-    try:
-        files = await download_skillhub_package(skill_name)
-    except SkillHubPackageTooLarge as exc:
-        raise HTTPException(status_code=413, detail=str(exc)) from exc
-    except SkillHubPackageError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-    except SkillHubMarketError:
-        transport = "cli"
-        from octop.api.routers.skills import (  # noqa: PLC0415
-            _download_skillhub_package_via_cli,
-        )
-
-        try:
-            files = await _download_skillhub_package_via_cli(skill_name)
-        except (SkillHubPackageTooLarge, SkillPackageTooLarge) as package_exc:
-            raise HTTPException(status_code=413, detail=str(package_exc)) from package_exc
-        except (SkillHubPackageError, SkillPackageError) as package_exc:
-            raise HTTPException(status_code=502, detail=str(package_exc)) from package_exc
-
-    try:
-        await install_skill_from_skillhub(
-            target,
-            skill_name=skill_name,
-            files=files,
-            display_name=display_name,
-            icon_url=icon_url,
-            label=label,
-            summary=summary,
-            overwrite=body.overwrite,
-        )
-    except SkillAlreadyExistsError as exc:
-        raise OctopError.localized(
-            ErrorCode.SKILL_ALREADY_EXISTS,
-            locale,
-            name=exc.slug,
-        ) from exc
-    except SkillPackageTooLarge as exc:
-        raise HTTPException(status_code=413, detail=str(exc)) from exc
-    except SkillPackageError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-    return {
-        "installed": True,
-        "name": skill_name,
-        "transport": transport,
-        "skill": _package_skill_or_404(store, package_id, skill_name, locale=locale),
-    }

@@ -12,7 +12,7 @@ from octop.i18n.domains.agents import (
 
 
 def test_agent_state_label_failed_zh() -> None:
-    assert agent_state_label("failed", "zh") == "启动失败"
+    assert agent_state_label("failed", "zh") == "Start failed"
 
 
 def test_agent_state_label_failed_en() -> None:
@@ -24,20 +24,20 @@ def test_agent_state_label_unknown_state_passthrough() -> None:
 
 
 def test_agent_error_message_octop_key_zh() -> None:
-    assert "管理" in agent_error_message(NO_MODELS_CONFIGURED, "zh")
+    assert "Model Management" in agent_error_message(NO_MODELS_CONFIGURED, "zh")
 
 
 def test_agent_error_message_model_ref_key_zh() -> None:
-    assert "默认模型" in agent_error_message(MODEL_REF_UNAVAILABLE, "zh")
+    assert "default model" in agent_error_message(MODEL_REF_UNAVAILABLE, "zh").lower()
 
 
 def test_agent_error_message_start_timeout_zh() -> None:
-    assert "超时" in agent_error_message(AGENT_START_TIMEOUT, "zh")
+    assert "too long to start" in agent_error_message(AGENT_START_TIMEOUT, "zh").lower()
 
 
 def test_agent_error_message_raw_harness_zh() -> None:
     msg = "Unknown provider 'x' in model ref 'x/y'"
-    assert "默认模型" in agent_error_message(msg, "zh")
+    assert "default model" in agent_error_message(msg, "zh").lower()
 
 
 def test_classify_no_enabled_models() -> None:

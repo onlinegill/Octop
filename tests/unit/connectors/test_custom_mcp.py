@@ -186,7 +186,7 @@ def test_enabled_harness_configs_filters_disabled():
             "on": {
                 "transport": "streamable_http",
                 "url": "https://mcp.example.com/mcp",
-                "display_name": "示例搜索",
+                "display_name": "Example search",
             },
             "off": {
                 "transport": "stdio",
@@ -210,15 +210,15 @@ def test_display_name_normalized_and_used_in_list_api(svc: ConnectorService, db:
             "http-server-1": {
                 "transport": "streamable_http",
                 "url": "https://mcp.example.com/mcp",
-                "display_name": "  我的知识库  ",
+                "display_name": "  My knowledge base  ",
             },
         },
     )
-    assert servers["http-server-1"]["display_name"] == "我的知识库"
+    assert servers["http-server-1"]["display_name"] == "My knowledge base"
     listed = svc.list_instances_for_api(uid)
     assert len(listed) == 1
     assert listed[0]["mcp_server_name"] == "http-server-1"
-    assert listed[0]["display_name"] == "我的知识库"
+    assert listed[0]["display_name"] == "My knowledge base"
 
 
 def test_harness_spec_stdio_default_args():

@@ -327,8 +327,8 @@ class OctopServer:
         if self._started:
             return
         self.paths.ensure_root()
-        # fnOS/容器内非 root 用户场景：把用户级 npm 全局 bin 目录（~/.npm-global）
-        # 纳入进程 PATH，保证连接器 CLI（wecom-cli / lark-cli）可被检测与调用。
+        # Non-root user on fnOS/containers: put the user-level npm global bin dir (~/.npm-global)
+        # on the process PATH so connector CLIs can be detected and called.
         from octop.infra.connectors.gateway.cli_install import ensure_cli_path  # noqa: PLC0415
 
         ensure_cli_path()
@@ -610,9 +610,6 @@ class OctopServer:
         if not self._started:
             return
         try:
-            from octop.infra.connectors.gateway import agently_auth
-
-            await agently_auth.close()
             if self.app_runtime is not None:
                 rt = self.app_runtime
                 await rt.proactive_scheduler.shutdown()

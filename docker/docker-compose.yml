@@ -1,22 +1,22 @@
 # =============================================================================
 # Octop — Docker Compose
 #
-# 用法（在仓库根目录执行）:
+# Usage (run from the repo root):
 #   docker compose -f docker/docker-compose.yml up -d
 #   OCTOP_PORT=9090 docker compose -f docker/docker-compose.yml up -d
 #   OCTOP_DEFAULT_PASSWORD=<your-strong-password> docker compose -f docker/docker-compose.yml up -d
 #
-# 可在 docker/ 目录放置 .env 文件，例如:
+# You can place a .env file in docker/, e.g.:
 #   OCTOP_PORT=9090
 #   OCTOP_DEFAULT_PASSWORD=<your-strong-password>
 #   OCTOP_ADMIN_USERNAME=admin
 #   OCTOP_DATABASE_DRIVER=postgresql
 #   OCTOP_DATABASE_URL=postgresql://octop:octop@host.docker.internal:5432/octop
 #
-# 注意: docker/.env 仅用于 Compose 插值；变量必须列在下方 environment
-# 才会进入容器。也可写入数据卷内的 ~/.octop/env（宿主机挂载目录下的 env）。
-# 密码须 ≥8 位且同时包含字母与数字（与控制台改密策略一致）。
-# 后续计划：首次启动可改为随机生成密码并写入 credential.txt。
+# Note: docker/.env is only used for Compose interpolation; variables must be listed under environment below
+# to reach the container. You can also write ~/.octop/env inside the data volume.
+# The password must be >=8 chars with both letters and digits (same as the console change-password policy).
+# Future plan: first start may generate a random password and write it to credential.txt.
 # =============================================================================
 
 services:
@@ -48,7 +48,6 @@ services:
       - OCTOP_DATABASE_USER=${OCTOP_DATABASE_USER:-}
       - OCTOP_DATABASE_PASSWORD=${OCTOP_DATABASE_PASSWORD:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}
       - LANGFUSE_TRACING_ENABLED=${LANGFUSE_TRACING_ENABLED:-true}
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}

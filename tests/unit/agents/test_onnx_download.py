@@ -13,8 +13,6 @@ import httpx
 
 from octop.infra.agents.providers.onnx_catalog import get_onnx_model_meta
 from octop.infra.agents.providers.onnx_download import (
-    COS_ENDPOINT_DEFAULT,
-    HF_ENDPOINT_MIRROR,
     HF_ENDPOINT_OFFICIAL,
     DownloadCandidate,
     build_download_candidates,
@@ -23,6 +21,9 @@ from octop.infra.agents.providers.onnx_download import (
     export_model_tree_for_cos,
     race_download_sources,
 )
+
+# A neutral stand-in for a second, non-official origin in race tests.
+_ALT_ENDPOINT = "https://hf.example.test"
 
 
 def test_bge_small_zh_infers_hf_repo_without_fastembed(monkeypatch) -> None:
@@ -34,38 +35,46 @@ def test_bge_small_zh_infers_hf_repo_without_fastembed(monkeypatch) -> None:
     assert "direct_url" not in meta
 
 
-def test_candidates_are_cos_hf_and_mirror_with_inferred_urls(monkeypatch) -> None:
+def test_candidates_default_to_official_hf_only(monkeypatch) -> None:
+    """With no user-configured origin there is exactly one candidate: HF."""
     from octop.infra.agents.providers import onnx_catalog as catalog
 
     monkeypatch.setattr(catalog, "_fastembed_meta_map", lambda: {})
+    monkeypatch.delenv("OCTOP_ONNX_COS_BASE", raising=False)
     cands = build_download_candidates("BAAI/bge-small-zh-v1.5")
-    assert [c.kind for c in cands] == ["cos", "hf", "hf-mirror"]
+    assert [c.kind for c in cands] == ["hf"]
     assert cands[0].probe_url == (
-        f"{COS_ENDPOINT_DEFAULT}/models/embedding/BAAI/bge-small-zh-v1.5/config.json"
-    )
-    assert cands[1].probe_url == (
         f"{HF_ENDPOINT_OFFICIAL}/Qdrant/bge-small-zh-v1.5/resolve/main/config.json"
     )
-    assert cands[2].probe_url == (
-        f"{HF_ENDPOINT_MIRROR}/Qdrant/bge-small-zh-v1.5/resolve/main/config.json"
-    )
     assert cands[0].hf_repo == "Qdrant/bge-small-zh-v1.5"
+    assert cands[0].hf_endpoint == HF_ENDPOINT_OFFICIAL
+
+
+def test_candidates_prepend_user_configured_origin(monkeypatch) -> None:
+    """An explicitly configured bucket is prepended ahead of official HF."""
+    from octop.infra.agents.providers import onnx_catalog as catalog
+
+    monkeypatch.setattr(catalog, "_fastembed_meta_map", lambda: {})
+    monkeypatch.setenv("OCTOP_ONNX_COS_BASE", "https://storage.example.com")
+    cands = build_download_candidates("BAAI/bge-small-zh-v1.5")
+    assert [c.kind for c in cands] == ["cos", "hf"]
+    assert cands[0].probe_url == (
+        "https://storage.example.com/models/embedding/BAAI/bge-small-zh-v1.5/config.json"
+    )
     assert cands[1].hf_endpoint == HF_ENDPOINT_OFFICIAL
-    assert cands[2].hf_endpoint == HF_ENDPOINT_MIRROR
 
 
 def test_unknown_model_uses_model_id_as_hf_repo(monkeypatch) -> None:
     from octop.infra.agents.providers import onnx_catalog as catalog
 
     monkeypatch.setattr(catalog, "_fastembed_meta_map", lambda: {})
+    monkeypatch.delenv("OCTOP_ONNX_COS_BASE", raising=False)
     cands = build_download_candidates("jinaai/jina-embeddings-v2-base-zh")
-    assert [c.kind for c in cands] == ["cos", "hf", "hf-mirror"]
-    assert cands[1].hf_repo == "jinaai/jina-embeddings-v2-base-zh"
-    assert cands[0].probe_url == cos_file_url("jinaai/jina-embeddings-v2-base-zh", "config.json")
-    assert cands[1].probe_url.startswith(
+    assert [c.kind for c in cands] == ["hf"]
+    assert cands[0].hf_repo == "jinaai/jina-embeddings-v2-base-zh"
+    assert cands[0].probe_url.startswith(
         f"{HF_ENDPOINT_OFFICIAL}/jinaai/jina-embeddings-v2-base-zh/"
     )
-    assert cands[2].probe_url.startswith(f"{HF_ENDPOINT_MIRROR}/jinaai/jina-embeddings-v2-base-zh/")
 
 
 def test_race_orders_by_ttfb_and_skips_failures() -> None:
@@ -77,9 +86,9 @@ def test_race_orders_by_ttfb_and_skips_failures() -> None:
             hf_repo="org/model",
         ),
         DownloadCandidate(
-            kind="hf-mirror",
-            probe_url="http://mirror",
-            hf_endpoint=HF_ENDPOINT_MIRROR,
+            kind="alt",
+            probe_url="http://alt",
+            hf_endpoint=_ALT_ENDPOINT,
             hf_repo="org/model",
         ),
     ]
@@ -90,7 +99,9 @@ def test_race_orders_by_ttfb_and_skips_failures() -> None:
         return 0.12
 
     ranked = race_download_sources(cands, probe=probe)
-    assert [c.kind for c in ranked] == ["hf-mirror", "hf"]
+    # The blocked official probe is skipped; the surviving origin leads the
+    # fallback list and the failed one is kept last so a full download can retry.
+    assert [c.kind for c in ranked] == ["alt", "hf"]
 
 
 def test_race_returns_before_slow_probe_finishes() -> None:
@@ -102,9 +113,9 @@ def test_race_returns_before_slow_probe_finishes() -> None:
             hf_repo="org/model",
         ),
         DownloadCandidate(
-            kind="hf-mirror",
-            probe_url="http://mirror",
-            hf_endpoint=HF_ENDPOINT_MIRROR,
+            kind="alt",
+            probe_url="http://alt",
+            hf_endpoint=_ALT_ENDPOINT,
             hf_repo="org/model",
         ),
     ]
@@ -123,7 +134,7 @@ def test_race_returns_before_slow_probe_finishes() -> None:
     finally:
         release.set()
 
-    assert [c.kind for c in ranked] == ["hf-mirror", "hf"]
+    assert [c.kind for c in ranked] == ["alt", "hf"]
     assert elapsed < 0.5
 
 
@@ -136,9 +147,9 @@ def test_race_keeps_catalog_order_when_all_probes_fail() -> None:
             hf_repo="org/model",
         ),
         DownloadCandidate(
-            kind="hf-mirror",
-            probe_url="http://mirror",
-            hf_endpoint=HF_ENDPOINT_MIRROR,
+            kind="alt",
+            probe_url="http://alt",
+            hf_endpoint=_ALT_ENDPOINT,
             hf_repo="org/model",
         ),
     ]
@@ -147,7 +158,7 @@ def test_race_keeps_catalog_order_when_all_probes_fail() -> None:
         raise OSError("offline")
 
     ranked = race_download_sources(cands, probe=probe)
-    assert [c.kind for c in ranked] == ["hf", "hf-mirror"]
+    assert [c.kind for c in ranked] == ["hf", "alt"]
 
 
 def test_download_uses_winner_then_falls_back(monkeypatch, tmp_path: Path) -> None:
@@ -161,9 +172,9 @@ def test_download_uses_winner_then_falls_back(monkeypatch, tmp_path: Path) -> No
             hf_repo="Qdrant/bge-small-zh-v1.5",
         ),
         DownloadCandidate(
-            kind="hf-mirror",
-            probe_url="http://mirror",
-            hf_endpoint=HF_ENDPOINT_MIRROR,
+            kind="alt",
+            probe_url="http://alt",
+            hf_endpoint=_ALT_ENDPOINT,
             hf_repo="Qdrant/bge-small-zh-v1.5",
         ),
     ]
@@ -179,8 +190,8 @@ def test_download_uses_winner_then_falls_back(monkeypatch, tmp_path: Path) -> No
 
     monkeypatch.setattr(mod, "_download_hf_snapshot", fake_download)
     winner = download_model_raced("BAAI/bge-small-zh-v1.5", tmp_path)
-    assert winner == "hf-mirror"
-    assert tried == ["hf", "hf-mirror"]
+    assert winner == "alt"
+    assert tried == ["hf", "alt"]
 
 
 def test_hf_snapshot_emits_tqdm_byte_progress(monkeypatch, tmp_path: Path) -> None:
@@ -208,9 +219,9 @@ def test_hf_snapshot_emits_tqdm_byte_progress(monkeypatch, tmp_path: Path) -> No
 
     _download_hf_snapshot(
         DownloadCandidate(
-            kind="hf-mirror",
-            probe_url="http://mirror",
-            hf_endpoint=HF_ENDPOINT_MIRROR,
+            kind="alt",
+            probe_url="http://alt",
+            hf_endpoint=_ALT_ENDPOINT,
             hf_repo="Qdrant/bge-small-zh-v1.5",
         ),
         tmp_path / "cache",
@@ -243,9 +254,9 @@ def test_snapshot_disables_xet_before_hub_import(monkeypatch, tmp_path: Path) ->
 
     mod._download_hf_snapshot(
         DownloadCandidate(
-            kind="hf-mirror",
-            probe_url="http://mirror",
-            hf_endpoint=HF_ENDPOINT_MIRROR,
+            kind="alt",
+            probe_url="http://alt",
+            hf_endpoint=_ALT_ENDPOINT,
             hf_repo="Qdrant/bge-small-zh-v1.5",
         ),
         tmp_path / "cache",
@@ -253,7 +264,7 @@ def test_snapshot_disables_xet_before_hub_import(monkeypatch, tmp_path: Path) ->
 
     assert seen["env"] == "1"
     assert seen["const"] is True
-    assert seen["endpoint"] == HF_ENDPOINT_MIRROR
+    assert seen["endpoint"] == _ALT_ENDPOINT
 
 
 def test_cos_base_env_override(monkeypatch) -> None:
@@ -265,6 +276,9 @@ def test_cos_base_env_override(monkeypatch) -> None:
 
 def test_cos_download_writes_hf_cache(monkeypatch, tmp_path: Path) -> None:
     from octop.infra.agents.providers.onnx_download import _download_cos_snapshot
+
+    # COS downloads are opt-in: no origin is bundled, so configure one explicitly.
+    monkeypatch.setenv("OCTOP_ONNX_COS_BASE", "https://storage.example.com")
 
     files = {
         "files.json": json.dumps(
@@ -312,6 +326,9 @@ def test_cos_download_writes_hf_cache(monkeypatch, tmp_path: Path) -> None:
 
 def test_cos_download_rejects_parent_paths(monkeypatch, tmp_path: Path) -> None:
     from octop.infra.agents.providers.onnx_download import _download_cos_snapshot
+
+    # COS downloads are opt-in: configure an origin so URLs are absolute.
+    monkeypatch.setenv("OCTOP_ONNX_COS_BASE", "https://storage.example.com")
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("files.json"):

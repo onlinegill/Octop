@@ -84,7 +84,7 @@ class WebSocketChannel(BaseChannel):
         return f"{message.tenant_id or ''}:{subject_id}"
 
     def should_batch_inbound(self, message: InboundMessage) -> bool:  # noqa: ARG002
-        # Never concatenate two dashboard user_turns (would look like 串流).
+        # Never concatenate two dashboard user_turns (would look like interleaved streams).
         return False
 
     async def handle_inbound(self, raw_payload: Any) -> None:
@@ -109,7 +109,7 @@ class WebSocketChannel(BaseChannel):
 
         self._track_subject(message)
         # Per-turn routing copy: do not write thread_id onto the shared
-        # ChannelSubject (keyed by user), or concurrent threads 串流 via _send_*.
+        # ChannelSubject (keyed by user), or concurrent threads interleave via _send_*.
         subject_id = message.channel_subject.subject_id if message.channel_subject else ""
         tracked = self._known_subjects.get(subject_id) or ChannelSubject(
             subject_id=subject_id,

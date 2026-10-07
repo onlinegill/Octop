@@ -164,7 +164,7 @@ describe("<ChannelsPanel /> create-flow default", () => {
 
   async function openTelegramCreateDrawer() {
     render(<ChannelsPanel agentId="ag1" />);
-    // Telegram is collapsed behind "更多通道" until expanded.
+    // Telegram is collapsed behind "More channels" until expanded.
     await userEvent.click(
       await screen.findByRole("button", {
         name: /channels\.showMoreChannels/,

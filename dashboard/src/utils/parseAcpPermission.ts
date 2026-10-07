@@ -59,7 +59,7 @@ export function buildAcpPermissionRespondMessage(
 ): string {
   const runnerPart = runner ? `runner="${runner}", ` : "";
   return (
-    `请调用 acp_runner 回应外部 ACP 权限请求：` +
+    `Please call acp_runner Respond to external ACP Permission request:` +
     `action="respond", ${runnerPart}message="${optionId}"`
   );
 }

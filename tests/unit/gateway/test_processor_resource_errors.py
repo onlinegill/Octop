@@ -93,11 +93,11 @@ async def test_iter_turn_chunks_persists_partial_output_and_error() -> None:
     texts = [_wire_text(item) for item in appended[0]]
     assert any("continue this" in text for text in texts)
     assert "partial answer" in texts
-    assert any("余额" in text or "insufficient" in text.lower() for text in texts)
+    assert any("insufficient" in text.lower() for text in texts)
     assert any(
         json.loads(item.message_json)["data"]["additional_kwargs"].get("octop_stream_error")
         for item in appended[0]
-        if "余额" in _wire_text(item) or "insufficient" in _wire_text(item).lower()
+        if "insufficient" in _wire_text(item).lower()
     )
     processor._thread_registry.touch_last_active.assert_called_with("thread-1")
 

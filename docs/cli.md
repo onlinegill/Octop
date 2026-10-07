@@ -210,9 +210,7 @@ forwards to `chats`.
 
 ## `octop channel`
 
-Local DB channel CRUD plus platform-specific bot creators. The
-`wecom` / `weixin` / `feishu-setup` subcommands drive the QR-code
-bot-creator flows; `config` is the offline config editor.
+Local DB channel CRUD. `config` is the offline config editor.
 
 ```
 Usage: octop channel [OPTIONS] COMMAND [ARGS]...
@@ -227,8 +225,6 @@ Commands:
   delete        Delete a channel.
   test          Test a channel (instantiate → start → stop).
   config        Edit channel config offline.
-  feishu-setup  Drive the Feishu bot-creator flow.
-  bind          Bind-group helper for WeCom / Weixin (QR login, etc.).
 ```
 
 ## `octop cron`

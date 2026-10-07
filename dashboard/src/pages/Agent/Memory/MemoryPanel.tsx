@@ -60,56 +60,56 @@ const TABS: TabDef[] = [
   {
     key: "overview",
     labelKey: "memory.tabs.overview",
-    fallback: "概览",
+    fallback: "Overview",
     icon: LayoutDashboard,
   },
   {
     key: "profile",
     labelKey: "memory.tabs.profile",
-    fallback: "用户画像",
+    fallback: "User portrait",
     icon: User,
   },
   {
     key: "library",
     labelKey: "memory.tabs.library",
-    fallback: "记忆树",
+    fallback: "Memory tree",
     icon: Network,
   },
   {
     key: "episodes",
     labelKey: "memory.tabs.episodes",
-    fallback: "情绪日记",
+    fallback: "Mood diary",
     icon: Heart,
   },
   {
     key: "candidates",
     labelKey: "memory.tabs.candidates",
-    fallback: "记忆沉淀",
+    fallback: "Memory precipitation",
     showPendingBadge: true,
     icon: Inbox,
   },
   {
     key: "journal",
     labelKey: "memory.tabs.journal",
-    fallback: "整理记录",
+    fallback: "Organize records",
     icon: ScrollText,
   },
   {
     key: "conversations",
     labelKey: "memory.conversationHistory",
-    fallback: "对话记录",
+    fallback: "Conversation record",
     icon: MessageSquare,
   },
   {
     key: "proactive",
     labelKey: "memory.tabs.proactive",
-    fallback: "主动关心",
+    fallback: "Take the initiative to care",
     icon: Bell,
   },
   {
     key: "settings",
     labelKey: "memory.tabs.settings",
-    fallback: "设置",
+    fallback: "Settings",
     icon: Settings,
   },
 ];
@@ -181,16 +181,16 @@ export default function MemoryPanel({
             {libraryView === "tree"
               ? t(
                   "memory.library.hintTree",
-                  "按人、项目、工具等主题，分组浏览相关记忆",
+                  "Browse related memories in groups according to topics such as people, projects, tools, etc.",
                 )
               : libraryView === "atoms"
               ? t(
                   "memory.library.hintAtoms",
-                  "扁平展示全部记忆，可按重要程度筛选",
+                  "Flat display of all memories, filterable by importance",
                 )
               : t(
                   "memory.library.hintRaw",
-                  "提炼前捕获的原始对话记忆（条数与「对话记录」不一一对应）",
+                  "The original dialogue memories captured before refining (the number does not correspond to the “dialogue record” one-to-one)",
                 )}
           </span>
         </div>

@@ -24,11 +24,11 @@ async def make_qrcode(content: str, scale: int = 8) -> str:
     """Encode text or a URL as a QR code image."""
     text = (content or "").strip()
     if not text:
-        return _payload({"error": "content is required"}, "请提供要编码的文本或链接。")
+        return _payload({"error": "content is required"}, "Please provide the text or link to encode.")
     if len(text) > _MAX_LEN:
         return _payload(
             {"error": "too long"},
-            f"内容过长（最多 {_MAX_LEN} 字符）。",
+            f"content too long (at most {_MAX_LEN} characters).",
         )
     scale_n = max(2, min(int(scale or 8), 16))
     buf = BytesIO()
@@ -38,7 +38,7 @@ async def make_qrcode(content: str, scale: int = 8) -> str:
     preview = text if len(text) <= 80 else text[:77] + "..."
     return _payload(
         {"content": text, "image_data_url": data_url},
-        f"已生成二维码（{len(text)} 字符）：{preview}",
+        f"QR code generated ({len(text)} characters): {preview}",
     )
 
 
@@ -46,5 +46,5 @@ def setup(ctx: PluginContext) -> None:
     ctx.tool(
         "make_qrcode",
         make_qrcode,
-        description="把文本或 URL 生成二维码。参数 content 必填，scale 为像素倍率（2–16，默认 8）。",
+        description="Turn text or a URL into a QR code. content is required; scale is the pixel multiplier (2–16, default 8).",
     )

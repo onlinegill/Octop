@@ -51,11 +51,11 @@ export function useVoiceOutput() {
   }, []);
 
   /**
-   * Stream the MiMo WAV response and schedule chunks as they arrive.
+   * Stream a WAV TTS response and schedule chunks as they arrive.
    * Returns false when streaming is unsupported or the response is not a
    * WAV — the caller then falls back to the buffered blob path.
    */
-  const speakMimoStream = useCallback(
+  const speakStreamedWav = useCallback(
     async (plain: string, gen: number) => {
       const player = new WavStreamPlayer();
       streamPlayerRef.current = player;
@@ -117,13 +117,9 @@ export function useVoiceOutput() {
 
   const speakWithServer = useCallback(
     async (plain: string, gen: number, provider?: string) => {
-      // MiMo streams a live WAV — play it chunk-by-chunk for low latency.
-      // Other providers stream MP3, which needs the buffered blob path.
-      const active = cachedActiveVoice();
-      const ttsProvider = provider ?? active?.tts;
-      if (ttsProvider === "mimo-tts" || ttsProvider === "mimo") {
-        if (await speakMimoStream(plain, gen)) return;
-      }
+      // Streamed-WAV providers flush live audio — play it chunk-by-chunk for
+      // low latency. Others stream MP3, which needs the buffered blob path.
+      if (await speakStreamedWav(plain, gen)) return;
 
       try {
         const blob = await voiceApi.synthesize(plain, provider);
@@ -163,7 +159,7 @@ export function useVoiceOutput() {
         finishSpeaking();
       }
     },
-    [finishSpeaking, speakMimoStream, t],
+    [finishSpeaking, speakStreamedWav, t],
   );
 
   const speakWithBrowser = useCallback(
@@ -176,7 +172,7 @@ export function useVoiceOutput() {
         onNoVoice: () => {
           if (playGenerationRef.current !== gen) return;
           if (!isMobileUserAgent()) {
-            antMessage.info(t("voice.browserNoChineseVoice"));
+            antMessage.info(t("voice.browserNoVoice", "No voice available in this browser"));
           }
           stopBrowserSpeech();
           void speakWithServer(plain, gen, "edge");

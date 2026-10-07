@@ -49,15 +49,15 @@ def _group_turn_text(
         if safe_id not in anonymous_labels:
             index = len(anonymous_labels) + 1
             anonymous_labels[safe_id] = (
-                f"群成员{index}" if language == "zh" else f"Group member {index}"
+                f"Group member {index}"
             )
         return anonymous_labels[safe_id]
 
     context_header = (
-        "【群聊背景｜仅供参考】" if language == "zh" else "[Group context | reference only]"
+        "[Group context | reference only]"
     )
     current_header = (
-        "【当前群消息｜请回复这条消息】"
+        "[Current group message | reply to this]"
         if language == "zh"
         else "[Current group message | reply to this]"
     )

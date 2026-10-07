@@ -18,15 +18,15 @@ from octop.infra.agents.middleware.octop_ui_offload import (
 
 def _request() -> MagicMock:
     req = MagicMock()
-    req.tool_call = {"name": "bilibili_search_anime", "args": {}, "id": "tc1"}
+    req.tool_call = {"name": "video_search_anime", "args": {}, "id": "tc1"}
     return req
 
 
 def _envelope(data: Any = None) -> dict[str, Any]:
     return {
-        "octop_ui": {"renderer": "bilibili_player", "version": 1},
+        "octop_ui": {"renderer": "video_player", "version": 1},
         "data": data,
-        "text": "找到 1 部番剧。",
+        "text": "Found 1 series.",
     }
 
 
@@ -35,12 +35,12 @@ def _big_data() -> dict[str, Any]:
         "results": [
             {
                 "season_id": 1,
-                "title": "凡人修仙传",
+                "title": "Sample Anime",
                 "episodes": [
                     {
                         "index": i,
                         "bvid": f"BV1xx4y1z{i:04d}",
-                        "long_title": f"第{i}话 标题",
+                        "long_title": f"Episode {i} title",
                     }
                     for i in range(1, 201)
                 ],
@@ -55,7 +55,7 @@ def _big_message() -> ToolMessage:
     return ToolMessage(
         content=content,
         tool_call_id="tc1",
-        name="bilibili_search_anime",
+        name="video_search_anime",
         id="msg-1",
     )
 
@@ -69,18 +69,18 @@ def test_offloads_oversized_octop_ui_payload_in_place() -> None:
     # Field preservation (id / tool_call_id / name / status).
     assert out.id == "msg-1"
     assert out.tool_call_id == "tc1"
-    assert out.name == "bilibili_search_anime"
+    assert out.name == "video_search_anime"
     assert out.status == "success"
 
     envelope = json.loads(out.content)
     assert "data" not in envelope
     assert envelope["data_ref"] == "artifact"
-    assert envelope["octop_ui"]["renderer"] == "bilibili_player"
-    assert envelope["text"] == "找到 1 部番剧。"
+    assert envelope["octop_ui"]["renderer"] == "video_player"
+    assert envelope["text"] == "Found 1 series."
     assert len(out.content) < _OFFLOAD_MIN_CHARS
 
     artifact = out.artifact
-    assert artifact["results"][0]["title"] == "凡人修仙传"
+    assert artifact["results"][0]["title"] == "Sample Anime"
     assert len(artifact["results"][0]["episodes"]) == 200
 
 

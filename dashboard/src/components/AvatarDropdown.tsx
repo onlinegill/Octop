@@ -47,9 +47,6 @@ import type { OctopUser } from "../api/modules/auth";
 import { useLayoutMode } from "../context/LayoutModeContext";
 import type { LayoutMode } from "../layouts/layoutModeStorage";
 import { userCan } from "../utils/permissions";
-import feishuIcon from "../assets/channels/feishu.svg";
-import dingtalkIcon from "../assets/channels/dingtalk.svg";
-import wecomIcon from "../assets/channels/wecom.svg";
 import {
   ProfileAvatar,
   ProfileAvatarPicker,
@@ -65,17 +62,8 @@ const PASSWORD_FIELD_ICON_PROPS = {
   style: { color: "var(--fn-text-tertiary)" },
 };
 
-function oauthProviderIcon(kind: string): ReactNode {
-  const src =
-    kind === "feishu"
-      ? feishuIcon
-      : kind === "dingtalk"
-      ? dingtalkIcon
-      : kind === "wecom"
-      ? wecomIcon
-      : null;
-  if (!src) return <KeyRound size={18} />;
-  return <img src={src} alt="" width={20} height={20} draggable={false} />;
+function oauthProviderIcon(_kind: string): ReactNode {
+  return <KeyRound size={18} />;
 }
 
 interface AvatarDropdownProps {
@@ -631,7 +619,6 @@ export default function AvatarDropdown({
           block
           value={currentLang}
           options={[
-            { label: t("account.langZh"), value: "zh" },
             { label: t("account.langEn"), value: "en" },
           ]}
           onChange={(val) => handleLocaleChange(val as string)}

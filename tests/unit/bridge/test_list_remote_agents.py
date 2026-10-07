@@ -18,7 +18,7 @@ def _row(**overrides: Any) -> BridgeConnectionRow:
         "owner_user_id": 1,
         "peer_base_url": "https://peer.example",
         "peer_username": "alice",
-        "display_name": "云端",
+        "display_name": "Cloud",
         "notes": None,
         "icon_name": None,
         "credential_blob": b"enc-pass",
@@ -57,14 +57,14 @@ async def test_list_remote_agents_rewrites_team_member_ids() -> None:
             return [
                 {
                     "agent_id": "host",
-                    "name": "主持团队",
+                    "name": "Team host",
                     "kind": "team",
                     "member_ids": ["doctor", "nurse", "doctor"],
                     "icon_url": "/experts/avatars/team-host.svg",
                 },
                 {
                     "agent_id": "doctor",
-                    "name": "临床辅助",
+                    "name": "Clinical assistant",
                     "kind": "expert",
                     "icon_url": "/api/agents/doctor/avatar",
                 },

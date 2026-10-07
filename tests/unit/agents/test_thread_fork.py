@@ -21,9 +21,9 @@ from octop.infra.gateway.threads import ThreadRegistry
 
 def test_fork_title_suffix() -> None:
     assert _fork_title("My chat", "en") == "My chat (fork)"
-    assert _fork_title("My chat", "zh") == "My chat（分叉）"
+    assert _fork_title("My chat", "zh") == "My chat (fork)"
     assert _fork_title(None, "en") == "Forked chat"
-    assert _fork_title("", "zh") == "分叉对话"
+    assert _fork_title("", "zh") == "Forked chat"
 
 
 def test_find_assistant_fork_index_by_suffix_count() -> None:

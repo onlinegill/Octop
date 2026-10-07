@@ -285,8 +285,8 @@ def list_experts_offline() -> list[dict[str, Any]]:
         out.append(
             {
                 "id": summary.id,
-                "label": {"zh": summary.label_zh, "en": summary.label_en},
-                "description": {"zh": summary.description_zh, "en": summary.description_en},
+                "label": {"en": summary.label_en},
+                "description": {"en": summary.description_en},
             }
         )
     return out

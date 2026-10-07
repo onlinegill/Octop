@@ -936,7 +936,7 @@ function PermissionSummary({
   }
   const names = keys.map((key) => permLabelByKey.get(key) ?? key);
   return (
-    <Tooltip title={names.join("、")}>
+    <Tooltip title={names.join(",")}>
       <span className={styles.permBadge}>
         {t("adminUsers.permCount", { count: keys.length })}
       </span>

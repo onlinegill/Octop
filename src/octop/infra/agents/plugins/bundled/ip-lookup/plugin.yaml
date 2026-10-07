@@ -1,7 +1,7 @@
 id: ip-lookup
 version: 0.1.0
-name: IP 查询
-description: 查询 IP 归属地与 ISP 信息
+name: IP Lookup
+description: Look up an IP's location and ISP
 icon: icon.svg
 group: tools
 kind: tool

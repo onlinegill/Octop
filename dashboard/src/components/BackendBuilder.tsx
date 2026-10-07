@@ -2,7 +2,7 @@
  * BackendBuilder — visual editor for octop-harness backend specs.
  *
  * The octop-harness backend system supports several types
- * (local_shell, filesystem, state, store, s3, cos, postgres) and a
+ * (local_shell, filesystem, state, store, s3, postgres) and a
  * special ``composite`` type that routes by path-prefix to nested
  * sub-backends. This component lets the user pick one of:
  *
@@ -43,7 +43,6 @@ export type BackendKind =
   | "state"
   | "store"
   | "s3"
-  | "cos"
   | "postgres";
 
 interface IndependentSpec {
@@ -84,26 +83,21 @@ const KIND_OPTIONS: { value: BackendKind; label: string; hint: string }[] = [
   {
     value: "local_shell",
     label: "Local shell",
-    hint: "本机 shell + 文件系统(完全访问主机)",
+    hint: "Local machine shell + File system(Full access to host)",
   },
   {
     value: "filesystem",
     label: "Filesystem",
-    hint: "受限本机文件系统(只在 root_dir 下读写)",
+    hint: "Restricted native file system(Only in root_dir Read and write)",
   },
-  { value: "state", label: "State (in-memory)", hint: "进程内状态,重启即失效" },
-  { value: "store", label: "Store (kv)", hint: "key-value 存储,适合临时数据" },
+  { value: "state", label: "State (in-memory)", hint: "In-process status,Invalid after restarting" },
+  { value: "store", label: "Store (kv)", hint: "key-value Storage,Good for temporary data" },
   {
     value: "s3",
     label: "S3 / object storage",
-    hint: "AWS S3 / 兼容 S3 协议的对象存储",
+    hint: "AWS S3 / Compatible S3 Protocol object storage",
   },
-  {
-    value: "cos",
-    label: "Tencent Cloud COS",
-    hint: "腾讯云 COS(基于 S3 协议)",
-  },
-  { value: "postgres", label: "Postgres", hint: "Postgres 数据库后端" },
+  { value: "postgres", label: "Postgres", hint: "Postgres Database backend" },
 ];
 
 function defaultIndependent(): IndependentSpec {
@@ -168,7 +162,7 @@ function IndependentEditor({
             />
           </div>
         )}
-        {(value.type === "s3" || value.type === "cos") && (
+        {value.type === "s3" && (
           <>
             <div>
               <div style={labelStyle}>bucket</div>
@@ -183,7 +177,7 @@ function IndependentEditor({
               <Input
                 value={value.region ?? ""}
                 onChange={(e) => setField("region", e.target.value)}
-                placeholder={value.type === "cos" ? "ap-shanghai" : "us-east-1"}
+                placeholder="us-east-1"
               />
             </div>
             <div>
@@ -191,11 +185,7 @@ function IndependentEditor({
               <Input
                 value={value.endpoint_url ?? ""}
                 onChange={(e) => setField("endpoint_url", e.target.value)}
-                placeholder={
-                  value.type === "cos"
-                    ? "https://cos.<region>.myqcloud.com"
-                    : "https://s3.amazonaws.com"
-                }
+                placeholder="https://s3.amazonaws.com"
               />
             </div>
             <div>
@@ -272,7 +262,7 @@ export default function BackendBuilder({
         label={
           <Space size={6}>
             <span>Backend</span>
-            <Tooltip title="决定 agent 的工具/文件读写后端。Composite 模式按路径前缀路由到不同后端。">
+            <Tooltip title="Decide agent Tools/File reading and writing backend.Composite Patterns are routed to different backends by path prefix.">
               <Info size={12} color="var(--fn-text-tertiary)" />
             </Tooltip>
           </Space>
@@ -284,8 +274,8 @@ export default function BackendBuilder({
           onChange={(v) => setMode(v as "independent" | "composite")}
           style={{ width: 220 }}
           options={[
-            { value: "independent", label: "独立 backend(单一类型)" },
-            { value: "composite", label: "Composite(按路径路由)" },
+            { value: "independent", label: "Independent backend(Single type)" },
+            { value: "composite", label: "Composite(Route by path)" },
           ]}
         />
       </Form.Item>
@@ -325,7 +315,7 @@ export default function BackendBuilder({
                 marginLeft: 8,
               }}
             >
-              所有未匹配 routes 前缀的请求落到这里
+              All unmatched routes The request for prefix falls here
             </Text>
             <div style={{ marginTop: 8 }}>
               <IndependentEditor
@@ -397,7 +387,7 @@ export default function BackendBuilder({
               ])
             }
           >
-            添加路由
+            Add route
           </Button>
         </div>
       )}

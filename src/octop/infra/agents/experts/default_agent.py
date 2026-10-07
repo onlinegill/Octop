@@ -50,7 +50,7 @@ async def bootstrap_default_agent(
     catalog: ExpertCatalog | None,
     *,
     user_id: int,
-    locale: str = "zh",
+    locale: str = "en",
     agent_id: str | None = None,
     root_dir: str | None = None,
 ) -> Any | None:
@@ -87,7 +87,7 @@ async def try_bootstrap_default_agent(
     server: Any,
     *,
     user_id: int,
-    locale: str = "zh",
+    locale: str = "en",
     agent_id: str | None = None,
 ) -> None:
     """Best-effort wrapper used by HTTP adapters (setup / invite)."""

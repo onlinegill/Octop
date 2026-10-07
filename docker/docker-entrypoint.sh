@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Octop 容器入口脚本
+# Octop container entrypoint
 #
-# 环境变量:
-#   HOME                      — 必须为 /data，使 ~/.octop 映射到数据卷
-#   OCTOP_DEFAULT_PASSWORD    — 首次管理员密码（须 ≥8 位且含字母和数字；
-#                               不设置则自动生成随机密码，凭据写入
-#                               /data/.octop/credential.txt）
-#   OCTOP_ADMIN_USERNAME      — 首次管理员用户名（默认: admin）
-#   OCTOP_ADMIN_DISPLAY_NAME  — 可选显示名
-#   OCTOP_PORT                — 服务端口（默认: 8088）
+# Environment variables:
+#   HOME                      — must be /data so ~/.octop maps to the data volume
+#   OCTOP_DEFAULT_PASSWORD    — initial admin password (>=8 chars with letters and digits;
+#                               if unset a random password is generated and the credentials are written to
+#                               /data/.octop/credential.txt)
+#   OCTOP_ADMIN_USERNAME      — initial admin username (default: admin)
+#   OCTOP_ADMIN_DISPLAY_NAME  — optional display name
+#   OCTOP_PORT                — service port (default: 8088)
 #
-# 密码兜底（修复 issue #502）：应用侧密码策略带常见弱密码黑名单（含
-# Octop123），旧版默认密码会让 octop init 报 "password is too common"
-# 退出、容器反复重启。现在：未设置密码时自动生成随机强密码；指定的
-# 密码被策略拒绝时也自动改用随机密码重试，保证容器一定能完成首次初始化。
+# Password fallback (fixes issue #502): the app-side policy has a common weak-password blocklist (including
+# Octop123); the old default password made octop init exit with "password is too common"
+# and the container restart repeatedly. Now: when no password is set a strong random one is generated; a supplied
+# one rejected by the policy also falls back to a random retry, so the container always completes first-time init.
 # =============================================================================
 set -euo pipefail
 
@@ -27,7 +27,7 @@ ADMIN_USERNAME="${OCTOP_ADMIN_USERNAME:-admin}"
 ADMIN_DISPLAY_NAME="${OCTOP_ADMIN_DISPLAY_NAME:-Admin}"
 PORT="${OCTOP_PORT:-8088}"
 
-# 生成随机密码（首字符字母、末字符数字，避开易混淆字符）。
+# Generate a random password (first char a letter, last char a digit, avoiding easily confused characters).
 octop_random_password() {
     local letters='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
     local digits='23456789'
@@ -46,11 +46,11 @@ octop_random_password() {
 DEFAULT_PASSWORD="${OCTOP_DEFAULT_PASSWORD:-}"
 
 if [ ! -f "$DB_FILE" ]; then
-    echo "[entrypoint] 首次启动，正在初始化 Octop..."
+    echo "[entrypoint] first start, initializing Octop..."
 
     if [ -z "$DEFAULT_PASSWORD" ]; then
         DEFAULT_PASSWORD="$(octop_random_password)"
-        echo "[entrypoint] 未设置 OCTOP_DEFAULT_PASSWORD，已自动生成随机密码。"
+        echo "[entrypoint] OCTOP_DEFAULT_PASSWORD is unset; generated a random password."
     fi
 
     init_log="$(mktemp)"
@@ -64,18 +64,18 @@ if [ ! -f "$DB_FILE" ]; then
     }
     if ! run_init; then
         if grep -qiE 'password is too common|password too short|password must include' "$init_log"; then
-            echo "[entrypoint] 指定的初始密码未通过应用密码策略（过弱或过于常见），改用随机密码重试 ..."
+            echo "[entrypoint] the supplied initial password failed the app password policy (too weak or too common); retrying with a random one ..."
             DEFAULT_PASSWORD="$(octop_random_password)"
             if ! run_init; then
                 cat "$init_log" >&2 || true
                 rm -f "$init_log"
-                echo "[entrypoint] 初始化失败，请检查上方日志。" >&2
+                echo "[entrypoint] initialization failed; check the log above." >&2
                 exit 1
             fi
         else
             cat "$init_log" >&2 || true
             rm -f "$init_log"
-            echo "[entrypoint] 初始化失败（不是密码策略问题）。若数据目录已有文件但没有 octop.db，请检查卷挂载。" >&2
+            echo "[entrypoint] initialization failed (not a password-policy issue). If the data directory has files but no octop.db, check the volume mount." >&2
             exit 1
         fi
     fi
@@ -96,18 +96,18 @@ This file is rewritten whenever the initial password is (re)generated here.
 If you changed the password inside the Web console, that password wins.
 EOF
     chmod 600 "$CREDENTIAL_FILE"
-    echo "[entrypoint] 凭据已保存至: $CREDENTIAL_FILE"
+    echo "[entrypoint] credentials saved to: $CREDENTIAL_FILE"
 fi
 
 if [ $# -eq 0 ]; then
-    echo "[entrypoint] 正在启动 Octop，端口 $PORT..."
+    echo "[entrypoint] starting Octop on port $PORT..."
     exec octop run --host 0.0.0.0 --port "$PORT"
 fi
 
 if [ "$1" = "octop" ]; then
-    echo "[entrypoint] 执行命令: $*"
+    echo "[entrypoint] exec: $*"
     exec "$@"
 fi
 
-echo "[entrypoint] 执行命令: $*"
+echo "[entrypoint] exec: $*"
 exec "$@"

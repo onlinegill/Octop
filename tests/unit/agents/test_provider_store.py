@@ -133,8 +133,8 @@ def test_build_harness_configs_maps_context_window_to_max_input_tokens(
         models_json=json.dumps(
             [
                 {
-                    "id": "MiniMax-M2.7",
-                    "name": "MiniMax",
+                    "id": "Example-M2.7",
+                    "name": "Example",
                     "enabled": True,
                     "context_window": 1_000_000,
                 }
@@ -151,7 +151,7 @@ def test_resolve_default_model_returns_none_when_stale(store: ProviderStore) -> 
         kind="openai",
         base_url="https://api.example.com/v1",
         api_key="sk-test",
-        models_json=json.dumps([{"id": "MiniMax-M2.7", "name": "MiniMax", "enabled": True}]),
+        models_json=json.dumps([{"id": "Example-M2.7", "name": "Example", "enabled": True}]),
     )
     ref = store.resolve_explicit_default_model(_row(default_model="openai/gpt-4o"), {})
     assert ref is None
@@ -220,7 +220,7 @@ def test_resolve_default_model_auto_returns_none(store: ProviderStore) -> None:
         kind="openai",
         base_url="https://api.example.com/v1",
         api_key="sk-test",
-        models_json=json.dumps([{"id": "MiniMax-M2.7", "name": "MiniMax", "enabled": True}]),
+        models_json=json.dumps([{"id": "Example-M2.7", "name": "Example", "enabled": True}]),
     )
     ref = store.resolve_explicit_default_model(_row(default_model=None), {})
     assert ref is None
@@ -232,13 +232,13 @@ def test_resolve_default_model_returns_explicit_ref_when_usable(store: ProviderS
         kind="openai",
         base_url="https://api.example.com/v1",
         api_key="sk-test",
-        models_json=json.dumps([{"id": "MiniMax-M2.7", "name": "MiniMax", "enabled": True}]),
+        models_json=json.dumps([{"id": "Example-M2.7", "name": "Example", "enabled": True}]),
     )
     ref = store.resolve_explicit_default_model(
-        _row(default_model="hai/MiniMax-M2.7"),
+        _row(default_model="hai/Example-M2.7"),
         {},
     )
-    assert ref == "hai/MiniMax-M2.7"
+    assert ref == "hai/Example-M2.7"
 
 
 def test_manager_exposes_provider_store(tmp_path: Path) -> None:

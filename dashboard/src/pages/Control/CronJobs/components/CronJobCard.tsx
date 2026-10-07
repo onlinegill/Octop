@@ -150,9 +150,7 @@ export function CronJobCard({
         <span className={styles.cronCardInfoItem}>
           <Clock size={11} style={{ flexShrink: 0 }} />
           <code className={styles.cronCardCode}>
-            {job.schedule?.cron?.startsWith("agently:")
-              ? t("cronJobs.form.agentlyNewMail")
-              : job.schedule?.cron || "—"}
+            {job.schedule?.cron || "—"}
           </code>
         </span>
         {lastRunAt && (

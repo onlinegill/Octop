@@ -174,7 +174,7 @@ def test_apply_team_host_config_forces_async_ask_agent(manager: AgentManager) ->
     assert "ask_agent" not in disabled
     assert "agent_list" not in disabled
     assert out.bootstrap_enabled is False
-    assert "Host dispatch" in (out.system_prompt or "") or "主持人调度" in (out.system_prompt or "")
+    assert "Host dispatch" in (out.system_prompt or "") or "host dispatch" in (out.system_prompt or "")
 
 
 def test_apply_expert_config_forces_sync_ask_agent(manager: AgentManager) -> None:
@@ -405,18 +405,18 @@ async def test_install_team_host_enrich_uses_host_assignment(manager: AgentManag
     manager._team_processor = SimpleNamespace(
         take_team_peer_prompt=MagicMock(
             return_value=(
-                "请给出可执行的睡眠建议，聚焦作息而不是诊断",
-                "[团队派工，不是用户在直接问你]\n用户: 我最近总失眠",
+                "Give actionable sleep advice focused on routine, not diagnosis",
+                "[Team dispatch, not the user asking you]\nUser: I keep having insomnia",
             )
         ),
     )
     manager._install_team_host_dispatch()
-    req = SimpleNamespace(thread_id="t~child", messages="我最近总失眠")
+    req = SimpleNamespace(thread_id="t~child", messages="I keep having insomnia")
     out = await team._enrich_request("child", req)
     assert isinstance(out.messages[0], SystemMessage)
     assert isinstance(out.messages[1], HumanMessage)
-    assert out.messages[1].content == "请给出可执行的睡眠建议，聚焦作息而不是诊断"
-    assert "团队派工" in out.messages[0].content
+    assert out.messages[1].content == "Give actionable sleep advice focused on routine, not diagnosis"
+    assert "Team dispatch" in out.messages[0].content
 
 
 @pytest.mark.asyncio
@@ -437,7 +437,7 @@ async def test_install_team_host_dispatch_streams_inbox_wrapup(
     ) -> dict[str, object]:
         seen["wrap"] = (room_thread_id, speaker_id, getattr(request, "source", None))
         return {
-            "messages": [AIMessage(content="可以收工。")],
+            "messages": [AIMessage(content="All done.")],
             "team_live_streamed": True,
         }
 
@@ -486,7 +486,7 @@ async def test_install_team_host_dispatch_patches_inbox_synthesize(
     ) -> dict[str, object]:
         seen["wrap"] = (room_thread_id, speaker_id, getattr(request, "source", None))
         return {
-            "messages": [AIMessage(content="可以收工。")],
+            "messages": [AIMessage(content="All done.")],
             "team_live_streamed": True,
         }
 
@@ -495,7 +495,7 @@ async def test_install_team_host_dispatch_patches_inbox_synthesize(
 
     inbox = SimpleNamespace(
         _synthesize_reply=original_synth,
-        _processor=SimpleNamespace(compose_followup=lambda *_a, **_k: "请收口"),
+        _processor=SimpleNamespace(compose_followup=lambda *_a, **_k: "Wrap up"),
         _is_cancelled=lambda _msg: False,
         _call_agent=AsyncMock(side_effect=AssertionError("wrap-up must stream")),
     )
@@ -529,7 +529,7 @@ async def test_install_team_host_dispatch_patches_inbox_synthesize(
         None,
     )
     assert seen["wrap"] == ("thr_parent", "host", "inbox")
-    assert text == "可以收工。"
+    assert text == "All done."
 
 
 def test_format_agent_start_error_no_providers_message() -> None:
@@ -577,12 +577,12 @@ def test_memory_extract_settings_supports_legacy_harness(caplog: pytest.LogCaptu
 
 def test_memory_extract_settings_forwards_aux_model_to_both_tiers() -> None:
     settings = _memory_extract_settings(
-        {"memory": {"aux_model": "hai/MiniMax-M2.7"}},
-        is_ref_usable=lambda ref: ref == "hai/MiniMax-M2.7",
+        {"memory": {"aux_model": "hai/Example-M2.7"}},
+        is_ref_usable=lambda ref: ref == "hai/Example-M2.7",
     )
     assert settings == {
-        "memory_aux_light_model": "hai/MiniMax-M2.7",
-        "memory_aux_heavy_model": "hai/MiniMax-M2.7",
+        "memory_aux_light_model": "hai/Example-M2.7",
+        "memory_aux_heavy_model": "hai/Example-M2.7",
     }
 
 
@@ -599,7 +599,7 @@ def test_memory_extract_settings_drops_stale_aux_model(
 
 def test_memory_extract_settings_skips_aux_model_on_legacy_harness() -> None:
     settings = _memory_extract_settings(
-        {"memory": {"aux_model": "hai/MiniMax-M2.7"}},
+        {"memory": {"aux_model": "hai/Example-M2.7"}},
         supported_fields=frozenset({"memory_enabled"}),
         is_ref_usable=lambda _ref: True,
     )
@@ -777,7 +777,7 @@ def test_build_harness_config_disables_bootstrap_for_team_host(manager: AgentMan
     assert cfg.bootstrap_enabled is False
     assert cfg.system_prompt is not None
     assert cfg.system_prompt.startswith("Team coordinator prompt")
-    assert "主持人调度" in cfg.system_prompt or "Host dispatch" in cfg.system_prompt
+    assert "host dispatch" in cfg.system_prompt or "Host dispatch" in cfg.system_prompt
     assert cfg.memory is None
     assert cfg.skills_dir is None
 
@@ -1408,8 +1408,8 @@ def test_build_harness_config_passes_default_model_without_embedded_providers(
             captured.append(kwargs)
 
     monkeypatch.setattr(mgr_mod, "HarnessAgentConfig", _FakeCfg)
-    manager._build_harness_config(_row(default_model="openai-live/MiniMax-M2.7"))
-    assert captured[0]["default_model"] == "openai-live/MiniMax-M2.7"
+    manager._build_harness_config(_row(default_model="openai-live/Example-M2.7"))
+    assert captured[0]["default_model"] == "openai-live/Example-M2.7"
     assert "providers" not in captured[0]
 
 
@@ -1839,9 +1839,9 @@ async def test_seed_expert_template_writes_workspace_files(
         json.dumps(
             {
                 "id": "demo",
-                "label": {"zh": "演示", "en": "Demo"},
-                "description": {"zh": "", "en": ""},
-                "welcome_message": {"zh": "欢迎", "en": "Welcome"},
+                "label": {"en": "Demo"},
+                "description": {"en": ""},
+                "welcome_message": {"en": "Welcome"},
                 "quick_prompts": [],
             }
         ),
@@ -1853,9 +1853,7 @@ async def test_seed_expert_template_writes_workspace_files(
         return_value=Expert(
             summary=ExpertSummary(
                 id="demo",
-                label_zh="演示",
                 label_en="Demo",
-                description_zh="",
                 description_en="",
             ),
             files=["SOUL.md"],
@@ -1874,7 +1872,7 @@ async def test_seed_expert_template_writes_workspace_files(
     assert (ws / "SOUL.md").read_text(encoding="utf-8") == "# Soul"
     manifest = json.loads((ws / ".octop" / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["id"] == "demo"
-    assert manifest["welcome_message"]["zh"] == "欢迎"
+    assert manifest["welcome_message"]["en"] == "Welcome"
 
 
 @pytest.mark.asyncio
@@ -2072,11 +2070,32 @@ async def test_reload_agent_does_not_block_event_loop(
     await ticker_task
 
 
-def test_build_mcp_configs_registers_gateway_without_transport(manager: AgentManager) -> None:
+def test_build_mcp_configs_registers_gateway_without_transport(
+    manager: AgentManager, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Gateway connectors register a name-only placeholder; tools inject in-process."""
+    from octop.infra.connectors import builder
     from octop.infra.connectors.builder import mcp_server_name
+    from octop.infra.connectors.catalog import ConnectorCatalogEntry
     from octop.infra.connectors.crypto import encrypt_credentials
     from octop.infra.utils.ulid import new_ulid
+
+    gateway_kind = "demo-gateway"
+    gateway_entry = ConnectorCatalogEntry(
+        kind=gateway_kind,
+        name="Demo Gateway",
+        description="in-process gateway connector",
+        auth_kind="api_key",
+        doc_url="",
+        icon="zap",
+        color="#000000",
+        phase="available",
+        mcp_mode="gateway",
+        category="knowledge",
+    )
+    monkeypatch.setattr(
+        builder, "get_catalog_entry", lambda kind: gateway_entry if kind == gateway_kind else None
+    )
 
     with manager._repos.db.transaction() as conn:
         conn.execute(
@@ -2086,12 +2105,12 @@ def test_build_mcp_configs_registers_gateway_without_transport(manager: AgentMan
         uid = conn.execute("SELECT id FROM users WHERE username = 'gw'").fetchone()["id"]
     agent_id = manager._repos.agent_repo.create(agent_id="GWAGENT", user_id=uid, name="gw-agent")
     iid = new_ulid()
-    mcp_name = mcp_server_name("tencent-ima", iid)
+    mcp_name = mcp_server_name(gateway_kind, iid)
     manager._repos.connector_repo.create(
         instance_id=iid,
         user_id=uid,
-        kind="tencent-ima",
-        display_name="IMA",
+        kind=gateway_kind,
+        display_name="Gateway",
         mcp_server_name=mcp_name,
     )
     creds = encrypt_credentials(
@@ -2105,11 +2124,32 @@ def test_build_mcp_configs_registers_gateway_without_transport(manager: AgentMan
     assert configs[mcp_name] == {}
 
 
-def test_build_mcp_configs_shared_agent_uses_connector_user_override(manager: AgentManager) -> None:
+def test_build_mcp_configs_shared_agent_uses_connector_user_override(
+    manager: AgentManager, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Shared agents (user_id=NULL) need connector_user_override to resolve connectors."""
+    from octop.infra.connectors import builder
     from octop.infra.connectors.builder import mcp_server_name
+    from octop.infra.connectors.catalog import ConnectorCatalogEntry
     from octop.infra.connectors.crypto import encrypt_credentials
     from octop.infra.utils.ulid import new_ulid
+
+    gateway_kind = "demo-gateway"
+    gateway_entry = ConnectorCatalogEntry(
+        kind=gateway_kind,
+        name="Demo Gateway",
+        description="in-process gateway connector",
+        auth_kind="api_key",
+        doc_url="",
+        icon="zap",
+        color="#000000",
+        phase="available",
+        mcp_mode="gateway",
+        category="knowledge",
+    )
+    monkeypatch.setattr(
+        builder, "get_catalog_entry", lambda kind: gateway_entry if kind == gateway_kind else None
+    )
 
     with manager._repos.db.transaction() as conn:
         conn.execute(
@@ -2123,12 +2163,12 @@ def test_build_mcp_configs_shared_agent_uses_connector_user_override(manager: Ag
     )
 
     iid = new_ulid()
-    mcp_name = mcp_server_name("tencent-ima", iid)
+    mcp_name = mcp_server_name(gateway_kind, iid)
     manager._repos.connector_repo.create(
         instance_id=iid,
         user_id=uid,
-        kind="tencent-ima",
-        display_name="IMA",
+        kind=gateway_kind,
+        display_name="Gateway",
         mcp_server_name=mcp_name,
     )
     creds = encrypt_credentials(
@@ -2151,7 +2191,7 @@ def test_mcp_tool_filter_uses_server_prefix(manager: AgentManager) -> None:
     """Harness exposes MCP tools as {mcp_server_name}_{tool}; chat filters by prefix."""
     from octop_harness.mcp import filter_tools_for_mcp_servers, mcp_tool_names
 
-    mcp_name = "tencent-ima__01INST"
+    mcp_name = "demo-mcp__01INST"
     tools = [{"name": f"{mcp_name}_list_notes"}, {"name": f"{mcp_name}_search_notes"}]
     tool_set = mcp_tool_names(tools)
     filtered = filter_tools_for_mcp_servers(
@@ -2226,9 +2266,9 @@ def test_peer_manifest_metadata_reads_cards(manager: AgentManager) -> None:
                 "description": {"zh": "manifest-only", "en": "manifest-only"},
                 "quick_prompts": [
                     {
-                        "title": {"zh": "画图", "en": "Plot"},
-                        "description": {"zh": "说明", "en": "Hint"},
-                        "prompt": {"zh": "机密", "en": "secret"},
+                        "title": {"zh": "Plot", "en": "Plot"},
+                        "description": {"zh": "Hint", "en": "Hint"},
+                        "prompt": {"zh": "secret", "en": "secret"},
                     }
                 ],
             }
@@ -2236,7 +2276,7 @@ def test_peer_manifest_metadata_reads_cards(manager: AgentManager) -> None:
         encoding="utf-8",
     )
     extra = manager._peer_manifest_metadata("AGT1", "from-db")
-    assert extra["quick_prompts"][0]["title"]["zh"] == "画图"
+    assert extra["quick_prompts"][0]["title"]["zh"] == "Plot"
     assert "description" not in extra
 
 
@@ -2251,8 +2291,8 @@ def test_refresh_peer_entry_picks_up_manifest_edits(manager: AgentManager) -> No
             {
                 "quick_prompts": [
                     {
-                        "title": {"zh": "新卡", "en": "New"},
-                        "description": {"zh": "说明", "en": "Hint"},
+                        "title": {"zh": "New", "en": "New"},
+                        "description": {"zh": "Hint", "en": "Hint"},
                     }
                 ],
             }
@@ -2268,7 +2308,7 @@ def test_refresh_peer_entry_picks_up_manifest_edits(manager: AgentManager) -> No
     manager._refresh_peer_entry(entry)
     assert entry.metadata["description"] == "from-db"
     assert entry.metadata["display_name"] == "demo"
-    assert entry.metadata["quick_prompts"][0]["title"]["zh"] == "新卡"
+    assert entry.metadata["quick_prompts"][0]["title"]["zh"] == "New"
 
 
 def test_refresh_peer_entry_clears_empty_cards(manager: AgentManager) -> None:

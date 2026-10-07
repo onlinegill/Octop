@@ -248,11 +248,11 @@ export default function DesktopPanel({
     const confirmText = envStatus?.native_capture
       ? t(
           "remoteDesktop.uninstallConfirmNative",
-          "将移除远程桌面所需的 Python 组件，是否继续？",
+          "Will remove the remote desktop required Python Component, continue?",
         )
       : t(
           "remoteDesktop.uninstallConfirmLinux",
-          "将停止虚拟桌面服务并移除已安装组件，是否继续？",
+          "The virtual desktop service will be stopped and installed components removed. Do you want to continue?",
         );
     modal.confirm({
       title: t("remoteDesktop.uninstallTitle", "Uninstall remote desktop"),
@@ -399,7 +399,7 @@ export default function DesktopPanel({
           title: t("remoteDesktop.geometryRestartTitle", "Change resolution"),
           content: t(
             "remoteDesktop.geometryRestartWarning",
-            "将重启虚拟桌面，当前连接会短暂中断。",
+            "The virtual desktop will be restarted and current connections will be briefly interrupted.",
           ),
           okText: t("common.confirm", "Confirm"),
           cancelText: t("common.cancel", "Cancel"),
@@ -448,7 +448,7 @@ export default function DesktopPanel({
         message.warning(
           t(
             "remoteDesktop.connectDisabledPerms",
-            "请先在系统设置中开启屏幕录制与辅助功能权限，然后重启 Octop",
+            "Please enable screen recording and accessibility permissions in system settings first, and then restart Octop",
           ),
         );
         return;
@@ -696,7 +696,7 @@ export default function DesktopPanel({
         <p className={styles.hintText}>
           {t(
             "remoteDesktop.mobileHint",
-            "点击画面可操控远程桌面；快捷按钮会发送常用快捷键。",
+            "Click on the screen to control the remote desktop; shortcut buttons will send commonly used shortcut keys.",
           )}
         </p>
       </div>
@@ -708,7 +708,7 @@ export default function DesktopPanel({
     message.info(
       t(
         "remoteDesktop.installCancelHint",
-        "已取消安装请求，服务端可能仍在继续安装，请稍后刷新状态。",
+        "The installation request has been cancelled. The server may still be installing. Please refresh the status later.",
       ),
     );
   }, [t]);
@@ -858,7 +858,7 @@ export default function DesktopPanel({
             >
               {t(
                 "common.askOctopHint",
-                "若安装失败，可复制下方错误信息发给 Octop 排查。",
+                "If the installation fails, you can copy the error message below and send it to Octop Check.",
               )}
             </div>
           </div>
@@ -873,11 +873,11 @@ export default function DesktopPanel({
           showIcon
           message={t(
             "remoteDesktop.macPermissionsTitle",
-            "需要 macOS 系统权限",
+            "Need macOS System permissions",
           )}
           description={t("remoteDesktop.macPermissionsDesc", {
             permissions: permissionLabels.join(
-              t("remoteDesktop.permJoin", "、"),
+              t("remoteDesktop.permJoin", ","),
             ),
           })}
         />
@@ -908,7 +908,7 @@ export default function DesktopPanel({
               message={t("remoteDesktop.nativeReadyTitle", "Host desktop ready")}
               description={t(
                 "remoteDesktop.nativeReadyDesc",
-                "将直接捕获本机屏幕并注入键鼠，无需安装虚拟桌面。",
+                "The local screen will be captured directly and injected into the keyboard and mouse without installing a virtual desktop.",
               )}
             />
           ) : (
@@ -996,7 +996,7 @@ export default function DesktopPanel({
   const pageTitle = t("nav.remoteDesktop", "Remote Desktop");
   const pageSubtitle = t(
     "pageShell.desktop.subtitle",
-    "查看并操控 Octop 主机操作系统桌面",
+    "View and control Octop Host operating system desktop",
   );
   const setupMascot = <OctopEmptyMascot />;
 
@@ -1062,7 +1062,7 @@ export default function DesktopPanel({
       : needsMacPermissions
       ? t(
           "remoteDesktop.connectDisabledPerms",
-          "请先在系统设置中开启屏幕录制与辅助功能权限，然后重启 Octop",
+          "Please enable screen recording and accessibility permissions in system settings first, and then restart Octop",
         )
       : t("remoteDesktop.connectDisabled"),
   };
@@ -1104,11 +1104,11 @@ export default function DesktopPanel({
             showIcon
             message={t(
               "remoteDesktop.macPermissionsTitle",
-              "需要 macOS 系统权限",
+              "Need macOS System permissions",
             )}
             description={t("remoteDesktop.macPermissionsDesc", {
               permissions: permissionLabels.join(
-                t("remoteDesktop.permJoin", "、"),
+                t("remoteDesktop.permJoin", ","),
               ),
             })}
             style={{ marginBottom: 12 }}
@@ -1130,7 +1130,7 @@ export default function DesktopPanel({
             message={t("remoteDesktop.nativeReadyTitle", "Host desktop ready")}
             description={t(
               "remoteDesktop.nativeReadyDesc",
-              "将直接捕获本机屏幕并注入键鼠，无需安装虚拟桌面。",
+              "The local screen will be captured directly and injected into the keyboard and mouse without installing a virtual desktop.",
             )}
           />
         )}
@@ -1155,7 +1155,7 @@ export default function DesktopPanel({
                     : needsMacPermissions
                     ? t(
                         "remoteDesktop.macPermissionsTitle",
-                        "需要 macOS 系统权限",
+                        "Need macOS System permissions",
                       )
                     : t("remoteDesktop.subtitle", "Control the Octop host operating system desktop")
                 }
@@ -1163,17 +1163,17 @@ export default function DesktopPanel({
                   envReady
                     ? t(
                         "remoteDesktop.connectIdleDesc",
-                        "点击下方「连接」开始实时操控主机桌面",
+                        "Click “Connect” below to start controlling the host desktop in real time",
                       )
                     : needsMacPermissions
                     ? t("remoteDesktop.macPermissionsGuideDesc", {
                         permissions: permissionLabels.join(
-                          t("remoteDesktop.permJoin", "、"),
+                          t("remoteDesktop.permJoin", ","),
                         ),
                       })
                     : t(
                         "remoteDesktop.setupDesc",
-                        "按以下步骤完成环境配置，即可在浏览器中远程操控主机桌面",
+                        "Follow the steps below to complete the environment configuration and you can remotely control the host desktop in the browser",
                       )
                 }
                 steps={
@@ -1182,13 +1182,13 @@ export default function DesktopPanel({
                         {
                           label: t(
                             "remoteDesktop.idleStep1",
-                            "点击「连接」建立远程桌面会话",
+                            "Click “Connect” to establish a remote desktop session",
                           ),
                         },
                         {
                           label: t(
                             "remoteDesktop.idleStep2",
-                            "在画面中点击、拖动与输入，即可操控远程桌面",
+                            "Click, drag and enter on the screen to control the remote desktop",
                           ),
                         },
                       ]
@@ -1197,20 +1197,20 @@ export default function DesktopPanel({
                         {
                           label: t(
                             "remoteDesktop.macPermStep1",
-                            "打开「系统设置 → 隐私与安全性」",
+                            "Open System Settings → Privacy & Security",
                           ),
                         },
                         {
                           label: t("remoteDesktop.macPermStep2", {
                             permissions: permissionLabels.join(
-                              t("remoteDesktop.permJoin", "、"),
+                              t("remoteDesktop.permJoin", ","),
                             ),
                           }),
                         },
                         {
                           label: t(
                             "remoteDesktop.macPermStep3",
-                            "重启 Octop（octop run），再回到本页点击「重新检测」",
+                            "Restart Octop(octop run), then return to this page and click “Retest”",
                           ),
                         },
                       ]
@@ -1218,19 +1218,19 @@ export default function DesktopPanel({
                         {
                           label: t(
                             "remoteDesktop.setupStep1",
-                            "点击「检查」，检测 Python 依赖与桌面环境状态",
+                            "Click “Check” to check Python Dependencies and desktop environment status",
                           ),
                         },
                         {
                           label: t(
                             "remoteDesktop.setupStep2",
-                            "若未安装，在弹窗中按引导完成安装（Linux 无图形服务器可一键搭建虚拟桌面）",
+                            "If it is not installed, follow the instructions in the pop-up window to complete the installation (Linux Graphics-free server can build a virtual desktop with one click)",
                           ),
                         },
                         {
                           label: t(
                             "remoteDesktop.setupStep3",
-                            "环境就绪后，点击「连接」开始实时看屏与键鼠操控",
+                            "After the environment is ready, click “Connect” to start real-time screen viewing and keyboard and mouse control.",
                           ),
                         },
                       ]
@@ -1261,7 +1261,7 @@ export default function DesktopPanel({
                 fullscreenLabel={t("remoteDesktop.fullscreen", "Fullscreen")}
                 controlsLabel={t(
                   "remoteDesktop.openControls",
-                  "控制与快捷操作",
+                  "Controls and quick operations",
                 )}
                 streamingLabel={
                   status === "streaming"

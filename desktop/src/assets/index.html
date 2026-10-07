@@ -422,13 +422,13 @@
       class="window-controls ctrl-mac"
       data-chrome="mac"
       data-octop-no-drag="true"
-      aria-label="窗口控制"
+      aria-label="Window controls"
     >
       <button
         type="button"
         class="light zoom"
         data-action="toggle-maximise"
-        aria-label="最大化"
+        aria-label="Maximize"
       >
         <span class="glyph" aria-hidden>+</span>
       </button>
@@ -436,7 +436,7 @@
         type="button"
         class="light min"
         data-action="minimise"
-        aria-label="最小化"
+        aria-label="Minimize"
       >
         <span class="glyph" aria-hidden>–</span>
       </button>
@@ -444,7 +444,7 @@
         type="button"
         class="light close"
         data-action="close"
-        aria-label="关闭"
+        aria-label="Close"
       >
         <span class="glyph" aria-hidden>×</span>
       </button>
@@ -493,38 +493,38 @@
         />
         <p class="loading-brand" id="loading-brand">Octop</p>
         <p class="loading-hint" id="loading-hint">
-          正在检查运行环境，可能需要几分钟。
+          Checking the runtime. This may take a few minutes.
         </p>
         <div class="loading-footer">
           <div class="loading-bar" role="progressbar" aria-hidden="true">
             <span class="loading-bar-fill"></span>
           </div>
-          <p class="loading-status" id="status">正在启动，请稍候…</p>
+          <p class="loading-status" id="status">Starting, please wait…</p>
         </div>
       </div>
     </div>
 
     <div id="settings-panel" class="hidden">
       <div class="wrap">
-        <h1 id="title">Octop 设置</h1>
-        <p class="subtitle" id="subtitle">桌面端偏好</p>
+        <h1 id="title">Octop Settings</h1>
+        <p class="subtitle" id="subtitle">Desktop preferences</p>
         <div class="card">
           <div class="row">
             <div>
-              <div class="label" id="l-lang">语言 / Language</div>
+              <div class="label" id="l-lang">Language</div>
               <small id="h-lang"
-                >选择偏好语言 / Choose your preferred language</small
+                >Choose your preferred language</small
               >
             </div>
             <select id="locale">
-              <option value="zh">中文</option>
+              <option value="zh">Chinese</option>
               <option value="en">English</option>
             </select>
           </div>
           <div class="row">
             <div>
-              <div class="label" id="l-auto">开机启动</div>
-              <small id="h-auto">登录系统后自动启动</small>
+              <div class="label" id="l-auto">Launch at login</div>
+              <small id="h-auto">Start automatically after you sign in</small>
             </div>
             <label class="switch">
               <input type="checkbox" id="autostart" />
@@ -533,9 +533,9 @@
           </div>
           <div class="row">
             <div>
-              <div class="label" id="l-tray">最小化到托盘</div>
+              <div class="label" id="l-tray">Minimize to tray</div>
               <small id="h-tray"
-                >点击最小化时隐藏窗口并保留在系统托盘</small
+                >Hide the window on minimize and keep Octop in the tray</small
               >
             </div>
             <label class="switch">
@@ -545,8 +545,8 @@
           </div>
           <div class="row">
             <div>
-              <div class="label" id="l-sleep">防止系统休眠</div>
-              <small id="h-sleep">应用运行期间阻止系统自动休眠</small>
+              <div class="label" id="l-sleep">Prevent system sleep</div>
+              <small id="h-sleep">Keeps the system awake while Octop is running</small>
             </div>
             <label class="switch">
               <input type="checkbox" id="sleep" />
@@ -555,8 +555,8 @@
           </div>
         </div>
         <div class="actions">
-          <button class="primary" id="show-main">显示 Octop</button>
-          <button class="ghost" id="quit">退出</button>
+          <button class="primary" id="show-main">Show Octop</button>
+          <button class="ghost" id="quit">Quit</button>
         </div>
         <p class="status hidden" id="settings-status"></p>
       </div>
@@ -566,24 +566,24 @@
 
       const copy = {
         zh: {
-          statusWait: "正在启动，请稍候…",
-          loadingHint: "正在检查运行环境，可能需要几分钟。",
-          title: "Octop 设置",
-          subtitle: "桌面端偏好",
-          lang: "语言",
-          langH: "选择偏好语言 / Choose your preferred language",
-          auto: "开机启动",
-          autoH: "登录系统后自动启动",
-          tray: "最小化到托盘",
-          trayH: "点击最小化时隐藏窗口并保留在系统托盘",
-          sleep: "防止系统休眠",
-          sleepH: "应用运行期间阻止系统自动休眠",
-          showMain: "显示 Octop",
-          quit: "退出",
-          winGroup: "窗口控制",
-          winMin: "最小化",
-          winMax: "最大化",
-          winClose: "关闭",
+          statusWait: "Starting, please wait…",
+          loadingHint: "Checking the runtime. This may take a few minutes.",
+          title: "Octop Settings",
+          subtitle: "Desktop preferences",
+          lang: "Language",
+          langH: "Choose your preferred language",
+          auto: "Launch at login",
+          autoH: "Start automatically after you sign in",
+          tray: "Minimize to tray",
+          trayH: "Hide the window on minimize and keep Octop in the tray",
+          sleep: "Prevent system sleep",
+          sleepH: "Keeps the system awake while Octop is running",
+          showMain: "Show Octop",
+          quit: "Quit",
+          winGroup: "Window controls",
+          winMin: "Minimize",
+          winMax: "Maximize",
+          winClose: "Close",
         },
         en: {
           statusWait: "Starting, please wait…",
@@ -757,7 +757,7 @@
             : ev?.data ?? ev?.payload ?? JSON.stringify(ev);
         const text = String(msg);
         document.getElementById("status").textContent = text;
-        const stuck = /未就绪|did not become ready|无法连接|Could not connect/.test(
+        const stuck = /did not become ready|Could not connect/.test(
           text,
         );
         document.getElementById("loading-panel").classList.toggle("is-error", stuck);

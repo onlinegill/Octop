@@ -70,10 +70,10 @@ describe("groupExpertsByConnection", () => {
           bridge_disconnected: true,
         },
       ],
-      "本机",
+      "Local machine",
     );
     expect(groups.map((g) => g.key)).toEqual(["local", "c1", "c2"]);
-    expect(groups[0]?.label).toBe("本机");
+    expect(groups[0]?.label).toBe("Local machine");
     expect(groups[1]?.agents.map((a) => a.agent_id)).toEqual([
       "bridge:c1:a1",
       "bridge:c1:a2",

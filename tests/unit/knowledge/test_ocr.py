@@ -129,11 +129,11 @@ def test_local_ocr_joins_rapidocr_text_lines(
     image.write_bytes(b"image")
 
     def engine(_data: bytes) -> SimpleNamespace:
-        return SimpleNamespace(txts=("第一行", "Second line"))
+        return SimpleNamespace(txts=("First line", "Second line"))
 
     monkeypatch.setattr(ocr, "_rapidocr_engine", lambda: engine)
 
-    assert ocr._extract_local(image) == "第一行\nSecond line"
+    assert ocr._extract_local(image) == "First line\nSecond line"
 
 
 def test_remote_ocr_sends_image_block(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -176,7 +176,7 @@ def _remote_extractor(monkeypatch: pytest.MonkeyPatch, reply: object) -> ocr._Re
         "No image was attached. Please upload an image.",
         "I don't see an image attached to your message. Please upload the image you'd "
         "like me to transcribe, and I'll provide the exact transcription.",
-        "未收到图片，请上传图片后重试。",
+        "No image received. Please upload an image and try again.",
     ],
 )
 def test_remote_ocr_ignores_no_image_refusal(
@@ -197,7 +197,7 @@ def test_remote_ocr_keeps_long_page_that_mentions_uploading_an_image(
     image.write_bytes(b"image")
     page = (
         "No image was attached. Please upload an image. "
-        + "发票明细：办公用品 128.00 元，差旅费 340.00 元。" * 12
+        + "Invoice lines: office supplies 128.00, travel 340.00." * 12
     )
 
     assert _remote_extractor(monkeypatch, page)(image) == page
@@ -217,7 +217,7 @@ def test_remote_ocr_skips_refusal_page_but_keeps_transcribed_page(
 
     extractor = _remote_extractor(
         monkeypatch,
-        ["No image was attached. Please upload an image.", "第二页正文"],
+        ["No image was attached. Please upload an image.", "Second page body"],
     )
 
-    assert extractor(pdf) == "第二页正文"
+    assert extractor(pdf) == "Second page body"

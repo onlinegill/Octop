@@ -10,226 +10,226 @@ disable-model-invocation: true
 
 # Publish
 
-自动化 Octop Python 包的完整发布流程。
+Automate the complete release flow for the Octop Python package.
 
-**开始时宣告：** "正在使用 publish 技能发布版本 {VERSION}。"
+**Announce at the start:** "Publishing version {VERSION} using the publish skill."
 
-## 配置项
+## Configuration
 
-以下配置有默认值，可在项目的 `.cursor/skills/publish/SKILL.md` 中覆盖。
+The following settings have defaults and can be overridden in the project's `.cursor/skills/publish/SKILL.md`.
 
-| 配置项 | 默认值 | 说明 |
+| Setting | Default | Description |
 |--------|--------|------|
-| `CHANGELOG_FILE` | `CHANGELOG.md` | 相对于仓库根目录的路径，文件不存在则跳过 |
-| `VERSION_FILE` | `pyproject.toml` | 包含版本号的文件 |
-| `VERSION_PATTERN` | `^\s*version\s*=\s*"[^"]+"` | 匹配版本行的正则表达式 |
-| `README_GLOB` | `README*.md` | 含 shields.io 版本徽标的 README（含多语言变体，如 `README.md`、`README_CN.md`）；全部同步升级 |
-| `INIT_VERSION_FILE` | `src/octop/__init__.py` | 含运行时常量 `__version__` 的文件（缺失则跳过并提示） |
-| `TAG_PREFIX` | `v` | Git tag 前缀；工作流监听 `v*`，生成 `v0.1.14` 风格标签 |
-| `REMOTE` | `origin` | Git 远程仓库名 |
-| `INTEGRATION_BRANCH` | `develop` | 日常集成分支；release 必须从最新 tip 切出 |
-| `TARGET_BRANCH` | `main` | 合并请求的目标分支（生产真源） |
-| `RELEASE_BRANCH_PREFIX` | `release/` | release 分支名前缀 |
+| `CHANGELOG_FILE` | `CHANGELOG.md` | Path relative to the repository root; skipped if the file does not exist |
+| `VERSION_FILE` | `pyproject.toml` | The file containing the version number |
+| `VERSION_PATTERN` | `^\s*version\s*=\s*"[^"]+"` | Regular expression matching the version line |
+| `README_GLOB` | `README*.md` | READMEs containing the shields.io version badge; all are upgraded in sync |
+| `INIT_VERSION_FILE` | `src/octop/__init__.py` | The file containing the `__version__` runtime constant (skipped with a notice if missing) |
+| `TAG_PREFIX` | `v` | Git tag prefix; workflows listen for `v*` and produce tags like `v0.1.14` |
+| `REMOTE` | `origin` | Git remote name |
+| `INTEGRATION_BRANCH` | `develop` | Daily integration branch; releases must be cut from its latest tip |
+| `TARGET_BRANCH` | `main` | Target branch for the merge request (production source of truth) |
+| `RELEASE_BRANCH_PREFIX` | `release/` | Release branch name prefix |
 
-## 调用方式
+## Invocation
 
 ```
 /publish 0.1.14
 ```
 
-目标版本号是唯一必填参数，其余均从配置或自动检测获取。
+The target version is the only required argument; everything else comes from configuration or is auto-detected.
 
-## 发布流程
+## Release flow
 
-> **顺序硬约束：** 先 PR 合入 `main`，再在 **main tip** 打并推送 `v*` tag。  
-> **禁止**在 release 分支未合入 `main` 前推送生产 tag。
+> **Hard ordering constraint:** merge the PR into `main` first, then tag and push `v*` on the **main tip**.  
+> **Never** push a production tag before the release branch has merged into `main`.
 
-### 步骤 1 — 读取配置并确认版本
+### Step 1 — Read configuration and confirm the version
 
-1. 获取仓库根目录：`git rev-parse --show-toplevel`
-2. 记录当前分支为 `{original_branch}`。
+1. Get the repository root: `git rev-parse --show-toplevel`
+2. Record the current branch as `{original_branch}`.
 3. `git fetch {REMOTE} {INTEGRATION_BRANCH} {TARGET_BRANCH}`
-4. 从 `VERSION_FILE` 读取当前版本（在即将基于的 integration tip 上）：
+4. Read the current version from `VERSION_FILE` (on the integration tip you are about to base on):
    ```bash
    git show {REMOTE}/{INTEGRATION_BRANCH}:pyproject.toml | grep -E '^\s*version\s*=\s*"[^"]+"'
    ```
-5. 检查未提交的更改：
+5. Check for uncommitted changes:
    ```bash
    git status --short
    ```
-   若工作树不干净：**中止**并要求用户先提交或 stash。发布不得夹带无关脏文件。
-6. 查找最近的 git tag：
+   If the working tree is not clean: **abort** and ask the user to commit or stash first. A release must not carry unrelated dirty files.
+6. Find the most recent git tag:
    ```bash
    git tag --sort=-creatordate | head -1
    ```
-   如果没有 tag，视为首次发布（在步骤 3 中使用从仓库初始到 HEAD 的所有提交）。
-7. 展示确认信息：
+   If there is no tag, treat this as the first release (use all commits from the repository start to HEAD in step 3).
+7. Show the confirmation:
 
 ```
-当前版本 (pyproject.toml @ develop): X.Y.Z
-目标版本:                           A.B.C
-上次发布 tag:                       vX.Y.Z (YYYY-MM-DD)
-Release 分支:                       release/A.B.C
-集成起点:                           develop
-合入目标:                           main
-Tag 时机:                           main 合并之后（不会在 release 上先打 tag）
+Current version (pyproject.toml @ develop): X.Y.Z
+Target version:                             A.B.C
+Last release tag:                           vX.Y.Z (YYYY-MM-DD)
+Release branch:                             release/A.B.C
+Integration base:                           develop
+Merge target:                               main
+Tag timing:                                 after merging into main (no tag on the release branch first)
 
-确认发布 X.Y.Z → A.B.C？[y/N]
+Confirm release X.Y.Z → A.B.C? [y/N]
 ```
 
-如果用户未输入 `y` 确认，立即中止。
+If the user does not type `y` to confirm, abort immediately.
 
-### 步骤 2 — 从 develop 创建 release 分支
+### Step 2 — Create the release branch from develop
 
 ```bash
 git checkout -B {RELEASE_BRANCH_PREFIX}{version} {REMOTE}/{INTEGRATION_BRANCH}
 ```
 
-如果本地或远程已存在同名 release 分支，中止：
+If a release branch with the same name already exists locally or remotely, abort:
 ```
-✗ 分支 {RELEASE_BRANCH_PREFIX}{version} 已存在。
-请手动删除后再运行 /publish。
+✗ Branch {RELEASE_BRANCH_PREFIX}{version} already exists.
+Delete it manually, then run /publish again.
 ```
 
-### 步骤 3 — 分析变更并生成 CHANGELOG 草稿
+### Step 3 — Analyze changes and generate a CHANGELOG draft
 
-1. 获取上次 tag 以来的提交（相对当前 release HEAD，即 develop tip）：
+1. Get the commits since the last tag (relative to the current release HEAD, i.e. the develop tip):
    ```bash
    git log {last_tag}..HEAD --oneline
-   # 首次发布时：
+   # For the first release:
    git log --oneline
    ```
 
-2. 如果没有找到提交：
+2. If no commits are found:
    ```
-   ⚠ 自上次发布 tag ({last_tag}) 以来没有新提交。
-   是否继续？[y/N]
+   ⚠ No new commits since the last release tag ({last_tag}).
+   Continue? [y/N]
    ```
-   用户未确认则中止。
+   Abort if the user does not confirm.
 
-3. 按提交前缀分类，生成 Keep a Changelog 格式的条目。
+3. Classify by commit prefix and generate Keep a Changelog entries.
 
-   **CHANGELOG 内容必须用中文书写。** 将每个提交总结为简洁的中文要点 — 不要逐字翻译提交信息。适当合并相关提交。
+   **The CHANGELOG content must be written in English.** Summarize each commit as a concise English bullet — do not translate commit messages verbatim. Merge related commits where appropriate.
 
-   分类规则：
-   - 以 `feat:` 或 `feat(` 开头 → **新增**
-   - 以 `fix:` 或 `fix(` 开头 → **修复**
-   - 以 `refactor:` 或 `perf:` 开头 → **变更**
-   - 包含 `!:` 或提交正文含 `BREAKING CHANGE:` → **变更**，加 `**Breaking:**` 前缀
-   - 以 `docs:` 开头 → **变更**
-   - 以 `chore:`、`test:`、`ci:` 开头 → 忽略（基础设施噪音）
-   - 其他所有提交 → **变更**
-   - 移除的功能 → **移除**
-   - 安全修复 → **安全**
+   Classification rules:
+   - Starts with `feat:` or `feat(` → **Added**
+   - Starts with `fix:` or `fix(` → **Fixed**
+   - Starts with `refactor:` or `perf:` → **Changed**
+   - Contains `!:` or a `BREAKING CHANGE:` line in the body → **Changed**, prefixed with `**Breaking:**`
+   - Starts with `docs:` → **Changed**
+   - Starts with `chore:`, `test:`, `ci:` → ignore (infrastructure noise)
+   - Any other commit → **Changed**
+   - Removed features → **Removed**
+   - Security fixes → **Security**
 
-   输出格式：
+   Output format:
    ```markdown
    ## [A.B.C] - YYYY-MM-DD
 
-   ### 新增
-   - 中文描述新增功能
+   ### Added
+   - English description of the added features
 
-   ### 修复
-   - 中文描述修复内容
+   ### Fixed
+   - English description of the fixes
 
-   ### 变更
-   - 中文描述行为变更
+   ### Changed
+   - English description of the behavior changes
 
-   ### 移除
-   - 中文描述移除内容
+   ### Removed
+   - English description of what was removed
 
-   ### 安全
-   - 中文描述安全修复
+   ### Security
+   - English description of the security fixes
    ```
-   省略空的分类。日期使用 ISO 8601 格式（当天日期）。日期行与第一个分类之间、各分类之间保留空行。
+   Omit empty categories. Use ISO 8601 for the date (today's date). Keep a blank line between the date line and the first category, and between categories.
 
-4. 向用户展示草稿并请求确认：
+4. Show the draft to the user and ask for confirmation:
    ```
-   CHANGELOG 草稿：
+   CHANGELOG draft:
 
    {draft}
 
-   添加到 CHANGELOG.md？[y/N/edit]
+   Add to CHANGELOG.md? [y/N/edit]
    ```
-   - `y` → 继续
-   - `n` → 中止
-   - `edit` 或其他反馈 → 询问用户："需要什么修改？" — 等待回复后重新生成，再次展示确认。循环直到 `y` 或 `n`。
+   - `y` → continue
+   - `n` → abort
+   - `edit` or other feedback → ask the user "What should change?" — wait for the reply, regenerate, and show the confirmation again. Loop until `y` or `n`.
 
-5. 如果 `CHANGELOG_FILE` 不存在，跳过此步骤（无需警告）。
+5. If `CHANGELOG_FILE` does not exist, skip this step (no warning needed).
 
-### 步骤 4 — 更新文件、提交并推送 release 分支
+### Step 4 — Update files, commit, and push the release branch
 
-按顺序执行：
+Perform in order:
 
-**4a. 更新 CHANGELOG：**
+**4a. Update the CHANGELOG:**
 
-在 `CHANGELOG_FILE` 中找到 `## [Unreleased]` 标题，在其后插入新版本条目（保持 `[Unreleased]` 为空）：
+In `CHANGELOG_FILE`, find the `## [Unreleased]` heading and insert the new version entry after it (keeping `[Unreleased]` empty):
 
 ```markdown
 ## [Unreleased]
 
 ## [A.B.C] - YYYY-MM-DD
-### 新增
+### Added
 - ...
 ```
 
-如果 `## [Unreleased]` 标题不存在，在 `# Changelog` 标题行之后插入新条目（若无标题则插入到文件顶部）。
+If the `## [Unreleased]` heading does not exist, insert the new entry after the `# Changelog` heading line (or at the top of the file if there is no heading).
 
-**4b. 升级版本号（同步所有版本来源）：**
+**4b. Bump the version number (sync all version sources):**
 
-发布版本号必须保持多文件一致。依次升级以下位置：
+The release version must stay consistent across multiple files. Bump each of the following in order:
 
-1. `VERSION_FILE`（`pyproject.toml`）— wheel / PyPI 的唯一版本源：
+1. `VERSION_FILE` (`pyproject.toml`) — the single source of truth for the wheel / PyPI:
    ```bash
    grep -n '^\s*version\s*=\s*"[^"]+"' pyproject.toml
-   # 用 Edit 工具将该行的 "X.Y.Z" 替换为 "A.B.C"
+   # Replace "X.Y.Z" with "A.B.C" on that line using the Edit tool
    ```
-2. 所有匹配 `README_GLOB` 且含 shields.io 版本徽标的 README（含多语言）：
+2. All READMEs matching `README_GLOB` that contain the shields.io version badge:
    ```bash
-   # 发现需升级的文件（勿只改英文 README.md）
+   # Discover the files to upgrade (do not only edit README.md)
    grep -l 'shields.io/badge/version-' README.md README_*.md 2>/dev/null
-   # 对每一个命中文件：
+   # For each file that matches:
    grep -n 'shields.io/badge/version-' {file}
-   # 用 Edit 工具将 `version-X.Y.Z-orange` 替换为 `version-A.B.C-orange`
+   # Replace `version-X.Y.Z-orange` with `version-A.B.C-orange` using the Edit tool
    ```
-   当前仓库至少包括 `README.md` 与 `README_CN.md`；若某语言文件无徽标则跳过该文件。
-   全部未命中则提示并继续（不中止）。
-3. `INIT_VERSION_FILE`（`src/octop/__init__.py`）— 运行时常量 `__version__`：
+   The current repository includes at least `README.md`; skip any file without a badge.
+   If nothing matches, show a notice and continue (do not abort).
+3. `INIT_VERSION_FILE` (`src/octop/__init__.py`) — the `__version__` runtime constant:
    ```bash
    grep -n '__version__' src/octop/__init__.py
-   # 用 Edit 工具将 `__version__ = "X.Y.Z"` 替换为 `"A.B.C"`
+   # Replace `__version__ = "X.Y.Z"` with `"A.B.C"` using the Edit tool
    ```
-   文件不存在则跳过并提示（不中止）。
-4. 飞牛 FnOS 两个 manifest 的 `version=` 字段（与 `pyproject.toml` 保持一致；`scripts/build-fpk.sh` 打包时也会再注入一次，但仓库源文件必须先改，避免商店展示/手工校验看到旧号）：
+   Skip with a notice if the file does not exist (do not abort).
+4. The `version=` fields of the two FnOS manifests (keep them consistent with `pyproject.toml`; `scripts/build-fpk.sh` also injects the version again when packaging, but the repository source files must be updated first so the store listing / manual checks do not show a stale number):
    ```bash
    grep -n '^version=' fnos/docker/manifest fnos/native/manifest
-   # 用 Edit 工具将两处 `version=X.Y.Z` 替换为 `version=A.B.C`
+   # Replace both `version=X.Y.Z` with `version=A.B.C` using the Edit tool
    ```
-   两个文件都必须改。缺文件则提示并继续（不中止）。
+   Both files must be updated. If a file is missing, show a notice and continue (do not abort).
 
-**4c. 提交：**
+**4c. Commit:**
 
 ```bash
 git status --short
 ```
 
-- 如果有更改：暂存并提交：
+- If there are changes: stage and commit:
   ```bash
   git add -A
   git commit -m "chore: release {version}"
   ```
-- 如果工作树已干净：无需提交，跳过。
+- If the working tree is already clean: nothing to commit, skip.
 
-**4d. 推送 release 分支：**
+**4d. Push the release branch:**
 ```bash
 git push -u {REMOTE} {RELEASE_BRANCH_PREFIX}{version}
 ```
 
-推送失败则中止。
+Abort if the push fails.
 
-### 步骤 5 — 创建合入 main 的 Pull Request（先合，后自动 tag）
+### Step 5 — Open the Pull Request into main (merge first, auto-tag after)
 
-使用 `gh` CLI：
+Using the `gh` CLI:
 
 ```bash
 gh pr create \
@@ -237,7 +237,7 @@ gh pr create \
   --head {RELEASE_BRANCH_PREFIX}{version} \
   --title "chore: release {version}" \
   --body "$(cat <<'EOF'
-{步骤 3 生成的 CHANGELOG 条目}
+{CHANGELOG entries generated in step 3}
 
 ## Release checklist
 - [ ] CI green
@@ -247,86 +247,86 @@ EOF
 )"
 ```
 
-- 成功时展示 PR URL，并明确告知：
-  - 合并前不要手动打 tag；
-  - 合并后会自动发版（自动打 tag）。
-- 若 `gh` 失败：中止（此时尚未发版），提示手动创建 PR：
+- On success, show the PR URL and state clearly:
+  - Do not tag manually before merging;
+  - The release is published automatically after the merge (the tag is created automatically).
+- If `gh` fails: abort (nothing has been released yet) and prompt to create the PR manually:
   `{RELEASE_BRANCH_PREFIX}{version}` → `{TARGET_BRANCH}`
 
-### 步骤 6 — 等待合入后，由 Action 在 main tip 打 tag
+### Step 6 — After the merge, the Action tags on the main tip
 
-1. 询问用户 PR 是否已合并，或轮询：
+1. Ask the user whether the PR has merged, or poll:
    ```bash
    gh pr view {pr_url} --json state,mergedAt
    ```
-   未合并则等待；无需本地执行打 tag。
+   Wait until merged; there is no need to tag locally.
 
-2. 合并后：
-   - `auto-tag-on-release.yml` 会读取合并后 `main` 的 `pyproject.toml` 版本并推送 `{TAG_PREFIX}{version}`。
-   - 若 tag 已存在，Action 会跳过并输出日志。
+2. After the merge:
+   - `auto-tag-on-release.yml` reads the version from the merged `main`'s `pyproject.toml` and pushes `{TAG_PREFIX}{version}`.
+   - If the tag already exists, the Action skips it and logs this.
 
-3. 提示用户到 Actions 确认：
-   - `Auto Tag On Release Merge` 成功；
-   - `Release` 与 `Docker Publish` 随 `v*` tag 触发并通过；
-   - `Sync Main Into Develop` 在 GitHub Release 发布后把 `main` 同步回 `develop`。
+3. Prompt the user to confirm in Actions:
+   - `Auto Tag On Release Merge` succeeded;
+   - `Release` and `Docker Publish` triggered by the `v*` tag and passed;
+   - `Sync Main Into Develop` syncs `main` back into `develop` after the GitHub Release is published.
 
-### 步骤 7 — 删除 release 分支；develop 由 Action 同步
+### Step 7 — Delete the release branch; develop is synced by the Action
 
-1. 删除远程与本地 release 分支：
+1. Delete the remote and local release branch:
    ```bash
    git push {REMOTE} --delete {RELEASE_BRANCH_PREFIX}{version}
    git branch -D {RELEASE_BRANCH_PREFIX}{version}
    ```
-   删除失败则警告（非致命），提示手动删除。
+   Warn on failure (non-fatal) and prompt for manual deletion.
 
-2. **develop 同步**：GitHub Release 发布成功后，`sync-main-to-develop.yml` 会自动开 `main → develop` PR，并在无冲突时用 **merge commit** 合入。
-   - 若已快进无差异，Action 会跳过。
-   - 若有冲突或分支保护拦截，Action 留下 PR 并告警，需人工处理。
-   - 技能侧无需再手动创建 sync PR（除非 Action 失败）。
+2. **develop sync**: after the GitHub Release is published successfully, `sync-main-to-develop.yml` automatically opens a `main → develop` PR and, when there are no conflicts, merges it with a **merge commit**.
+   - If it is already fast-forward with no diff, the Action skips it.
+   - On conflicts or branch-protection blocks, the Action leaves the PR and warns; handle it manually.
+   - The skill does not need to create the sync PR manually (unless the Action fails).
 
-### 步骤 8 — 切回原分支
+### Step 8 — Check out the original branch
 
 ```bash
 git checkout {original_branch}
 ```
 
-确保流程结束后用户不会停留在 release / 临时检出上。
+Make sure the user is not left on the release / temporary checkout when the flow ends.
 
-## 错误处理参考
+## Error handling reference
 
-| 场景 | 行为 |
+| Scenario | Behavior |
 |------|------|
-| `VERSION_FILE` 未找到 | 中止："找不到 VERSION_FILE：{path}" |
-| 文件中未匹配到版本号 | 中止："在 {VERSION_FILE} 中找不到匹配 {VERSION_PATTERN} 的版本行" |
-| 工作树不干净 | 中止：先清理再发布 |
-| 没有 git tag（首次发布） | 使用完整历史；提示"首次发布" |
-| 上次 tag 以来无提交 | 警告并询问是否继续 |
-| Release 分支已存在 | 中止并给出删除指令 |
-| 步骤 4 推送失败 | 中止：文件已在本地更新但未推送 |
-| 步骤 5 PR 创建失败 | 中止（尚未打 tag / 未发版） |
-| 步骤 6 在未合入时手动打 tag | **禁止** — 硬红线 |
-| 步骤 6 tag 已存在 | 中止并给出删除指令 |
-| 步骤 6 tag 推送成功但 Action 失败 | 非致命：提示到 Actions Re-run |
-| 步骤 7 删分支或 sync PR 失败 | 警告并给出手动命令 |
+| `VERSION_FILE` not found | Abort: "VERSION_FILE not found: {path}" |
+| No version line matched in the file | Abort: "No version line matching {VERSION_PATTERN} found in {VERSION_FILE}" |
+| Working tree not clean | Abort: clean up before releasing |
+| No git tag (first release) | Use full history; announce "first release" |
+| No commits since the last tag | Warn and ask whether to continue |
+| Release branch already exists | Abort and give the delete command |
+| Step 4 push fails | Abort: files were updated locally but not pushed |
+| Step 5 PR creation fails | Abort (no tag yet / nothing released) |
+| Step 6 tagging manually before merge | **Forbidden** — hard red line |
+| Step 6 tag already exists | Abort and give the delete command |
+| Step 6 tag pushed but the Action fails | Non-fatal: prompt to Re-run in Actions |
+| Step 7 branch delete or sync PR fails | Warn and give the manual command |
 
-## 红线规则
+## Red lines
 
-**绝不：**
-- 在 release / feature 分支上、于合入 `main` **之前**推送生产 `v*` tag
-- 在推送 tag 前直接上传 PyPI（发布由 GitHub Action 负责）
-- 将 `develop` 直接 push / merge 进 `main`（必须走 PR）
-- 跳过步骤 1 的用户确认
-- 跳过步骤 3 的 CHANGELOG 确认
-- 在任何步骤失败后继续执行（步骤 7 的清理/同步警告除外）
-- 流程结束后让用户留在 release 分支
-- 保留已发完的 `release/*` 作为长期分支
+**Never:**
+- Push a production `v*` tag on a release / feature branch **before** merging into `main`
+- Upload to PyPI directly before pushing the tag (publishing is handled by the GitHub Action)
+- Push / merge `develop` directly into `main` (must go through a PR)
+- Skip the user confirmation in step 1
+- Skip the CHANGELOG confirmation in step 3
+- Continue after any step fails (except the cleanup/sync warnings in step 7)
+- Leave the user on the release branch when the flow ends
+- Keep a shipped `release/*` around as a long-lived branch
 
-**始终：**
-- 从最新 `{REMOTE}/{INTEGRATION_BRANCH}` 切 release
-- 先合入 `{TARGET_BRANCH}`，再由 Action 在 main tip 打 tag
-- 发版后删除 `release/*`；`main → develop` 由 `sync-main-to-develop.yml` 自动同步（失败时再手动补）
-- 中止前展示完整错误输出
-- 插入新版本条目后保持 `[Unreleased]` 为空
-- 同步升级所有含 shields.io 版本徽标的多语言 README（`README.md`、`README_CN.md` 等），勿只改英文
-- 同步升级 `fnos/docker/manifest` 与 `fnos/native/manifest` 的 `version=` 字段，勿只改 `pyproject.toml`
-- 推送 tag 后提示用户关注 GitHub Actions 的发布结果
+**Always:**
+- Cut the release from the latest `{REMOTE}/{INTEGRATION_BRANCH}`
+- Merge into `{TARGET_BRANCH}` first, then let the Action tag on the main tip
+- Delete `release/*` after release; `main → develop` is synced automatically by `sync-main-to-develop.yml` (fix manually only on failure)
+- Show the full error output before aborting
+- Keep `[Unreleased]` empty after inserting the new version entry
+- Upgrade every README containing the shields.io version badge (`README.md`, etc.), not just one
+- Keep the `version=` fields in `fnos/docker/manifest` and `fnos/native/manifest` in sync, not just `pyproject.toml`
+- After pushing the tag, prompt the user to watch the GitHub Actions release result

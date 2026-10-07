@@ -14,6 +14,7 @@ from octop.infra.db.migrate import run_migrations
 from octop.infra.db.services import SharedServices, build_shared_services
 from octop.infra.gateway.threads import ThreadRegistry
 from octop.infra.utils.env_file import apply_env_file, env_file_path
+from octop.infra.utils.locale import normalize_locale
 from octop.infra.utils.paths import PathLayout
 
 
@@ -58,17 +59,17 @@ def resolve_cli_user_id(
 
 
 def resolve_cli_locale() -> str:
-    """Best-effort locale for terminal rendering (zh/en)."""
+    """Terminal rendering locale. This fork is English-only."""
     try:
         with open_cli_services() as svc:
             uid = resolve_cli_user_id(None, services=svc)
             if uid is not None:
                 row = svc.user_repo.get(uid)
-                if row is not None and row.locale in ("zh", "en"):
-                    return row.locale
+                if row is not None:
+                    return normalize_locale(row.locale)
     except Exception:
         pass
-    return "zh"
+    return "en"
 
 
 def agent_row_to_dict(row: Any) -> dict[str, Any]:

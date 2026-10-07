@@ -38,7 +38,7 @@ export interface TrajectoryLedgerRow {
   isError: boolean;
 }
 
-/** Match DeepSeek Harness ui-trajectory lanes: Input / Model / Tools. */
+/** Match the ui-trajectory lanes: Input / Model / Tools. */
 const INPUT_KINDS = new Set<string>(["user", "system", "context", "unknown"]);
 const MODEL_KINDS = new Set<string>(["assistant", "compacted"]);
 

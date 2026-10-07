@@ -11,7 +11,7 @@ _MAIL_PROVIDER_PRESETS: dict[str, MailServers] = {
     "gmail": ("imap.gmail.com", 993, "smtp.gmail.com", 587),
 }
 
-# 163 / 126 / yeah 各用独立主机；混用会报 LOGIN 失败。
+# 163 / 126 / yeah each use a separate host; mixing them causes LOGIN failures.
 _NETEASE_DOMAIN_SERVERS: dict[str, MailServers] = {
     "163.com": ("imap.163.com", 993, "smtp.163.com", 587),
     "126.com": ("imap.126.com", 993, "smtp.126.com", 587),

@@ -11,7 +11,7 @@ def test_empty_and_blank() -> None:
 
 
 def test_bare_host_is_prefixed() -> None:
-    assert _normalize_nav_url("baidu.com") == "https://baidu.com"
+    assert _normalize_nav_url("example.org") == "https://example.org"
     assert _normalize_nav_url("example.com/path?q=1") == "https://example.com/path?q=1"
 
 

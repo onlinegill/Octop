@@ -13,6 +13,11 @@ from pathlib import Path
 import pytest
 
 posix_only = pytest.mark.skipif(os.name != "posix", reason="bash helpers")
+# octop_fpk_native_run_pids identifies the service via /proc/<pid>/environ, which is
+# Linux-only (fnOS is Linux). macOS has no /proc, so gate this rather than assert.
+procfs_only = pytest.mark.skipif(
+    not Path("/proc").exists(), reason="/proc/<pid>/environ is Linux-only (fnOS)"
+)
 
 REPO = Path(__file__).resolve().parents[2]
 COMMON_SH = REPO / "scripts" / "fnos" / "common.sh"
@@ -160,7 +165,7 @@ def test_native_main_stop_frees_port_after_wrapper_start(tmp_path: Path) -> None
     if shutil.which("python3") is None:
         pytest.skip("python3 required")
     if _octop_native_user_exists() and os.geteuid() != 0:
-        pytest.skip("octop-native 存在且当前非 root，runuser 后无法在测试里停掉服务")
+        pytest.skip("octop-native is present and we are not root; cannot stop the service after runuser in tests")
     port = _free_tcp_port()
     appdest = tmp_path / "app"
     pkgvar = tmp_path / "var"
@@ -255,11 +260,11 @@ def _copy_ctl(cmd: Path) -> None:
 
 @posix_only
 def test_native_main_start_term_cleans_unready_child(tmp_path: Path) -> None:
-    """飞牛若在端口就绪前杀掉 start，必须把已拉起的后台进程一起收掉。"""
+    """If fnOS kills start before the port is ready, spawned background processes must be reaped."""
     if shutil.which("python3") is None:
         pytest.skip("python3 required")
     if _octop_native_user_exists() and os.geteuid() != 0:
-        pytest.skip("octop-native 存在且当前非 root，runuser 后无法在测试里停掉服务")
+        pytest.skip("octop-native is present and we are not root; cannot stop the service after runuser in tests")
     port = _free_tcp_port()
     appdest = tmp_path / "app"
     pkgvar = tmp_path / "var"
@@ -329,6 +334,7 @@ def _pid_file_alive(path: Path) -> bool:
 
 
 @posix_only
+@procfs_only
 def test_octop_fpk_native_run_pids_and_sweep(tmp_path: Path) -> None:
     env = {**os.environ, "OCTOP_INSTALL_MODE": "fpk-native"}
     proc = subprocess.Popen(

@@ -29,10 +29,10 @@ async def lookup_ip(ip: str = "") -> str:
             resp.raise_for_status()
             body = resp.json()
     except Exception as exc:
-        return _payload({"error": str(exc)}, f"IP 查询失败：{exc}")
+        return _payload({"error": str(exc)}, f"IP lookup failed: {exc}")
     if body.get("status") != "success":
         msg = str(body.get("message") or "lookup failed")
-        return _payload({"error": msg}, f"IP 查询失败：{msg}")
+        return _payload({"error": msg}, f"IP lookup failed: {msg}")
     data = {
         "country": str(body.get("country") or ""),
         "regionName": str(body.get("regionName") or ""),
@@ -50,5 +50,5 @@ def setup(ctx: PluginContext) -> None:
     ctx.tool(
         "lookup_ip",
         lookup_ip,
-        description="查询 IP 归属。ip 为空则查本机公网 IP。",
+        description="Look up an IP\u2019s location. When ip is empty, look up this host\u2019s public IP.",
     )

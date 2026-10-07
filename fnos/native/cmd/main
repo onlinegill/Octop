@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# Octop 本地版（原生 app）— 生命周期管理
-# 直接以进程方式运行在飞牛主机上（非 Docker），监听 0.0.0.0:8089。
-# start:  启动 Octop（setsid 后台，写 PID 文件）；端口未就绪则失败并写出原因
-# stop:   杀进程树并释放 8089；超时 SIGKILL。启动被中途杀掉也会收尸。
-# status: PID 存活或 8089 仍在监听（防止外壳已死、Python 孤儿仍占端口时显示已停止）
+# Octop (native) — lifecycle management
+# Runs directly as a process on the FnOS host (not Docker), listening on 0.0.0.0:8089.
+# start:  start Octop (setsid in the background, write the PID file); if the port is not ready it fails and writes out the reason
+# stop:   kill the process tree and release 8089; SIGKILL on timeout. If start is killed midway it is also reaped.
+# status: the PID is alive or 8089 is still listening (to avoid showing "stopped" when the wrapper is dead but an orphan Python process still holds the port)
 #
 
 set -uo pipefail
@@ -43,8 +43,9 @@ run_as_service() {
     fi
 }
 
-# 后台拉起服务：优先 setsid，整棵进程树同一进程组，stop 才能一次杀干净。
-# $! 是会话首进程（runuser 或启动器）；bin/octop 随后 exec 成 Python。
+# Start the service in the background: prefer setsid so the whole process tree
+# shares one process group, which lets stop kill it all at once.
+# $! is the session leader (runuser or the launcher); bin/octop then execs into Python.
 run_as_service_bg() {
     if id octop-native >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
         if command -v setsid >/dev/null 2>&1; then
@@ -95,22 +96,23 @@ start_process() {
     : >> "${LOG_FILE}"
     chmod +x "$BIN" 2>/dev/null || true
     if [ ! -f "$BIN" ]; then
-        fail_start "找不到启动器 ${BIN}。请重新安装本地版。"
+        fail_start "launcher ${BIN} not found. Please reinstall the native edition."
         return 1
     fi
     if type fix_ownership_and_perms >/dev/null 2>&1; then
         fix_ownership_and_perms "$PKGVAR" "${PKGVAR}/.env" >/dev/null || true
     fi
 
-    # 上次 stop 可能只杀掉了 runuser 外壳，Python 仍占端口。
-    # 这里再清一次，供设置回调等直调 start，以及 checkport 关闭后的自愈。
+    # A previous stop may have killed only the runuser wrapper while Python still
+    # holds the port. Clean up once more here, for direct calls to start (such as
+    # from the config callback) and for self-healing after checkport is disabled.
     if port_ready; then
-        log_msg "端口 ${PORT} 仍被占用，先清理残留进程"
+        log_msg "port ${PORT} is still in use, cleaning up leftover processes first"
         if type free_octop_ports >/dev/null 2>&1; then
             free_octop_ports "$PORT"
         fi
         if port_ready; then
-            fail_start "端口 ${PORT} 仍被占用。请确认没有其它程序占用该端口。"
+            fail_start "port ${PORT} is still in use. Please make sure no other program is using that port."
             return 1
         fi
     fi
@@ -118,16 +120,16 @@ start_process() {
     log_msg "Starting Octop (native) on port ${PORT} ..."
 
     if [ ! -f "${DATA_DIR}/.octop/octop.db" ] && [ ! -f "${DATA_DIR}/octop.db" ]; then
-        log_msg "数据库尚未初始化，先执行 --prepare"
+        log_msg "database not initialised yet, running --prepare first"
         if ! OCTOP_PORT="$PORT" OCTOP_BIND_HOST=0.0.0.0 run_as_service "$BIN" --prepare >> "${LOG_FILE}" 2>&1; then
-            fail_start "首次初始化失败。请打开数据目录 octop-start-error.txt，或确认已安装「Python 3.12」。"
+            fail_start "first-time initialisation failed. Please open octop-start-error.txt in the data directory, or make sure \"Python 3.12\" is installed."
             return 1
         fi
     fi
 
     OCTOP_PORT="$PORT" OCTOP_BIND_HOST=0.0.0.0 run_as_service_bg "$BIN" --host 0.0.0.0 --port "$PORT"
     octop_pid=$!
-    # 先写 PID：飞牛若在端口就绪前杀掉 start（超时 / 用户取消），stop 仍找得到进程。
+    # Write the PID first: if FnOS kills start before the port is ready (timeout / user cancellation), stop can still find the process.
     printf "%s" "$octop_pid" > "${PID_FILE}"
 
     _abort_start() {
@@ -153,20 +155,20 @@ start_process() {
         if port_ready; then
             trap - INT TERM HUP
             rm -f "${DATA_DIR}/octop-start-error.txt" "${PKGVAR}/last-error.txt"
-            log_msg "Octop pid=$octop_pid 端口 ${PORT} 已就绪"
+            log_msg "Octop pid=$octop_pid port ${PORT} ready"
             return 0
         fi
         if ! kill -0 "$octop_pid" 2>/dev/null; then
             trap - INT TERM HUP
             rm -f "${PID_FILE}"
-            fail_start "进程已退出，未能监听 ${PORT}。请打开数据目录 octop-start-error.txt。"
+            fail_start "the process exited and never listened on ${PORT}. Please open octop-start-error.txt in the data directory."
             return 1
         fi
         sleep 1
     done
 
     _abort_start
-    fail_start "在 ${START_WAIT_SECS} 秒内未能监听 ${PORT}。请打开数据目录 octop-start-error.txt。"
+    fail_start "did not listen on ${PORT} within ${START_WAIT_SECS} seconds. Please open octop-start-error.txt in the data directory."
     return 1
 }
 
@@ -176,7 +178,7 @@ stop_process() {
     if [ -r "${PID_FILE}" ]; then
         pid=$(head -n 1 "${PID_FILE}" | tr -d '[:space:]')
         if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-            # setsid 启动时 -$pid 即整组；失败则按进程树杀 runuser + Python 子进程。
+            # With setsid, -$pid is the whole group; on failure kill runuser + Python children via the process tree.
             kill -TERM -- "-$pid" 2>/dev/null || true
             if type octop_kill_pid_tree >/dev/null 2>&1; then
                 octop_kill_pid_tree "$pid" TERM
@@ -202,8 +204,8 @@ stop_process() {
         rm -f "${PID_FILE}"
     fi
 
-    # PID 文件里可能只是 runuser 外壳；exec 后的 Python 仍占 8089。
-    # 飞牛若在调用 start 前检查端口，残留监听会报「端口被占用」，但旧页面仍能打开。
+    # The PID file may hold only the runuser wrapper; the Python process after exec still holds 8089.
+    # If FnOS checks the port before calling start, a leftover listener reports "port in use", but the old page can still be opened.
     if type free_octop_ports >/dev/null 2>&1; then
         free_octop_ports "$PORT"
     fi
@@ -216,12 +218,12 @@ stop_process() {
         fi
         sleep 0.2
     done
-    log_msg "警告：停止后端口 ${PORT} 仍在监听"
+    log_msg "warning: port ${PORT} is still listening after stop"
     return 1
 }
 
 status() {
-    # 外壳已死但 Python 仍占端口：对应用中心仍报运行中，便于再次点停止。
+    # The wrapper is dead but Python still holds the port: still report as running to the App Center so the user can click stop again.
     pid_alive || port_ready
 }
 

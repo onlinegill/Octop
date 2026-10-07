@@ -1,10 +1,13 @@
 #!/bin/bash
 #
-# Octop — 升级后回调
-# 升级会重装包内向导文件（wizard/config 恢复成带占位符的模板），
-# 这里用现有 docker/.env 的用户名重新渲染「设置」窗口，
-# 并确认应急备份 octop-login.txt 存在（不覆盖用户已在 Web 内修改的密码，
-# 仅在备份缺失时按 .env 重建）。新版镜像由应用中心拉取并重建容器。
+# Octop — post-upgrade callback
+# An upgrade reinstalls the wizard files bundled in the package (wizard/config is
+# restored to the template with placeholders), so here we re-render the
+# "Settings" window using the username from the existing docker/.env, and make
+# sure the octop-login.txt emergency backup exists (it does not overwrite a
+# password the user already changed in the Web UI; it is only rebuilt from .env
+# when the backup is missing). The new image is pulled and the container rebuilt
+# by the App Center.
 #
 set -euo pipefail
 
@@ -13,7 +16,8 @@ _OCTOP_COMMON="$(dirname "$0")/common.sh"
 [ -f "$_OCTOP_COMMON" ] && source "$_OCTOP_COMMON"
 
 ENV_FILE="${TRIM_APPDEST:-/var/apps/octop/target}/docker/.env"
-# 升级会替换 target/，先从 @appdata 恢复 .env，再挂回 data-share 并迁旧目录。
+# An upgrade replaces target/, so first restore .env from @appdata, then remount
+# the data-share and migrate the old directory.
 DATA_DIR="$(octop_prepare_docker_persist "$ENV_FILE")"
 mkdir -p "$DATA_DIR"
 
@@ -24,12 +28,13 @@ ADMIN_EMAIL="$(octop_env_get "$ENV_FILE" OCTOP_ADMIN_EMAIL)"
 [ -n "$ADMIN_USER" ] || ADMIN_USER="admin"
 
 if [ -n "$ADMIN_PASS" ]; then
-    # 「设置」窗口用户名刷新
+    # Refresh the "Settings" window username
     WIZARD_TEMPLATE="${TRIM_APPDEST:-/var/apps/octop/target}/wizard/config.template"
     WIZARD_DIR="$(dirname "${TRIM_APPDEST:-/var/apps/octop/target}")/wizard"
     [ -f "$WIZARD_TEMPLATE" ] || WIZARD_TEMPLATE="${TRIM_APPDEST:-/var/apps/octop/target}/../wizard/config"
     octop_render_config_wizard "$WIZARD_TEMPLATE" "$WIZARD_DIR" "$ADMIN_USER" "$ADMIN_PASS" "$DATA_DIR"
-    # 回落备份缺失时按 .env 重建（存在则不动，尊重用户在 Web 内改过的密码）
+    # Rebuild from .env only when the backup is missing (if it exists, leave it
+    # alone and respect a password the user changed in the Web UI)
     if [ ! -f "${DATA_DIR}/octop-login.txt" ]; then
         octop_write_login_file "$DATA_DIR" "$ADMIN_USER" "$ADMIN_PASS" 8088
     fi

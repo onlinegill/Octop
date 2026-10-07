@@ -110,7 +110,7 @@ function TimerCard(props) {
       _jsx("div", { style: { fontSize: 28, lineHeight: 1 }, children: isPomo ? "🍅" : "⏳" }),
       _jsx("div", {
         style: { marginTop: 6, fontWeight: 700, letterSpacing: 0.3, opacity: 0.92 },
-        children: d.label || d.title || (isPomo ? "专注时钟" : "倒数"),
+        children: d.label || d.title || (isPomo ? "Focus Clock" : "Countdown"),
       }),
       _jsxs("div", {
         style: { position: "relative", width: 148, height: 148, margin: "14px auto 8px" },
@@ -135,7 +135,7 @@ function TimerCard(props) {
         ? _jsxs("div", {
             style: { display: "flex", gap: 10, justifyContent: "center", marginTop: 8 },
             children: [
-              pill(d.paused ? "继续" : "暂停", () =>
+              pill(d.paused ? "Resume" : "Pause", () =>
                 patch(
                   d.paused
                     ? {
@@ -148,7 +148,7 @@ function TimerCard(props) {
                 ),
               ),
               pill(
-                "重置",
+                "Reset",
                 () =>
                   patch({
                     paused: false,

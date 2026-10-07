@@ -32,7 +32,6 @@ export interface ReasoningCapability {
     | "openai_reasoning_effort"
     | "anthropic_adaptive"
     | "anthropic_budget"
-    | "dashscope"
     | "openrouter";
 }
 

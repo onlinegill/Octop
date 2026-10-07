@@ -312,10 +312,10 @@ function TetrisCard(props) {
       _jsxs("div", {
         style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
         children: [
-          _jsx("div", { style: { fontWeight: 800, fontSize: 15 }, children: "🧱 俄罗斯方块" }),
+          _jsx("div", { style: { fontWeight: 800, fontSize: 15 }, children: "🧱 Tetris" }),
           _jsx("div", {
             style: { fontSize: 11, opacity: focused ? 0.95 : 0.55 },
-            children: focused ? "键盘已接管" : "点击卡片后用方向键",
+            children: focused ? "Keyboard active" : "Click the card to use the arrow keys",
           }),
         ],
       }),
@@ -361,19 +361,19 @@ function TetrisCard(props) {
             _jsxs("div", {
               style: { background: "#111827", borderRadius: 10, padding: 8 },
               children: [
-                _jsx("div", { style: { opacity: 0.6, marginBottom: 4 }, children: "下一个" }),
+                _jsx("div", { style: { opacity: 0.6, marginBottom: 4 }, children: "Next" }),
                 _jsx(MiniPreview, { kind: game.next }),
               ],
             }),
             _jsxs("div", { style: { background: "#111827", borderRadius: 10, padding: 8, lineHeight: 1.6 }, children: [
-              _jsx("div", { children: `分数 ${game.score}` }),
-              _jsx("div", { children: `行数 ${game.lines}` }),
-              _jsx("div", { children: `等级 ${game.level}` }),
+              _jsx("div", { children: `Score ${game.score}` }),
+              _jsx("div", { children: `Lines ${game.lines}` }),
+              _jsx("div", { children: `Level ${game.level}` }),
             ] }),
             game.over
-              ? _jsx("div", { style: { color: "#fca5a5", fontWeight: 800 }, children: "游戏结束" })
+              ? _jsx("div", { style: { color: "#fca5a5", fontWeight: 800 }, children: "Game Over" })
               : game.paused
-                ? _jsx("div", { style: { color: "#fde68a", fontWeight: 700 }, children: "已暂停" })
+                ? _jsx("div", { style: { color: "#fde68a", fontWeight: 700 }, children: "Paused" })
                 : null,
           ],
         }),
@@ -394,13 +394,13 @@ function TetrisCard(props) {
                 const y = hardDropY(s);
                 return place({ ...s, y, score: s.score + Math.max(0, y - s.y) * 2 });
               }),
-            children: "硬降",
+            children: "Hard Drop",
           }),
           _jsx("button", {
             type: "button",
             style: btnStyle(),
             onClick: () => setGame((g) => (g.over ? g : { ...g, paused: !g.paused })),
-            children: game.paused ? "继续" : "暂停",
+            children: game.paused ? "Resume" : "Pause",
           }),
         ],
       }),
@@ -411,7 +411,7 @@ function TetrisCard(props) {
           patchedOver.current = false;
           setGame(createGame());
         },
-        children: "重新开始",
+        children: "Restart",
       }),
     ],
   });

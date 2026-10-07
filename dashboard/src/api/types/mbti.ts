@@ -12,22 +12,12 @@ export interface MBTIBehavior {
   creativity: string;
   emotion: string;
   planning: string;
-  answer_style_zh: string;
-  casual_chat_zh: string;
-  conflict_zh: string;
-  creativity_zh: string;
-  emotion_zh: string;
-  planning_zh: string;
 }
 
 export interface MBTIType {
   code: string;
-  name_zh: string;
   name_en: string;
-  nickname_zh: string;
-  summary_zh: string;
   summary_en: string;
-  descriptors_zh: string;
   descriptors_en: string;
   dimensions: MBTIDimensions;
   behavior: MBTIBehavior;
@@ -40,9 +30,6 @@ export interface MBTITestQuestion {
   dimension: string;
   a_pole: string;
   b_pole: string;
-  question_zh: string;
-  option_a_zh: string;
-  option_b_zh: string;
   question_en: string;
   option_a_en: string;
   option_b_en: string;

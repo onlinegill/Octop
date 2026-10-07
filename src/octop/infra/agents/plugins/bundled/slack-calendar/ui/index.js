@@ -40,11 +40,11 @@ function Card(props) {
       _jsx("div", { style: { fontSize: 22 }, children: "🐟" }),
       _jsx("div", {
         style: { fontWeight: 800, fontSize: 18, marginTop: 6 },
-        children: `周${d.weekday || ""} · ${d.date || ""}`,
+        children: `${d.weekday || ""} · ${d.date || ""}`,
       }),
       _jsx("div", {
         style: { marginTop: 12, fontSize: 28, fontWeight: 800 },
-        children: weekend === 0 ? "周末快乐" : `${weekend} 天后周末`,
+        children: weekend === 0 ? "Happy weekend" : `${weekend} days to the weekend`,
       }),
       holidayDays != null
         ? _jsx("div", {
@@ -52,7 +52,7 @@ function Card(props) {
             children:
               Number(holidayDays) === 0
                 ? d.holiday_name
-                : `距${d.holiday_name}还有 ${holidayDays} 天`,
+                : `${holidayDays} days until ${d.holiday_name}`,
           })
         : null,
       _jsxs("div", {
@@ -71,7 +71,7 @@ function Card(props) {
               background: "rgba(255,255,255,.35)",
               fontWeight: 700,
             },
-            children: `宜 ${d.do || ""}`,
+            children: `Do ${d.do || ""}`,
           }),
           _jsx("span", {
             style: {
@@ -80,7 +80,7 @@ function Card(props) {
               background: "rgba(255,255,255,.35)",
               fontWeight: 700,
             },
-            children: `忌 ${d.dont || ""}`,
+            children: `Don't ${d.dont || ""}`,
           }),
         ],
       }),

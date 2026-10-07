@@ -391,7 +391,7 @@ async def _run_codex_device_poll(
             return
         settings.set(
             f"codex_oauth.pending.{state_id}",
-            json.dumps({"status": "error", "error": "登录超时，请重新开始", "user_id": user_id}),
+            json.dumps({"status": "error", "error": "login timed out, please restart", "user_id": user_id}),
         )
     except Exception as exc:
         logger.exception("codex device oauth poll failed")

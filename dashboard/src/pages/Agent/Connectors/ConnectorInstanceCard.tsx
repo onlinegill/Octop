@@ -98,7 +98,7 @@ export function ConnectorInstanceCard({
                   ? t("connectors.sharedBadge", "Shared")
                   : t("connectors.sharedFrom", {
                       name: ownerLabel,
-                      defaultValue: `来自 ${ownerLabel}`,
+                      defaultValue: `From ${ownerLabel}`,
                     })}
               </Tag>
             ) : null}

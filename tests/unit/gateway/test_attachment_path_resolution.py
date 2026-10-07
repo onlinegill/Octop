@@ -50,13 +50,13 @@ async def test_upload_stores_timestamped_path_keeps_display_filename() -> None:
         stored = await save_attachment(
             workspace,
             owner_id=1,
-            filename="我的报告.pdf",
+            filename="my-report.pdf",
             media_type="application/pdf",
             data=b"%PDF-1.4",
         )
         assert stored.data_path.startswith("inbound/")
-        assert re.search(r"/\d{10,}_我的报告\.pdf$", stored.data_path)
-        assert stored.filename == "我的报告.pdf"
+        assert re.search(r"/\d{10,}_my-report\.pdf$", stored.data_path)
+        assert stored.filename == "my-report.pdf"
 
 
 @pytest.mark.asyncio

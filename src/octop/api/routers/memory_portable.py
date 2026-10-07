@@ -83,11 +83,11 @@ def _refuse_postgres_portable(server: Any, agent_id: str) -> None:
 
 
 class _AdoptRequest(BaseModel):
-    target_host: str = Field(description="目标宿主：agent / openclaw / hermes，可带 namespace")
-    target_namespace: str | None = Field(default=None, description="目标 namespace（可选）")
-    on_conflict: str = Field(default="skip", description="冲突策略：skip / replace / raise")
-    host_rewrite: str = Field(default="keep", description="host 重写策略：keep / target")
-    dry_run: bool = Field(default=False, description="仅预检，不实际写入")
+    target_host: str = Field(description="target host: agent / openclaw / hermes, optionally with a namespace")
+    target_namespace: str | None = Field(default=None, description="target namespace (optional)")
+    on_conflict: str = Field(default="skip", description="conflict policy: skip / replace / raise")
+    host_rewrite: str = Field(default="keep", description="host rewrite policy: keep / target")
+    dry_run: bool = Field(default=False, description="dry run only; do not actually write")
 
 
 # ---------------------------------------------------------------------------
@@ -108,7 +108,7 @@ async def list_portable_sources(
         return JSONResponse(content={"sources": [s.to_dict() for s in sources]})
     except ImportError:
         raise OctopError(
-            ErrorCode.INTERNAL_ERROR, "octop-memory 未安装，无法使用记忆迁移功能"
+            ErrorCode.INTERNAL_ERROR, "octop-memory is not installed; memory migration is unavailable"
         ) from None
     except Exception as exc:
         logger.exception("list_portable_sources failed")
@@ -182,7 +182,7 @@ async def pack_agent_memory(
         )
 
     except ImportError:
-        raise OctopError(ErrorCode.INTERNAL_ERROR, "octop-memory 未安装") from None
+        raise OctopError(ErrorCode.INTERNAL_ERROR, "octop-memory is not installed") from None
     except ValueError as exc:
         raise OctopError(ErrorCode.INTERNAL_ERROR, str(exc), status=400) from exc
     except Exception as exc:
@@ -198,8 +198,8 @@ async def pack_agent_memory(
 @router.post("/agents/{agent_id}/memory/portable/adopt")
 async def adopt_agent_memory(
     agent_id: str,
-    pkg_file: UploadFile = File(..., description=".hmpkg 文件"),
-    target_host: str = Form(default="agent", description="目标宿主"),
+    pkg_file: UploadFile = File(..., description=".hmpkg file"),
+    target_host: str = Form(default="agent", description="target host"),
     target_namespace: str | None = Form(default=None),
     on_conflict: str = Form(default="skip"),
     host_rewrite: str = Form(default="keep"),
@@ -237,7 +237,7 @@ async def adopt_agent_memory(
         return JSONResponse(content=summary.to_dict())
 
     except ImportError:
-        raise OctopError(ErrorCode.INTERNAL_ERROR, "octop-memory 未安装") from None
+        raise OctopError(ErrorCode.INTERNAL_ERROR, "octop-memory is not installed") from None
     except ValueError as exc:
         raise OctopError(ErrorCode.INTERNAL_ERROR, str(exc), status=400) from exc
     except Exception as exc:
@@ -253,8 +253,8 @@ async def adopt_agent_memory(
 @router.post("/agents/{agent_id}/memory/portable/doctor")
 async def doctor_agent_memory(
     agent_id: str,
-    host_spec: str = Form(default="agent", description="目标宿主，格式：host 或 host:namespace"),
-    compare_pkg: UploadFile | None = File(default=None, description="可选的 .hmpkg 文件用于比对"),
+    host_spec: str = Form(default="agent", description="target host, format: host or host:namespace"),
+    compare_pkg: UploadFile | None = File(default=None, description="optional .hmpkg file to compare against"),
     user: Any = Depends(current_user),
     server: Any = Depends(get_server),
     as_user: int | None = Query(default=None),
@@ -294,7 +294,7 @@ async def doctor_agent_memory(
         return JSONResponse(content=report.to_dict())
 
     except ImportError:
-        raise OctopError(ErrorCode.INTERNAL_ERROR, "octop-memory 未安装") from None
+        raise OctopError(ErrorCode.INTERNAL_ERROR, "octop-memory is not installed") from None
     except Exception as exc:
         logger.exception("doctor_agent_memory failed for agent_id=%s", agent_id)
         raise OctopError(ErrorCode.INTERNAL_ERROR, str(exc)) from exc

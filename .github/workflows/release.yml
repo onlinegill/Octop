@@ -1,11 +1,11 @@
 name: Release
 
-# 版本标签 v* → 测包、发 PyPI、建 GitHub Release，再级联：
+# Version tag v* → test the package, publish to PyPI, create the GitHub Release, then cascade:
 #   - Sync Main Into Develop
-#   - Build Octop FPK（复用本 Release 的 wheel；等待 docker-publish 的多架构 GHCR 镜像）
+#   - Build Octop FPK (reuses this Release's wheel; waits for the multi-arch GHCR image from docker-publish)
 #
-# 与 docker-publish.yml / octop-desktop.yml 并行（由 Auto Tag 同时 dispatch，
-# 或人工 push v* tag 同时触发）。桌面产物由 Desktop Package 挂到同一 GitHub Release。
+# Runs in parallel with docker-publish.yml / octop-desktop.yml (Auto Tag dispatches them together,
+# or a manual v* tag push triggers them at the same time). The desktop artifacts are attached to the same GitHub Release by Desktop Package.
 
 on:
   push:
@@ -153,8 +153,8 @@ jobs:
             --ref main \
             -f version="${{ github.ref_name }}"
 
-  # FnOS FPK：复用本 Release 的 wheel + docker-publish 的 GHCR 镜像。
-  # 与 sync-develop 并行。Dispatch 失败必须让本 workflow 变红（PyPI 已发布仍如此）。
+  # FnOS FPK: reuses this Release's wheel + the GHCR image from docker-publish.
+  # Runs in parallel with sync-develop. A dispatch failure must turn this workflow red (even though PyPI has already published).
   trigger-fnos:
     name: Trigger FnOS FPK build
     needs: github-release
@@ -164,7 +164,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # --ref 用版本 tag，保证 FPK 打在与 PyPI / 镜像相同的 commit 上
+          # --ref uses the version tag so the FPK is built on the same commit as PyPI / the image
           gh workflow run fnos-build-fpk.yml \
             --repo "${{ github.repository }}" \
             --ref "${{ github.ref_name }}"

@@ -17,7 +17,6 @@ _SLOW_TEST_MODULES = frozenset(
         "tests/unit/browser/test_browser_setup.py",
         "tests/unit/infra/utils/test_bwrap.py",
         "tests/unit/agents/test_skills_hub_raw.py",
-        "tests/unit/agents/test_skillhub_market.py",
         "tests/unit/gateway/test_attachment_hints.py",
         "tests/unit/agents/test_agent_manager.py",
         "tests/unit/agents/test_agent_registry.py",

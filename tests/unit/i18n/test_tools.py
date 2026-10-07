@@ -10,9 +10,9 @@ from octop.i18n.domains.tools import resolve_tool_display_name
 
 
 def test_tool_display_name_known_zh():
-    assert tool_display_name("read_file", "zh") == "读取文件"
-    assert tool_display_name("write_todos", "zh") == "编写计划"
-    assert tool_display_name("read_env_file", "zh") == "读取环境变量"
+    assert tool_display_name("read_file", "zh") == "Read file"
+    assert tool_display_name("write_todos", "zh") == "Write plan"
+    assert tool_display_name("read_env_file", "zh") == "Read env file"
     assert tool_display_name("write_env_file", "en") == "Write env file"
 
 
@@ -24,18 +24,18 @@ def test_resolve_tool_display_name_mcp_connector_label():
     label = resolve_tool_display_name(
         "my_docs_search",
         "zh",
-        mcp_server_labels={"my_docs": "腾讯文档"},
+        mcp_server_labels={"my_docs": "Team Docs"},
     )
-    assert label == "腾讯文档 · Search"
+    assert label == "Team Docs · Search"
 
 
 def test_resolve_tool_display_name_plugin_original_label():
     label = resolve_tool_display_name(
         "tianqichaxun",
         "zh",
-        plugin_labels={"tianqichaxun": "天气查询"},
+        plugin_labels={"tianqichaxun": "Weather lookup"},
     )
-    assert label == "天气查询"
+    assert label == "Weather lookup"
 
 
 def test_tool_display_name_empty_uses_unknown():
@@ -70,7 +70,7 @@ def test_hitl_tool_catalog_includes_common_tools():
 
 def test_hitl_tool_catalog_bilingual_labels():
     entry = next(e for e in hitl_tool_catalog() if e.name == "read_file")
-    assert entry.label_zh == "读取文件"
+    assert entry.label_zh == "Read file"
     assert entry.label_en == "Read file"
 
 

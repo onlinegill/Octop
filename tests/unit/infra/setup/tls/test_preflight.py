@@ -146,7 +146,7 @@ def test_preflight_fails_when_public_ip_unavailable():
     assert not result.ok
     check = next(c for c in result.checks if c.id == "public_ip")
     assert not check.ok
-    assert "公网 IP" in check.message
+    assert "public IP" in check.message
 
 
 def test_preflight_dns_mismatch():
@@ -175,7 +175,7 @@ def test_preflight_dns_mismatch():
     ("text", "expected"),
     [
         ("1.2.3.4", "1.2.3.4"),
-        ("当前 IP：1.2.3.4 来自于 测试\n", "1.2.3.4"),
+        ("current IP: 1.2.3.4 from example\n", "1.2.3.4"),
         ("10.0.0.1", None),
         ("127.0.0.1", None),
         ("169.254.169.254", None),
@@ -187,14 +187,11 @@ def test_parse_public_ipv4(text: str, expected: str | None) -> None:
     assert _parse_public_ipv4(text) == expected
 
 
-def test_default_probe_url_lists_prefer_cn_and_cloud() -> None:
-    assert urlparse(_METADATA_PUBLIC_IP_URLS[0]).hostname == "metadata.tencentyun.com"
-    assert any(urlparse(url).hostname == "100.100.100.200" for url in _METADATA_PUBLIC_IP_URLS)
-    assert urlparse(_PUBLIC_IP_HTTPS_URLS[0]).hostname == "4.ipw.cn"
+def test_default_probe_url_lists_prefer_cloud_then_global_https() -> None:
+    assert urlparse(_METADATA_PUBLIC_IP_URLS[0]).hostname == "169.254.169.254"
+    assert urlparse(_PUBLIC_IP_HTTPS_URLS[0]).hostname == "api.ipify.org"
     assert "https://api.ipify.org?format=text" in _PUBLIC_IP_HTTPS_URLS
-    assert _PUBLIC_IP_HTTPS_URLS.index("https://4.ipw.cn/") < _PUBLIC_IP_HTTPS_URLS.index(
-        "https://api.ipify.org?format=text"
-    )
+    assert "https://icanhazip.com" in _PUBLIC_IP_HTTPS_URLS
 
 
 def test_fetch_public_ip_falls_back_past_unreachable_endpoints() -> None:
@@ -205,7 +202,7 @@ def test_fetch_public_ip_falls_back_past_unreachable_endpoints() -> None:
         host = urlparse(url).hostname or ""
         if host == "api.ipify.org":
             raise httpx.ConnectError("blocked")
-        if host == "4.ipw.cn":
+        if host == "icanhazip.com":
             return _OkResponse(_PUBLIC_IP)
         raise httpx.ConnectError("skip")
 
@@ -216,7 +213,7 @@ def test_fetch_public_ip_falls_back_past_unreachable_endpoints() -> None:
             "_PUBLIC_IP_HTTPS_URLS",
             (
                 "https://api.ipify.org?format=text",
-                "https://4.ipw.cn/",
+                "https://icanhazip.com",
             ),
         ),
         patch("octop.infra.setup.tls.preflight.httpx.Client", _fake_client(handler)),
@@ -224,7 +221,7 @@ def test_fetch_public_ip_falls_back_past_unreachable_endpoints() -> None:
         assert _fetch_public_ip() == _PUBLIC_IP
     assert calls == [
         "https://api.ipify.org?format=text",
-        "https://4.ipw.cn/",
+        "https://icanhazip.com",
     ]
 
 
@@ -268,14 +265,14 @@ def test_fetch_public_ip_skips_non_public_bodies() -> None:
 
 def test_fetch_public_ip_prefers_cloud_metadata() -> None:
     def handler(url: str) -> object:
-        assert urlparse(url).hostname == "metadata.tencentyun.com"
+        assert urlparse(url).hostname == "169.254.169.254"
         return _OkResponse(_PUBLIC_IP)
 
     with (
         patch.object(
             preflight_mod,
             "_METADATA_PUBLIC_IP_URLS",
-            ("http://metadata.tencentyun.com/latest/meta-data/public-ipv4",),
+            ("http://169.254.169.254/latest/meta-data/public-ipv4",),
         ),
         patch.object(preflight_mod, "_PUBLIC_IP_HTTPS_URLS", ("https://should-not-call/",)),
         patch("octop.infra.setup.tls.preflight.httpx.Client", _fake_client(handler)),
@@ -289,9 +286,9 @@ def test_fetch_public_ip_falls_through_metadata_to_https() -> None:
     def handler(url: str) -> object:
         calls.append(url)
         host = urlparse(url).hostname or ""
-        if host in {"metadata.tencentyun.com", "100.100.100.200"}:
+        if host == "169.254.169.254":
             raise httpx.ConnectError("not on cloud")
-        if host == "4.ipw.cn":
+        if host == "icanhazip.com":
             return _OkResponse(_PUBLIC_IP)
         raise httpx.ConnectError("skip")
 
@@ -299,19 +296,19 @@ def test_fetch_public_ip_falls_through_metadata_to_https() -> None:
         patch.object(
             preflight_mod,
             "_METADATA_PUBLIC_IP_URLS",
-            ("http://metadata.tencentyun.com/latest/meta-data/public-ipv4",),
+            ("http://169.254.169.254/latest/meta-data/public-ipv4",),
         ),
         patch.object(
             preflight_mod,
             "_PUBLIC_IP_HTTPS_URLS",
-            ("https://4.ipw.cn/",),
+            ("https://icanhazip.com",),
         ),
         patch("octop.infra.setup.tls.preflight.httpx.Client", _fake_client(handler)),
     ):
         assert _fetch_public_ip() == _PUBLIC_IP
     assert calls == [
-        "http://metadata.tencentyun.com/latest/meta-data/public-ipv4",
-        "https://4.ipw.cn/",
+        "http://169.254.169.254/latest/meta-data/public-ipv4",
+        "https://icanhazip.com",
     ]
 
 

@@ -15,7 +15,7 @@ function ShortLink(props) {
     },
     "data-octop-plugin-ui": "short-link",
     children: [
-      _jsx("div", { style: { fontWeight: 800, marginBottom: 8 }, children: "🔗 短链接" }),
+      _jsx("div", { style: { fontWeight: 800, marginBottom: 8 }, children: "🔗 Short Link" }),
       _jsx("a", {
         href: d.shorturl,
         target: "_blank",

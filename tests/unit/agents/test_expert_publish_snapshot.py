@@ -86,9 +86,9 @@ async def test_export_snapshot_writes_manifest_and_seed_files(tmp_path: Path) ->
     source = _workspace(source_dir)
     manifest = {
         "id": "source-agent",
-        "label": {"zh": "来源专家", "en": "Source expert"},
-        "description": {"zh": "说明", "en": "Description"},
-        "quick_prompts": [{"title": {"zh": "开始", "en": "Start"}}],
+        "label": {"zh": "Source Expert", "en": "Source expert"},
+        "description": {"zh": "Description", "en": "Description"},
+        "quick_prompts": [{"title": {"zh": "Start", "en": "Start"}}],
     }
     await source.aupload_many(
         [
@@ -186,8 +186,8 @@ async def test_export_snapshot_excludes_runtime_workspace_dirs(tmp_path: Path) -
     source = _workspace(source_dir)
     manifest = {
         "id": "source-agent",
-        "label": {"zh": "来源专家", "en": "Source expert"},
-        "description": {"zh": "说明", "en": "Description"},
+        "label": {"zh": "Source Expert", "en": "Source expert"},
+        "description": {"zh": "Description", "en": "Description"},
     }
     await source.aupload_many(
         [
@@ -207,7 +207,7 @@ async def test_export_snapshot_excludes_runtime_workspace_dirs(tmp_path: Path) -
             description="Published description",
             icon_name=None,
             color=None,
-            label_zh="发布专家",
+            label_zh="Published Expert",
             label_en="Published Expert",
             welcome_message_zh="",
             welcome_message_en="",
@@ -220,7 +220,7 @@ async def test_export_snapshot_excludes_runtime_workspace_dirs(tmp_path: Path) -
     assert not (destination / "logs").exists()
     merged = json.loads((destination / MANIFEST_FILENAME).read_text(encoding="utf-8"))
     assert merged["id"] == "published-expert"
-    assert merged["label"] == {"zh": "发布专家", "en": "Published Expert"}
+    assert merged["label"] == {"zh": "Published Expert", "en": "Published Expert"}
     assert merged["description"] == {
         "zh": "Published description",
         "en": "Published description",
@@ -250,9 +250,9 @@ async def test_export_snapshot_excludes_memory_sqlite_files(tmp_path: Path) -> N
             description="desc",
             icon_name=None,
             color=None,
-            label_zh="专家",
+            label_zh="Expert",
             label_en="Expert",
-            welcome_message_zh="欢迎",
+            welcome_message_zh="Welcome",
             welcome_message_en="Welcome",
         ),
         manifest_id="expert",
@@ -271,11 +271,11 @@ async def test_export_snapshot_builds_manifest_from_publish_metadata_only(
     source = _workspace(source_dir)
     manifest = {
         "id": "general-assistant",
-        "label": {"zh": "旧名称", "en": "Old name"},
-        "description": {"zh": "旧说明", "en": "Old description"},
-        "welcome_message": {"zh": "欢迎回来", "en": "Welcome back"},
-        "quick_prompts": [{"title": {"zh": "开始", "en": "Start"}}],
-        "task_examples": {"zh": ["工作区示例"], "en": ["Workspace example"]},
+        "label": {"zh": "Old name", "en": "Old name"},
+        "description": {"zh": "Old description", "en": "Old description"},
+        "welcome_message": {"zh": "Welcome back", "en": "Welcome back"},
+        "quick_prompts": [{"title": {"zh": "Start", "en": "Start"}}],
+        "task_examples": {"zh": ["Workspace example"], "en": ["Workspace example"]},
         "icon_name": "zap",
         "color": "#111111",
         "skillhub": {"manifest_generated": {"by": "test"}},
@@ -296,9 +296,9 @@ async def test_export_snapshot_builds_manifest_from_publish_metadata_only(
             description="Helps with research",
             icon_name="search",
             color="#123456",
-            label_zh="研究专家",
+            label_zh="Research Expert",
             label_en="Research Expert",
-            welcome_message_zh="开始研究吧",
+            welcome_message_zh="Start researching",
             welcome_message_en="Start researching",
         ),
         manifest_id="research-expert",
@@ -306,13 +306,13 @@ async def test_export_snapshot_builds_manifest_from_publish_metadata_only(
 
     merged = json.loads((destination / MANIFEST_FILENAME).read_text(encoding="utf-8"))
     assert merged["id"] == "research-expert"
-    assert merged["label"] == {"zh": "研究专家", "en": "Research Expert"}
+    assert merged["label"] == {"zh": "Research Expert", "en": "Research Expert"}
     assert merged["description"] == {
         "zh": "Helps with research",
         "en": "Helps with research",
     }
     assert merged["welcome_message"] == {
-        "zh": "开始研究吧",
+        "zh": "Start researching",
         "en": "Start researching",
     }
     assert "quick_prompts" not in merged
@@ -344,17 +344,17 @@ async def test_export_snapshot_writes_task_examples_from_metadata(tmp_path: Path
             description="Helps with research",
             icon_name=None,
             color=None,
-            label_zh="研究专家",
+            label_zh="Research Expert",
             label_en="Research Expert",
             welcome_message_zh="",
             welcome_message_en="",
-            task_examples={"zh": ["每天巡检"], "en": ["Daily patrol"]},
+            task_examples={"zh": ["Daily patrol"], "en": ["Daily patrol"]},
         ),
         manifest_id="research-expert",
     )
 
     merged = json.loads((destination / MANIFEST_FILENAME).read_text(encoding="utf-8"))
-    assert merged["task_examples"] == {"zh": ["每天巡检"], "en": ["Daily patrol"]}
+    assert merged["task_examples"] == {"zh": ["Daily patrol"], "en": ["Daily patrol"]}
 
 
 @pytest.mark.asyncio
@@ -380,7 +380,7 @@ async def test_export_snapshot_includes_subagent_definitions(tmp_path: Path) -> 
             description="desc",
             icon_name=None,
             color=None,
-            label_zh="专家",
+            label_zh="Expert",
             label_en="Expert",
             welcome_message_zh="",
             welcome_message_en="",
@@ -408,9 +408,9 @@ async def test_export_snapshot_builds_manifest_from_publish_metadata(tmp_path: P
         description="Helps with research",
         icon_name="search",
         color="#123456",
-        label_zh="研究专家",
+        label_zh="Research Expert",
         label_en="Research Expert",
-        welcome_message_zh="开始研究",
+        welcome_message_zh="Start researching",
         welcome_message_en="Start researching",
     )
 
@@ -425,9 +425,9 @@ async def test_export_snapshot_builds_manifest_from_publish_metadata(tmp_path: P
     assert set(exported) == {MANIFEST_FILENAME, "SOUL.md"}
     assert json.loads((destination / MANIFEST_FILENAME).read_text(encoding="utf-8")) == {
         "id": "research-expert",
-        "label": {"zh": "研究专家", "en": "Research Expert"},
+        "label": {"zh": "Research Expert", "en": "Research Expert"},
         "description": {"zh": "Helps with research", "en": "Helps with research"},
-        "welcome_message": {"zh": "开始研究", "en": "Start researching"},
+        "welcome_message": {"zh": "Start researching", "en": "Start researching"},
         "icon_name": "search",
         "color": "#123456",
         "prompt_files": ["SOUL.md"],
@@ -445,7 +445,7 @@ async def test_export_snapshot_keeps_public_portrait_url(tmp_path: Path) -> None
         description="Uses a bundled portrait",
         icon_name="heart",
         color=None,
-        label_zh="场景专家",
+        label_zh="Scene Expert",
         label_en="Scene Expert",
         welcome_message_zh="",
         welcome_message_en="",

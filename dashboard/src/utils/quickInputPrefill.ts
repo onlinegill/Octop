@@ -6,10 +6,10 @@ export function promptNeedsUserInput(text: string): boolean {
   if (!trimmed) return false;
 
   // A trailing colon invites the user to fill in a value, such as "The goal is:".
-  if (/[：:]\s*$/.test(trimmed)) return true;
+  if (/[:]\s*$/.test(trimmed)) return true;
 
   // Empty inline fields, such as "Recipient:, Purpose:".
-  if (/[：:]\s*[，,、]/.test(trimmed)) return true;
+  if (/[:]\s*[,]/.test(trimmed)) return true;
 
   // Ends with blank lines — paste content below
   if (/\n\s*\n\s*$/.test(text)) return true;

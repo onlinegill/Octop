@@ -1,10 +1,10 @@
-# Discord 通道：本地验收与配置
+# Discord Channel: Local Acceptance and Configuration
 
-支持私聊、服务器文字频道、已有线程、文本/图片/附件、正在输入提示、长回复自动分段。
+Supports DMs, server text channels, existing threads, text/images/attachments, typing indicators, and automatic splitting of long replies.
 
-## 1. 安装依赖并启动
+## 1. Install dependencies and start
 
-Discord 适配器已随 `octop-gateway 0.9.9` 发布。Octop 要求 `octop-gateway>=0.9.9`，可直接使用发布包，无需克隆相邻网关仓库：
+The Discord adapter ships with `octop-gateway 0.9.9`. Octop requires `octop-gateway>=0.9.9`, so you can use the published package directly without cloning the adjacent gateway repo:
 
 ```sh
 cd Octop
@@ -12,64 +12,64 @@ uv sync --locked --extra dev
 uv run octop run
 ```
 
-可在 `uv run octop run` 后追加原有启动参数。先停止占用同一服务端口的旧进程；不要同时启动两个使用同一 Bot Token 的实例。
+You can append your existing startup parameters after `uv run octop run`. First stop any old process holding the same server port; do not run two instances with the same Bot Token at the same time.
 
-仅在联调相邻 `octop-gateway` 源码时使用 `bash scripts/run-discord-local.sh`；该脚本会覆盖发布包为本地可编辑依赖。恢复发布包时重新运行 `uv sync --locked --extra dev`。
+Use `bash scripts/run-discord-local.sh` only when debugging against adjacent `octop-gateway` source; that script overrides the published package with a local editable dependency. Re-run `uv sync --locked --extra dev` to restore the published package.
 
-## 2. 填写位置
+## 2. Where to fill things in
 
-打开本地 Octop 网页，进入 **Agent → 通道 → 更多通道 → Discord**。
+Open the local Octop web UI and go to **Agent → Channels → More channels → Discord**.
 
-1. **Bot Token**：填写 Discord Developer Portal 的 Bot 页面生成的 Token，不需要 Public Key 或 Client Secret。
-2. **允许所有可访问频道**：默认开启，无需填写频道 ID；机器人在所有有 Discord 访问权限的服务器文字频道和已有线程中可响应。关闭后，填写 **允许的频道 ID**，多个 ID 用逗号或换行分隔；留空则不接收服务器频道消息。已有线程继承父频道权限，也可单独填写线程 ID。旧配置缺少 `allow_all_channels` 时也默认开启；显式保存为 `false` 才限制到列表。
-3. **允许私聊的用户 ID**：填写你的 Discord 用户 ID。私聊独立授权，空列表表示不接受任何私聊消息。
-4. **HTTP Proxy / HTTP Proxy Auth**：网络需要代理时填写。认证格式为 `user:password`；代理应用到 Gateway、API 与附件下载。
-5. 点击 **检查连接**，成功后 **保存**。连接检查验证机器人能够登录 Gateway，不证明某个频道具备发送权限；后者用下一节的真实消息验证。
+1. **Bot Token**: paste the Token generated on the Bot page of the Discord Developer Portal. No Public Key or Client Secret is needed.
+2. **Allow all accessible channels**: on by default, so no channel IDs are required; the bot responds in every server text channel and existing thread it has Discord access to. When off, fill in **Allowed channel IDs**, separated by commas or newlines; leaving it empty means no server-channel messages are accepted. Existing threads inherit their parent channel's permissions, and you can also list thread IDs explicitly. Old configs that lack `allow_all_channels` are also treated as on; only saving it explicitly as `false` restricts to the list.
+3. **Allowed DM user IDs**: enter your Discord user ID. DMs are authorized independently; an empty list means no DM messages are accepted.
+4. **HTTP Proxy / HTTP Proxy Auth**: fill these in when the network requires a proxy. The auth format is `user:password`; the proxy applies to the Gateway, the API, and attachment downloads.
+5. Click **Check connection**, then **Save** on success. The connection check verifies that the bot can log in to the Gateway; it does not prove that a given channel is sendable — verify that with real messages in the next section.
 
-在 Discord 用户设置开启开发者模式后，可右键频道/用户复制 ID。ID 必须保留完整数字，不是频道名，也不是 Application ID。
+After enabling Developer Mode in Discord user settings, you can right-click a channel/user to copy its ID. The ID must be the full number — not the channel name, and not the Application ID.
 
-## 3. Discord 应用设置
+## 3. Discord application settings
 
-在 Bot 页面开启 **Message Content Intent**。邀请机器人加入测试服务器，并给予 View Channels、Send Messages、Read Message History、Attach Files、Send Messages in Threads 权限。首版不需要 Server Members 或 Presence Intent。
+On the Bot page, enable **Message Content Intent**. Invite the bot to your test server and grant it View Channels, Send Messages, Read Message History, Attach Files, and Send Messages in Threads permissions. The first version does not need Server Members or Presence Intent.
 
-服务器频道默认只在用户直接 `@机器人` 时启动 Agent；不把 `@everyone` 或角色提及当作直接触发。私聊允许列表中的用户无需 @。机器人与 webhook 消息被忽略。
+By default, server channels only start the Agent when a user directly `@`-mentions the bot; `@everyone` and role mentions are not treated as direct triggers. Users on the DM allowlist do not need to `@`. Bot and webhook messages are ignored.
 
-## 4. 人工验收（约 10 分钟）
+## 4. Manual acceptance (~10 minutes)
 
-| 操作 | 预期 |
+| Action | Expected |
 |---|---|
-| 在允许频道发送 `@机器人 你好`，再发送一条不带 @ 的消息 | 前者回复，后者不单独触发 Agent |
-| 在同一频道用两位用户提问，再去另一个允许频道/线程提问 | 同频道共享上下文，频道与线程分别隔离 |
-| 用允许用户私聊，关闭允许所有频道后，再从未授权频道发消息 | 私聊有回复，未授权频道无回复 |
-| 发图片/文件，要求生成长回复 | 附件进入现有媒体管线，长回复分段，代码块可读，无意外 @everyone |
-| 停用/启用通道、重启服务，再次提问 | 正常恢复，没有重复回复；断线时重新获取通道状态可见重连提示 |
+| In an allowed channel, send `@bot hello`, then send a message without `@` | The first gets a reply; the second does not trigger the Agent on its own |
+| Ask from two users in the same channel, then ask in another allowed channel/thread | Same channel shares context; channels and threads are isolated from each other |
+| DM from an allowed user; then turn off "allow all channels" and send from an unauthorized channel | The DM gets a reply; the unauthorized channel gets none |
+| Send an image/file and request a long reply | The attachment enters the existing media pipeline; the long reply is split, code blocks stay readable, and no accidental `@everyone` occurs |
+| Disable/enable the channel and restart the service, then ask again | Recovers normally, with no duplicate replies; on disconnect, a reconnect hint appears once channel state is re-fetched |
 
-上传限制取决于 Discord 服务器和 Bot 权限；远程附件下载在适配器中限制为 25 MiB，超限/上传失败会走现有错误或附件降级处理。
+Upload limits depend on the Discord server and Bot permissions; remote attachment downloads are capped at 25 MiB in the adapter, and over-limit/upload failures fall back to the existing error or attachment-degradation handling.
 
-暂不包含原生 Slash Command 注册、自动新建线程、语音房、编辑式流式回复。一个 Agent 建议先配置一个 Discord Bot；同一 Agent 多 Bot 共用同一频道的会话隔离不在首版范围。
+Not yet included: native Slash Command registration, automatic thread creation, voice channels, and edited streaming replies. For one Agent, configure one Discord Bot first; session isolation when multiple Bots of the same Agent share one channel is out of scope for the first version.
 
-本次自动化验收使用模拟 Gateway/REST，不需要真实 Token。真实网络、Discord 服务器权限与 LLM 回复由上述人工步骤验证。
+This round of automated acceptance used a mock Gateway/REST and does not require a real Token. Real network, Discord server permissions, and LLM replies are verified by the manual steps above.
 
-## 5. 自动化验收结果（2026-09-21）
+## 5. Automated acceptance results (2026-09-21)
 
-| 检查 | 结果 |
+| Check | Result |
 |---|---|
-| octop-gateway `make all` | 格式、Lint、mypy 通过；458 项测试通过，13 项集成测试按默认命令排除 |
-| Octop `make all` | 格式、Lint、mypy 通过；3587 项测试通过，17 项条件跳过 |
-| Discord 最终相关后端复核 | 18 项通过，覆盖路由、实时状态、通道 CRUD 与配置探测 |
-| 前端通道测试 | 12 项通过，包含 Discord 入口、Token 和长数字 ID 的完整保存流程 |
-| `make build-frontend` / 启动脚本 | TypeScript 与 Vite 构建通过；`run-discord-local.sh --help` 通过；内置网页产物已生成 |
+| octop-gateway `make all` | Format, Lint, mypy pass; 458 tests pass, 13 integration tests excluded by the default command |
+| Octop `make all` | Format, Lint, mypy pass; 3587 tests pass, 17 conditionally skipped |
+| Discord final relevant backend review | 18 pass, covering routing, live state, channel CRUD, and config probing |
+| Frontend channel tests | 12 pass, including the Discord entry, Token, and full long-numeric-ID save flow |
+| `make build-frontend` / startup script | TypeScript and Vite builds pass; `run-discord-local.sh --help` passes; the bundled web artifact is generated |
 
-命令使用 `RUN='uv run --no-sync'` 保留未发布的本地网关；通道库复用 Octop 的开发环境（`UV_PROJECT_ENVIRONMENT=../Octop/.venv`）。Octop 完整测试需允许绑定本机随机端口，最初沙箱导致的 15 项端口权限失败已在允许本机端口后完整重跑通过。
+Commands use `RUN='uv run --no-sync'` to keep the unpublished local gateway; the channel library reuses Octop's dev environment (`UV_PROJECT_ENVIRONMENT=../Octop/.venv`). Octop's full test suite requires binding a random local port; the initial 15 port-permission failures caused by the sandbox were fully re-run and passed after local ports were allowed.
 
-没有使用真实 Bot Token，也没有发布包、提交或推送代码。人工测试请使用本文第一节的本地启动方式。
+No real Bot Token was used, and no package was published and no code was committed or pushed. For manual testing, use the local startup method in section 1 of this document.
 
-## 6. 全频道默认模式验收（2026-09-22）
+## 6. All-channels default-mode acceptance (2026-09-22)
 
-新增「允许所有可访问频道」开关，前后端默认开启；缺少该字段的旧配置同样按开启处理。关闭并保存后保持指定频道模式；输入框保留原有 ID。私聊允许列表与直接 @触发规则不变。
+Added the "allow all accessible channels" toggle, on by default in both frontend and backend; old configs missing this field are likewise treated as on. After turning it off and saving, the specified-channel mode is retained; the input box keeps the existing IDs. The DM allowlist and the direct-`@` trigger rules are unchanged.
 
-- octop-gateway `make all`：460 passed，13 deselected；格式、Lint、mypy 通过。
-- Octop `make all`：3591 passed，17 skipped；格式、Lint、mypy 通过。
-- 前端通道测试：16 passed，覆盖默认开启、关闭后保存、旧配置默认值、重新编辑保留布尔值。
-- 前端相关文件 ESLint 通过；TypeScript 和 Vite 构建通过，内置网页产物已更新。
-- 重启本地 Octop 并刷新网页后生效；真实 Discord 联调仍由用户人工测试。
+- octop-gateway `make all`: 460 passed, 13 deselected; format, Lint, mypy pass.
+- Octop `make all`: 3591 passed, 17 skipped; format, Lint, mypy pass.
+- Frontend channel tests: 16 passed, covering default-on, save-after-off, old-config default value, and retaining the boolean when re-editing.
+- ESLint passes for the relevant frontend files; TypeScript and Vite builds pass, and the bundled web artifact is updated.
+- Takes effect after restarting local Octop and refreshing the web UI; real Discord integration is still tested manually by the user.

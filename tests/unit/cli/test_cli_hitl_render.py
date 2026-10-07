@@ -42,23 +42,23 @@ def test_format_cli_hitl_pause_ask_does_not_use_approve() -> None:
                 "action_requests": [
                     {
                         "name": "ask_user_question",
-                        "args": {"questions": [{"question": "用哪个库?"}]},
+                        "args": {"questions": [{"question": "Which library?"}]},
                     }
                 ]
             },
         }
     )
-    assert "用哪个库" in card
+    assert "Which library?" in card
     assert "/approve" not in card
 
 
 def test_message_event_to_cli_chunks() -> None:
     text = MessageEvent(
         type=MessageEventType.MESSAGE,
-        content=[TextContent(text="已批准，继续执行…")],
+        content=[TextContent(text="Approved, continuing...")],
     )
     assert message_event_to_cli_chunks(text) == [
-        {"type": "token", "content": "已批准，继续执行…\n"}
+        {"type": "token", "content": "Approved, continuing...\n"}
     ]
     err = MessageEvent(
         type=MessageEventType.ERROR,
