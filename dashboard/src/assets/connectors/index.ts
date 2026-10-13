@@ -1,9 +1,11 @@
 import dify from "./dify.svg";
 import notion from "./notion.png";
+import obsidianCli from "./obsidian-cli.svg";
 import openalex from "./openalex.svg";
 
 export const CONNECTOR_LOGOS: Record<string, string> = {
   notion,
+  "obsidian-cli": obsidianCli,
   openalex,
   dify,
 };

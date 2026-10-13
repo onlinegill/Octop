@@ -79,7 +79,11 @@ export default function SidebarCollapsedIconNav({
                 <span
                   className={`${styles.navUpdateBadge} ${styles.navUpdateBadgeCollapsed}`}
                 >
+<<<<<<< HEAD
                   New
+=======
+                  {t("nav.newVersionBadgeShort", "新")}
+>>>>>>> upstream/main
                 </span>
               ) : null}
               {item.badge && (

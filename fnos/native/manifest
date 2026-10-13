@@ -1,5 +1,5 @@
 appname=octop-native
-version=1.0.2b6
+version=1.0.2b7
 display_name=Octop
 desc=The open-source multi-user, multi-agent AI assistant platform, with a Web console, CLI, IM channels and scheduled tasks; all data is stored locally.<br/><br/><strong>After installation:</strong><br/>Wait until the App Center shows "Running" before clicking "Open", or visit http://DEVICE-IP:8089 and sign in with the username or email set in the install wizard.<br/>If you forget the password, open the FnOS "File Manager", go to the Octop data directory inside the app share, and check octop-login.txt (it only backs up the password set at installation or changed in the app's "Settings"; it is not updated automatically after a password change in the web UI); you can also change it in the app's "Settings".<br/><br/><strong>Command-line management:</strong><br/>Supports the official octop CLI (octop provider list / agent list / user list / skills / backup, etc.; see octop --help).<br/><br/><strong>After the first sign-in:</strong><br/>Configure the API Key in the console under "Settings → Models", and configure IM channels, remote desktop, browser, etc. as needed.<br/><br/>Note: the native edition runs directly on the FnOS host and, before installation, automatically associates and installs the "Python 3.12" development tool.
 source=thirdparty

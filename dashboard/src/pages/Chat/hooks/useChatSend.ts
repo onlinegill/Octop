@@ -307,7 +307,11 @@ export function useChatSend({
               const pushMsg = {
                 id: generateId(),
                 role: "assistant" as const,
+<<<<<<< HEAD
                 content: `🎬 Recording has started! Please perform the actions you want to automate in your browser.\n\nAfter the operation is completed, enter"End"The recording ends and the system will automatically generate the skill script.`,
+=======
+                content: t("skillRecord.recordingStartedMessage"),
+>>>>>>> upstream/main
                 timestamp: Date.now(),
                 status: "done" as const,
               };
@@ -328,7 +332,7 @@ export function useChatSend({
     window.addEventListener("octop:pending-chat-message", handler);
     return () =>
       window.removeEventListener("octop:pending-chat-message", handler);
-  }, [handleSend, activeThreadId, onAutoRecordingStarted]);
+  }, [handleSend, activeThreadId, onAutoRecordingStarted, t]);
 
   return { handleSend };
 }

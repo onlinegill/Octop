@@ -193,13 +193,17 @@ export default function BrowserAiPanel({
       if (onSkillNameSet) onSkillNameSet(objective);
       setRecordingPhase("awaitDescription");
       chatStore.appendPushMessage(
+<<<<<<< HEAD
         `✅ Mission objectives have been set:**${objective}**\n\n` +
           "Next please describe what you wantAIThe specific actions the assistant performs in the browser.\n\n" +
           `For example:"Open Google and Bing to search for today’s weather".\n\n` +
           'After the description is completeAIThe operation will be performed automatically; enter after the operation is completed"End"To stop recording.',
+=======
+        t("remoteBrowser.ai.objectiveSet", { objective }),
+>>>>>>> upstream/main
       );
     },
-    [onSkillNameSet],
+    [onSkillNameSet, t],
   );
 
   const handleDescriptionInput = useCallback(
@@ -239,6 +243,7 @@ export default function BrowserAiPanel({
         const previewText = previewLines.join("\n");
         const truncationNotice =
           data.skillContent.split("\n").length > 20
+<<<<<<< HEAD
             ? `\n\n... (Total ${
                 data.skillContent.split("\n").length
               } lines total — the full content is saved after confirmation)`
@@ -258,6 +263,34 @@ export default function BrowserAiPanel({
       antMessage.success(`Recording completed, generated ${data.steps ?? 0} Playback steps`);
     } catch (err) {
       antMessage.error(err instanceof Error ? err.message : "Failed to stop recording");
+=======
+            ? t("skillRecord.previewTruncation", {
+                lines: data.skillContent.split("\n").length,
+              })
+            : "";
+        chatStore.appendPushMessage(
+          t("remoteBrowser.ai.previewMessage", {
+            steps: data.steps ?? 0,
+            name: effectiveSkillName,
+            preview: previewText,
+            truncation: truncationNotice,
+          }),
+        );
+      } else {
+        chatStore.appendPushMessage(
+          t("remoteBrowser.ai.previewNoScript", { steps: data.steps ?? 0 }),
+        );
+      }
+      antMessage.success(
+        t("skillRecord.recordingStopped", { steps: data.steps ?? 0 }),
+      );
+    } catch (err) {
+      antMessage.error(
+        err instanceof Error
+          ? err.message
+          : t("skillRecord.stopFailed", "停止录制失败"),
+      );
+>>>>>>> upstream/main
     } finally {
       workflowBusyRef.current = false;
     }
@@ -268,6 +301,7 @@ export default function BrowserAiPanel({
     setBrowserRecording,
     setBrowserRecordingId,
     setBrowserLastRecordingId,
+    t,
   ]);
 
   const handleConfirmSkill = useCallback(async () => {
@@ -299,16 +333,28 @@ export default function BrowserAiPanel({
         prev.includes(finalName) ? prev : [...prev, finalName],
       );
       chatStore.appendPushMessage(
+<<<<<<< HEAD
         `🎉 Skill **"${finalName}"** applied successfully!\n\n` +
           `Then just type **"${finalName}"** to replay the same browser operation in one click.`,
       );
       antMessage.success(`Skills "${finalName}" Successfully applied`);
     } catch (err) {
       antMessage.error(err instanceof Error ? err.message : "Apply skill failed");
+=======
+        t("remoteBrowser.ai.skillAppliedMessage", { name: finalName }),
+      );
+      antMessage.success(t("skillRecord.skillApplied", { name: finalName }));
+    } catch (err) {
+      antMessage.error(
+        err instanceof Error
+          ? err.message
+          : t("skillRecord.applyFailed", "应用技能失败"),
+      );
+>>>>>>> upstream/main
     } finally {
       workflowBusyRef.current = false;
     }
-  }, [pendingSkillContent, pendingSkillName, agentId]);
+  }, [pendingSkillContent, pendingSkillName, agentId, t]);
 
   const handleSkillReplay = useCallback(
     async (skillKeyword: string) => {
@@ -326,9 +372,17 @@ export default function BrowserAiPanel({
         const recordingId = recordingIdMatch?.[1] ?? browserLastRecordingId;
         if (!recordingId) {
           chatStore.appendPushMessage(
+<<<<<<< HEAD
             `⚠️ Unable to find skill “${skillKeyword}” recording, playback failed.`,
           );
           antMessage.error("Recording not found");
+=======
+            t("remoteBrowser.ai.noRecordingFound", { name: skillKeyword }),
+          );
+          antMessage.error(
+            t("remoteBrowser.ai.recordingNotFound", "找不到录制记录"),
+          );
+>>>>>>> upstream/main
           return;
         }
         const data = await browserApi.replayRecording({
@@ -340,19 +394,34 @@ export default function BrowserAiPanel({
             t("browser.recordReplay.replayPassed", "Replay finished"),
           );
           chatStore.appendPushMessage(
+<<<<<<< HEAD
             `🎬 Browser skill "${skillKeyword}" replay completed!`,
+=======
+            t("remoteBrowser.ai.replayDone", { name: skillKeyword }),
+>>>>>>> upstream/main
           );
         } else {
           const globalError = data.error || "";
           const failedSteps = (data.steps || [])
             .filter((s) => s.status === "failed")
+<<<<<<< HEAD
             .map((s) => `Steps ${s.id} (${s.kind}): ${s.error || "Execution failed"}`);
+=======
+            .map((s) =>
+              t("remoteBrowser.ai.stepLine", {
+                id: s.id,
+                kind: s.kind,
+                error: s.error || t("remoteBrowser.ai.stepFailed", "执行失败"),
+              }),
+            );
+>>>>>>> upstream/main
           const detailMsg =
             globalError ||
             (failedSteps.length > 0 ? failedSteps.join("\n") : "") ||
             t("browser.recordReplay.replayFailed", "Replay failed");
           antMessage.error(detailMsg);
           chatStore.appendPushMessage(
+<<<<<<< HEAD
             `⚠️ Skill "${skillKeyword}" playback failed:\n${detailMsg}`,
           );
         }
@@ -360,6 +429,27 @@ export default function BrowserAiPanel({
         antMessage.error(err instanceof Error ? err.message : "Playback failed");
         chatStore.appendPushMessage(
           `⚠️ Skill playback error:${err instanceof Error ? err.message : "Unknown error"}`,
+=======
+            t("remoteBrowser.ai.replayFailedDetail", {
+              name: skillKeyword,
+              detail: detailMsg,
+            }),
+          );
+        }
+      } catch (err) {
+        antMessage.error(
+          err instanceof Error
+            ? err.message
+            : t("browser.recordReplay.replayFailed", "回放失败"),
+        );
+        chatStore.appendPushMessage(
+          t("remoteBrowser.ai.replayError", {
+            error:
+              err instanceof Error
+                ? err.message
+                : t("remoteBrowser.ai.unknownError", "未知错误"),
+          }),
+>>>>>>> upstream/main
         );
       } finally {
         workflowBusyRef.current = false;
@@ -379,18 +469,37 @@ export default function BrowserAiPanel({
         profile: `${profileId || "default"}-replay`,
       });
       if (data.status === "passed") {
+<<<<<<< HEAD
         antMessage.success(t("browser.recordReplay.replayPassed", "Replay finished"));
         chatStore.appendPushMessage("🔄 Skill playback completed! All steps have been executed successfully.");
+=======
+        antMessage.success(t("browser.recordReplay.replayPassed", "回放完成"));
+        chatStore.appendPushMessage(t("remoteBrowser.ai.replayComplete"));
+>>>>>>> upstream/main
       } else {
         antMessage.error(
           data.error || t("browser.recordReplay.replayFailed", "Replay failed"),
         );
         chatStore.appendPushMessage(
+<<<<<<< HEAD
           `⚠️ Skill playback failed:${data.error || "Unknown error"}`,
         );
       }
     } catch (err) {
       antMessage.error(err instanceof Error ? err.message : "Playback failed");
+=======
+          t("remoteBrowser.ai.replayFailedSimple", {
+            error: data.error || t("remoteBrowser.ai.unknownError", "未知错误"),
+          }),
+        );
+      }
+    } catch (err) {
+      antMessage.error(
+        err instanceof Error
+          ? err.message
+          : t("browser.recordReplay.replayFailed", "回放失败"),
+      );
+>>>>>>> upstream/main
     } finally {
       setBrowserReplayBusy(false);
     }
@@ -426,7 +535,13 @@ export default function BrowserAiPanel({
       return;
     }
     if (isSkillTriggerCommand(text)) {
+<<<<<<< HEAD
       chatStore.appendPushMessage(`🔄 Using skills “${text}” for playback...`);
+=======
+      chatStore.appendPushMessage(
+        t("remoteBrowser.ai.replayingSkill", { text }),
+      );
+>>>>>>> upstream/main
       void handleSkillReplay(text);
       return;
     }
@@ -445,6 +560,7 @@ export default function BrowserAiPanel({
     handleEndRecording,
     handleConfirmSkill,
     handleSkillReplay,
+    t,
   ]);
 
   const handleKeyDown = useCallback(
@@ -485,11 +601,15 @@ export default function BrowserAiPanel({
       messages.length > 0 &&
       !workflowBusyRef.current
     ) {
+<<<<<<< HEAD
       chatStore.appendPushMessage(
         '💡 Recording is still in progress. If the operation is complete, enter"End"This will stop recording and generate the skill script.',
       );
+=======
+      chatStore.appendPushMessage(t("remoteBrowser.ai.recordingHint"));
+>>>>>>> upstream/main
     }
-  }, [isStreaming, browserRecording, recordingPhase, messages.length]);
+  }, [isStreaming, browserRecording, recordingPhase, messages.length, t]);
 
   const inputDisabled =
     isStreaming || booting || !threadId || browserReplayBusy;

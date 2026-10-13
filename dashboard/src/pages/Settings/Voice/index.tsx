@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Divider, Drawer, Form, Input, Select, Typography } from "antd";
+import {
+  Button,
+  Divider,
+  Drawer,
+  Form,
+  Input,
+  Select,
+  Switch,
+  Typography,
+} from "antd";
 import { message } from "@/utils/antdMessage";
 
 import { Activity, Mic2, Check, Settings2 } from "lucide-react";
@@ -35,6 +44,17 @@ export function VoiceSettingsPanel() {
   const [loading, setLoading] = useState(true);
   const [configure, setConfigure] = useState<ConfigureState | null>(null);
   const [apiKey, setApiKey] = useState("");
+<<<<<<< HEAD
+=======
+  const [secretId, setSecretId] = useState("");
+  const [secretKey, setSecretKey] = useState("");
+  const [realtimeStt, setRealtimeStt] = useState(false);
+  const [appId, setAppId] = useState("");
+  const [mimoEndpoint, setMimoEndpoint] = useState<"payg" | "tokenplan">(
+    "payg",
+  );
+  const [mimoVoiceId, setMimoVoiceId] = useState("冰糖");
+>>>>>>> upstream/main
   const [saving, setSaving] = useState(false);
   const [probing, setProbing] = useState(false);
 
@@ -92,6 +112,16 @@ export function VoiceSettingsPanel() {
     const existing = findConfigured(preset);
     setConfigure({ preset, existing });
     setApiKey(existing?.api_key ?? "");
+<<<<<<< HEAD
+=======
+    const extra = existing?.extra ?? {};
+    setSecretId(String(extra.secret_id ?? ""));
+    setSecretKey(String(extra.secret_key ?? ""));
+    setRealtimeStt(extra.realtime_stt === true);
+    setAppId(String(extra.app_id ?? ""));
+    setMimoEndpoint(extra.endpoint_type === "tokenplan" ? "tokenplan" : "payg");
+    setMimoVoiceId(String(extra.voice_id ?? "冰糖"));
+>>>>>>> upstream/main
   };
 
   const buildProviderPayload = (): VoiceProviderInput | null => {
@@ -99,8 +129,30 @@ export function VoiceSettingsPanel() {
     const { preset } = configure;
     let extra: Record<string, unknown>;
     let baseUrl: string | null = null;
+<<<<<<< HEAD
     if (preset.kind === "edge") {
       extra = { voice_id: "en-US-AriaNeural" };
+=======
+    if (preset.kind === "tencent") {
+      extra = {
+        secret_id: secretId,
+        secret_key: secretKey,
+        region: "ap-guangzhou",
+        realtime_stt: realtimeStt,
+        app_id: appId.trim() || undefined,
+      };
+    } else if (preset.kind === "edge") {
+      extra = { voice_id: "zh-CN-XiaoxiaoNeural" };
+    } else if (preset.kind === "mimo") {
+      baseUrl =
+        mimoEndpoint === "tokenplan"
+          ? "https://token-plan-cn.xiaomimimo.com/v1"
+          : "https://api.xiaomimimo.com/v1";
+      extra = {
+        endpoint_type: mimoEndpoint,
+        voice_id: preset.capability === "tts" ? mimoVoiceId : undefined,
+      };
+>>>>>>> upstream/main
     } else {
       extra = { model: preset.kind === "openai" ? "whisper-1" : undefined };
     }
@@ -118,6 +170,10 @@ export function VoiceSettingsPanel() {
     if (!configure?.preset.requires_key) return true;
     const complete = Boolean(apiKey.trim());
     if (!complete) message.warning(t("voice.credentialsRequired"));
+    if (complete && realtimeStt && !appId.trim()) {
+      message.warning(t("voice.realtimeAppIdRequired"));
+      return false;
+    }
     return complete;
   };
 
@@ -158,6 +214,9 @@ export function VoiceSettingsPanel() {
       } else {
         await voiceApi.createProvider(payload);
       }
+      // The active payload carries `stt_realtime`, so drop the cache even when
+      // the active provider itself does not change (e.g. the switch was toggled).
+      invalidateVoiceConfigCache();
       if (
         preset.kind !== "browser" &&
         (preset.capability === "stt" || preset.capability === "both") &&
@@ -165,7 +224,6 @@ export function VoiceSettingsPanel() {
       ) {
         const next = await voiceApi.setActive({ stt: preset.id });
         setActive(next);
-        invalidateVoiceConfigCache();
       }
       if (
         preset.kind !== "browser" &&
@@ -174,7 +232,6 @@ export function VoiceSettingsPanel() {
       ) {
         const next = await voiceApi.setActive({ tts: preset.id });
         setActive(next);
-        invalidateVoiceConfigCache();
       }
       message.success(t("voice.saved"));
       setConfigure(null);
@@ -368,6 +425,48 @@ export function VoiceSettingsPanel() {
         }
       >
         <Form layout="vertical">
+<<<<<<< HEAD
+=======
+          {configure?.preset.kind === "tencent" && (
+            <>
+              <div className={styles.drawerHint}>{t("voice.tencentHint")}</div>
+              <Form.Item label="SecretId" required>
+                <Input
+                  placeholder="SecretId"
+                  value={secretId}
+                  onChange={(e) => setSecretId(e.target.value)}
+                />
+              </Form.Item>
+              <Form.Item label="SecretKey" required>
+                <Input.Password
+                  placeholder="SecretKey"
+                  value={secretKey}
+                  onChange={(e) => setSecretKey(e.target.value)}
+                />
+              </Form.Item>
+              <Form.Item
+                label={t("voice.realtimeStt")}
+                style={{ marginBottom: 8 }}
+              >
+                <Switch checked={realtimeStt} onChange={setRealtimeStt} />
+              </Form.Item>
+              <Form.Item label="AppID" required={realtimeStt}>
+                <Input
+                  placeholder="1300000000"
+                  value={appId}
+                  disabled={!realtimeStt}
+                  inputMode="numeric"
+                  onChange={(e) => setAppId(e.target.value)}
+                />
+              </Form.Item>
+              {realtimeStt && (
+                <div className={styles.drawerHint}>
+                  {t("voice.realtimeSttHint")}
+                </div>
+              )}
+            </>
+          )}
+>>>>>>> upstream/main
           {configure?.preset.kind === "openai" && (
             <>
               <div className={styles.drawerHint}>{t("voice.openaiHint")}</div>

@@ -1295,6 +1295,7 @@ export default function RemoteBrowserPage({
   );
 
   const checkAction = {
+<<<<<<< HEAD
     label: (
       <>
         {t("remoteBrowser.checkInstallShort", "Check")}
@@ -1310,9 +1311,20 @@ export default function RemoteBrowserPage({
         ) : null}
       </>
     ),
+=======
+    label: t("remoteBrowser.checkInstallShort", "检查"),
+>>>>>>> upstream/main
     onClick: openEnvModal,
-    icon: <Globe size={14} />,
-    type: "default" as const,
+    icon:
+      envReady && !envLoading ? (
+        <CheckCircle2
+          size={14}
+          style={{ color: "var(--fn-color-success,#52c41a)" }}
+        />
+      ) : (
+        <Globe size={14} />
+      ),
+    type: envReady ? ("default" as const) : ("primary" as const),
     title: t(
       "remoteBrowser.checkInstallTip",
       "Check whether the browser is ready on this machine. If it is not installed, you can install it with one click.",
@@ -1608,7 +1620,11 @@ export default function RemoteBrowserPage({
       title={t("pageShell.browser.title", "Browser AI+")}
       subtitle={t(
         "pageShell.browser.subtitle",
+<<<<<<< HEAD
         "Based on Chromium Headless browser session",
+=======
+        "查看并操控远端无头浏览器，实时接管专家的网页操作",
+>>>>>>> upstream/main
       )}
       fill
     >

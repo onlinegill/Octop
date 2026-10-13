@@ -29,8 +29,14 @@ def test_build_chat_model_includes_provider_id_and_model_name() -> None:
     provider, model = mock_build.call_args[0]
     assert provider.id == "HAI"
     assert provider.name == "HAI"
+<<<<<<< HEAD
     assert model.id == "Example-M2.7"
     assert model.name == "Example-M2.7"
+=======
+    assert model.id == "MiniMax-M2.7"
+    assert model.name == "MiniMax-M2.7"
+    assert provider.stream_usage is False
+>>>>>>> upstream/main
 
 
 def _embedding_row(**overrides: Any) -> SimpleNamespace:

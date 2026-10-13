@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from html import escape
 from pathlib import Path
@@ -99,7 +100,27 @@ async def test_catalog(env):
     }
 
 
+<<<<<<< HEAD
 async def test_create_dify_instance(env):
+=======
+async def test_catalog_localizes_with_accept_language(env):
+    c, _, auth, _ = env
+    r = await c.get("/api/connectors/catalog", headers={**auth, "Accept-Language": "en"})
+    assert r.status_code == 200
+    openalex = next(e for e in r.json() if e["kind"] == "openalex")
+    assert openalex["name"] == "OpenAlex"
+    assert openalex["description"].startswith("Official MCP")
+    assert "system browser" in (openalex["auth_hint"] or "")
+
+    r = await c.get("/api/connectors/catalog", headers={**auth, "Accept-Language": "zh"})
+    assert r.status_code == 200
+    openalex = next(e for e in r.json() if e["kind"] == "openalex")
+    assert openalex["description"].startswith("官方 MCP")
+    assert "系统浏览器" in (openalex["auth_hint"] or "")
+
+
+async def test_create_tencent_instance(env):
+>>>>>>> upstream/main
     c, _, auth, _ = env
     r = await c.post(
         "/api/connector-instances",
@@ -340,6 +361,132 @@ async def test_patch_instance_status(env):
     assert r2.json()["status"] == "disabled"
 
 
+<<<<<<< HEAD
+=======
+async def test_catalog_weknora_dify_last(env):
+    c, _, auth, _ = env
+    r = await c.get("/api/connectors/catalog", headers=auth)
+    assert r.status_code == 200
+    kinds = [e["kind"] for e in r.json()]
+    assert "feishu-cli" in kinds
+    assert "wecom-cli" in kinds
+    assert kinds.index("feishu-cli") < kinds.index("weknora")
+    assert kinds.index("obsidian-cli") < kinds.index("weknora")
+    assert kinds.index("wecom-cli") < kinds.index("dify")
+    assert kinds.index("didi") < kinds.index("weknora")
+    assert kinds[-2:] == ["weknora", "dify"]
+
+
+async def test_obsidian_cli_install_registers_binary(
+    env, monkeypatch: pytest.MonkeyPatch, tmp_path
+):
+    c, _, auth, _ = env
+    home = tmp_path / "home"
+    source = tmp_path / "Obsidian.app" / "Contents" / "MacOS" / "obsidian-cli"
+    source.parent.mkdir(parents=True)
+    source.write_text("obsidian", encoding="utf-8")
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    monkeypatch.setenv("PATH", os.environ.get("PATH", ""))
+    monkeypatch.setattr(
+        "octop.infra.connectors.gateway.cli_install.obsidian_bundle_candidates",
+        lambda: [str(source)],
+    )
+    monkeypatch.setattr(
+        "octop.infra.connectors.gateway.cli_install._prefix_writable",
+        lambda _prefix: False,
+    )
+    monkeypatch.setattr(
+        "octop.infra.connectors.gateway.cli_install._read_version",
+        lambda _path: "1.12.7",
+    )
+    dest_name = "obsidian.exe" if os.name == "nt" else "obsidian"
+    dest = home / ".local" / "bin" / dest_name
+
+    def _which(name: str) -> str | None:
+        if name == "obsidian" and dest.is_file():
+            return str(dest)
+        return None
+
+    monkeypatch.setattr(
+        "octop.infra.connectors.gateway.cli_install.shutil.which",
+        _which,
+    )
+
+    status = await c.get("/api/connectors/obsidian-cli/cli-status", headers=auth)
+    assert status.status_code == 200
+    body = status.json()
+    assert body["installed"] is False
+    assert body["binary"] == "obsidian"
+    assert body["install_command"]
+    assert "npm" not in body["install_command"]
+
+    installed = await c.post("/api/connectors/obsidian-cli/install-cli", headers=auth)
+    assert installed.status_code == 200
+    payload = installed.json()
+    assert payload["ok"] is True
+    assert payload["already_installed"] is False
+    assert payload["installed"] is True
+    assert dest.is_file()
+
+
+async def test_install_cli_forbidden_for_non_admin(env):
+    c, _, admin_auth, _ = env
+    user_auth = await create_user(c, admin_auth, username="cli_user", permissions=[])
+    r = await c.post("/api/connectors/feishu-cli/install-cli", headers=user_auth)
+    assert r.status_code == 403
+    assert r.json()["error"]["code"] == "FORBIDDEN"
+
+
+async def test_install_cli_admin_ok_mocked(env, monkeypatch: pytest.MonkeyPatch):
+    c, _, auth, _ = env
+
+    def _fake_install(kind: str) -> dict:
+        return {
+            "ok": True,
+            "kind": kind,
+            "installed": True,
+            "already_installed": True,
+            "binary": "lark-cli",
+            "version": "0.0.0-test",
+            "install_command": "npm install -g @larksuite/cli",
+            "doc_url": "https://example.com",
+            "guide_url": "https://example.com",
+        }
+
+    monkeypatch.setattr(
+        "octop.api.routers.connectors.install_connector_cli",
+        _fake_install,
+    )
+    r = await c.post("/api/connectors/feishu-cli/install-cli", headers=auth)
+    assert r.status_code == 200
+    body = r.json()
+    assert body["ok"] is True
+    assert body["already_installed"] is True
+
+
+async def test_cli_status_available_to_non_admin(env, monkeypatch: pytest.MonkeyPatch):
+    c, _, admin_auth, _ = env
+    user_auth = await create_user(c, admin_auth, username="cli_status_user")
+    monkeypatch.setattr(
+        "octop.api.routers.connectors.cli_install_status",
+        lambda kind: {
+            "ok": True,
+            "kind": kind,
+            "installed": False,
+            "binary": None,
+            "version": None,
+            "install_command": "npm install -g @larksuite/cli",
+            "doc_url": "https://example.com",
+            "guide_url": "https://example.com",
+        },
+    )
+    r = await c.get("/api/connectors/feishu-cli/cli-status", headers=user_auth)
+    assert r.status_code == 200
+    assert r.json()["installed"] is False
+
+
+>>>>>>> upstream/main
 async def test_patch_custom_mcp_server_default_open_only(env):
     c, _, auth, _ = env
     put = await c.put(

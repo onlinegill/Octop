@@ -9,6 +9,7 @@ interface MbtiPersonaTagProps {
   onClick?: () => void;
 }
 
+<<<<<<< HEAD
 const MBTI_ZH_NAMES: Record<string, string> = {
   INTJ: "Architect",
   INTP: "Logician",
@@ -47,19 +48,19 @@ const MBTI_EN_NAMES: Record<string, string> = {
   ESFP: "Entertainer",
 };
 
+=======
+>>>>>>> upstream/main
 export default function MbtiPersonaTag({
   value,
   showDefault = true,
   onClick,
 }: MbtiPersonaTagProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   if (!value && !showDefault) return null;
 
   const code = value?.toUpperCase() ?? "";
-  const localizedName =
-    code &&
-    (i18n.language === "zh" ? MBTI_ZH_NAMES[code] : MBTI_EN_NAMES[code]);
+  const localizedName = code && t(`mbti.${code}`, { defaultValue: "" });
   const label = code
     ? localizedName
       ? `${code} ${localizedName}`

@@ -30,6 +30,48 @@ class BrowserOnlyError(Exception):
     """Raised when the active provider must run in the browser."""
 
 
+<<<<<<< HEAD
+=======
+def parse_tencent_credentials(row: VoiceProviderRow) -> tuple[str, str]:
+    extra = row.get_extra()
+    secret_id = extra.get("secret_id") or ""
+    secret_key = extra.get("secret_key") or ""
+    if row.api_key and ":" in row.api_key:
+        sid, _, sk = row.api_key.partition(":")
+        secret_id = secret_id or sid
+        secret_key = secret_key or sk
+    if not secret_id or not secret_key:
+        raise ValueError("Tencent Cloud requires secret_id and secret_key")
+    return str(secret_id), str(secret_key)
+
+
+def _voice_format(mime: str) -> str:
+    """Map an upload MIME type onto a Tencent ASR ``VoiceFormat`` token."""
+    lowered = mime.lower()
+    if "mp3" in lowered or "mpeg" in lowered:
+        return "mp3"
+    if "wav" in lowered:
+        return "wav"
+    if "ogg" in lowered:
+        return "ogg-opus"
+    if "mp4" in lowered or "m4a" in lowered or "aac" in lowered:
+        return "m4a"
+    if "amr" in lowered:
+        return "amr"
+    if "silk" in lowered:
+        return "silk"
+    if "speex" in lowered:
+        return "speex"
+    if "pcm" in lowered:
+        return "pcm"
+    raise OctopError(
+        ErrorCode.VOICE_KIND_UNSUPPORTED,
+        f"unsupported audio format {mime!r}",
+        details={"mime": mime},
+    )
+
+
+>>>>>>> upstream/main
 async def transcribe_browser() -> STTResult:
     raise BrowserOnlyError()
 
@@ -109,6 +151,102 @@ async def synthesize_openai(
                 yield chunk
 
 
+<<<<<<< HEAD
+=======
+async def transcribe_tencent(
+    row: VoiceProviderRow,
+    audio: bytes,
+    *,
+    mime: str,
+    language: str,
+) -> STTResult:
+    secret_id, secret_key = parse_tencent_credentials(row)
+    extra = row.get_extra()
+    eng = str(extra.get("eng_service_type") or "16k_zh")
+    if language.lower().startswith("en"):
+        eng = str(extra.get("eng_service_type_en") or "16k_en")
+    payload: dict[str, Any] = {
+        "EngSerViceType": eng,
+        "SourceType": 1,
+        "VoiceFormat": _voice_format(mime),
+        "Data": base64.b64encode(audio).decode("ascii"),
+        "DataLen": len(audio),
+    }
+    headers, body = tc3_headers(
+        secret_id=secret_id,
+        secret_key=secret_key,
+        service="asr",
+        host="asr.tencentcloudapi.com",
+        action="SentenceRecognition",
+        version="2019-06-14",
+        payload=payload,
+        region=str(extra.get("region") or "ap-guangzhou"),
+        language=tencent_api_language(_ui_locale.get()),
+    )
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        resp = await client.post(
+            "https://asr.tencentcloudapi.com/",
+            headers=headers,
+            content=body.encode("utf-8"),
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    response = data.get("Response") or {}
+    if "Error" in response:
+        err = response["Error"]
+        raise RuntimeError(f"{err.get('Code')}: {err.get('Message')}")
+    text = str(response.get("Result") or "").strip()
+    return STTResult(text=text)
+
+
+async def synthesize_tencent(
+    row: VoiceProviderRow,
+    text: str,
+    *,
+    voice_id: str | None,
+    speed: float,
+) -> AsyncIterator[bytes]:
+    secret_id, secret_key = parse_tencent_credentials(row)
+    extra = row.get_extra()
+    voice_type = int(voice_id or extra.get("voice_type") or 101001)
+    payload: dict[str, Any] = {
+        "Text": text,
+        "SessionId": str(uuid.uuid4()),
+        "ModelType": 1,
+        "VoiceType": voice_type,
+        "Codec": "mp3",
+        "Speed": max(0.5, min(2.0, speed)),
+    }
+    headers, body = tc3_headers(
+        secret_id=secret_id,
+        secret_key=secret_key,
+        service="tts",
+        host="tts.tencentcloudapi.com",
+        action="TextToVoice",
+        version="2019-08-23",
+        payload=payload,
+        region=str(extra.get("region") or "ap-guangzhou"),
+        language=tencent_api_language(_ui_locale.get()),
+    )
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        resp = await client.post(
+            "https://tts.tencentcloudapi.com/",
+            headers=headers,
+            content=body.encode("utf-8"),
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    response = data.get("Response") or {}
+    if "Error" in response:
+        err = response["Error"]
+        raise RuntimeError(f"{err.get('Code')}: {err.get('Message')}")
+    audio_b64 = response.get("Audio")
+    if not audio_b64:
+        raise RuntimeError("Tencent TTS returned empty audio")
+    yield base64.b64decode(str(audio_b64))
+
+
+>>>>>>> upstream/main
 async def synthesize_edge(
     row: VoiceProviderRow,
     text: str,
@@ -175,7 +313,17 @@ def _probe_tone_wav() -> bytes:
 
 def _missing_credentials(row: VoiceProviderRow, kind: str, *, locale: str = "en") -> str | None:
     """Probe-time credential check; returns an error message when incomplete."""
+<<<<<<< HEAD
     if kind == "openai" and not row.api_key:
+=======
+    if kind == "tencent":
+        try:
+            parse_tencent_credentials(row)
+        except ValueError:
+            return voice_credentials_error(kind, locale)
+        return None
+    if kind in {"openai", "mimo"} and not row.api_key:
+>>>>>>> upstream/main
         return voice_credentials_error(kind, locale)
     return None
 

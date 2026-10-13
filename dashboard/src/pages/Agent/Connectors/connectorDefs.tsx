@@ -6,14 +6,29 @@ import styles from "./index.module.less";
 
 export const MAIL_PROVIDERS = [
   {
+<<<<<<< HEAD
+=======
+    id: "qq",
+    guideUrl: "https://mail.qq.com/",
+    emailPlaceholder: "you@qq.com",
+  },
+  {
+    id: "netease",
+    guideUrl: "https://mail.163.com/",
+    emailPlaceholder: "you@163.com / you@126.com",
+  },
+  {
+>>>>>>> upstream/main
     id: "gmail",
-    label: "Gmail",
     guideUrl: "https://mail.google.com/",
     emailPlaceholder: "you@gmail.com",
   },
   {
     id: "custom",
+<<<<<<< HEAD
     label: "Others",
+=======
+>>>>>>> upstream/main
     guideUrl: null,
     emailPlaceholder: "you@example.com",
   },
