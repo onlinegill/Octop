@@ -322,6 +322,26 @@ async def probe_connector(
         )
         return {"ok": True, "tool_count": len(tools), "tools": tools}
 
+<<<<<<< HEAD
+=======
+    if entry.mcp_mode == "stdio":
+        spec = build_http_mcp_spec(
+            entry=entry, instance_id=instance_id, creds=cred_payload, config=config
+        )
+        return await _probe_stdio_mcp(spec)
+
+    if entry.kind == "youdao-note":
+        api_key = str(
+            cred_payload.get("token")
+            or cred_payload.get("api_key")
+            or cred_payload.get("access_token")
+            or ""
+        ).strip()
+        if not api_key:
+            return {"ok": False, "error": "请填写 API Key"}
+        return await probe_youdao_note(api_key)
+
+>>>>>>> upstream/main
     spec = build_http_mcp_spec(
         entry=entry,
         instance_id=instance_id,
