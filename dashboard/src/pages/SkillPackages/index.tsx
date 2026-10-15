@@ -1015,6 +1015,30 @@ export default function SkillPackagesPage() {
         urlPrefixes={SKILL_URL_PREFIXES}
       />
 
+<<<<<<< HEAD
+=======
+      <SkillsetFromHubDrawer
+        open={skillsetHubOpen}
+        onClose={() => setSkillsetHubOpen(false)}
+        onCreated={async (pkg) => {
+          await loadPackages({ silent: true });
+          setSelected(pkg);
+          setSelectedId(pkg.id);
+          if (isMobile) setMobilePane("detail");
+          setSkillsetHubOpen(false);
+          message.success(t("skillPackages.created"));
+          if (pkg.skipped_skills && pkg.skipped_skills.length > 0) {
+            message.warning(
+              t("skillPackages.importedWithSkipped", {
+                count: pkg.skipped_skills.length,
+                skills: pkg.skipped_skills.join(", "),
+              }),
+            );
+          }
+        }}
+      />
+
+>>>>>>> upstream/main
       <SkillDrawer
         open={drawerOpen}
         editingSkill={

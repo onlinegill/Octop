@@ -231,6 +231,39 @@ async def create_skill_package(
     return _package_payload_with_creator(server, store, row)
 
 
+<<<<<<< HEAD
+=======
+@router.post(
+    "/from-skillhub",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a skill package from a SkillHub skillset",
+)
+async def create_from_skillhub(
+    body: FromSkillHubBody,
+    server: OctopServer = Depends(get_server),
+    user: User = Depends(require_permission("skill_packages")),
+) -> dict[str, Any]:
+    store = _store(server)
+    try:
+        result = await asyncio.to_thread(
+            create_package_from_skillhub,
+            store,
+            slug=_required(body.slug, "slug"),
+            created_by=str(user.id),
+            name=body.name.strip() if body.name is not None else None,
+            description=body.description.strip() if body.description is not None else None,
+            icon_name=body.icon_name.strip() if body.icon_name is not None else None,
+            icon_url=_icon_url(body.icon_url) if body.icon_url is not None else None,
+        )
+    except (SkillHubMarketError, SkillHubDownloadError) as exc:
+        raise _map_skillhub_error(exc) from exc
+    payload = _package_payload_with_creator(server, store, result.row)
+    if result.skipped_slugs:
+        payload["skipped_skills"] = list(result.skipped_slugs)
+    return payload
+
+
+>>>>>>> upstream/main
 @router.get("/{package_id}", summary="Get a global skill package and its skills")
 async def get_skill_package(
     package_id: str,

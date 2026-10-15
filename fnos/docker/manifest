@@ -1,5 +1,5 @@
 appname=octop
-version=1.0.2b7
+version=1.0.2b8
 display_name=Octop
 desc=The open-source multi-user, multi-agent AI assistant platform, with a Web console, CLI, IM channels and scheduled tasks; all data is stored locally.<br/><br/><strong>After installation:</strong><br/>On first use the image matching this package version is downloaded from ghcr.io (the device must be able to reach the GitHub Container Registry). Wait until the App Center shows "Running" before clicking "Open", or visit http://DEVICE-IP:8088 and sign in with the account set in the install wizard.<br/>If you forget the password, check the backup in octop-login.txt in the data directory (it only records the password from installation or from the app's "Settings"; it is not updated automatically after a password change in the web UI).<br/><br/><strong>After the first sign-in:</strong><br/>Configure the API Key in the console under "Settings → Models", and configure IM channels, remote desktop, browser, etc. as needed.<br/><br/>Note: the Docker edition is deployed via a container and pulls the image matching this package version from ghcr.io/onlinegill/octop.
 source=thirdparty
