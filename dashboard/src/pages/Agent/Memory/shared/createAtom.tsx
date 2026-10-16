@@ -76,13 +76,13 @@ export default function CreateAtomModal({
     <Modal
       title={
         lockedToEntity
-          ? t("memory.create.titleInTopic", "Add a memory under this topic")
-          : t("memory.create.title", "New memory")
+          ? t("memory.create.titleInTopic", "在此主题下添加记忆")
+          : t("memory.create.title", "新建记忆")
       }
       open={open}
       onCancel={onClose}
-      okText={t("memory.create.ok", "Save")}
-      cancelText={t("common.cancel", "Cancel")}
+      okText={t("memory.create.ok", "保存")}
+      cancelText={t("common.cancel", "取消")}
       destroyOnHidden
       onOk={async () => {
         const values = await form.validateFields();
@@ -102,7 +102,7 @@ export default function CreateAtomModal({
                   kind: values.kind as AtomKind,
                 };
           const r = await memoryDashboardApi.createAtom(agentId, body);
-          message.success(t("memory.create.success", "Memory added"));
+          message.success(t("memory.create.success", "记忆已添加"));
           onSuccess?.(r.atom, r.entity, r.created_entity);
           onClose();
         } catch (e) {
@@ -118,13 +118,13 @@ export default function CreateAtomModal({
     >
       <Form form={form} layout="vertical" style={{ marginTop: 12 }}>
         {!lockedToEntity ? (
-          <Form.Item name="topicMode" label={t("memory.create.topic", "Topic")}>
+          <Form.Item name="topicMode" label={t("memory.create.topic", "主题")}>
             <Radio.Group>
               <Radio.Button value="existing" disabled={entities.length === 0}>
-                {t("memory.create.existingTopic", "Existing topic")}
+                {t("memory.create.existingTopic", "已有主题")}
               </Radio.Button>
               <Radio.Button value="new">
-                {t("memory.create.newTopic", "New topic")}
+                {t("memory.create.newTopic", "新建主题")}
               </Radio.Button>
             </Radio.Group>
           </Form.Item>
@@ -136,7 +136,7 @@ export default function CreateAtomModal({
             label={
               lockedToEntity
                 ? undefined
-                : t("memory.create.pickTopic", "Choose a topic")
+                : t("memory.create.pickTopic", "选择主题")
             }
             rules={
               lockedToEntity
@@ -144,7 +144,7 @@ export default function CreateAtomModal({
                 : [
                     {
                       required: true,
-                      message: t("memory.create.topicRequired", "Please choose a topic"),
+                      message: t("memory.create.topicRequired", "请选择主题"),
                     },
                   ]
             }
@@ -163,7 +163,7 @@ export default function CreateAtomModal({
           <>
             <Form.Item
               name="entity_name"
-              label={t("memory.create.topicName", "Topic name")}
+              label={t("memory.create.topicName", "主题名称")}
               rules={[
                 {
                   required: true,
@@ -183,23 +183,23 @@ export default function CreateAtomModal({
             </Form.Item>
             <Form.Item
               name="entity_type"
-              label={t("memory.create.topicType", "Topic type")}
+              label={t("memory.create.topicType", "主题类型")}
             >
               <Select options={ENTITY_TYPE_OPTIONS} />
             </Form.Item>
           </>
         )}
 
-        <Form.Item name="kind" label={t("memory.create.kind", "Memory type")}>
+        <Form.Item name="kind" label={t("memory.create.kind", "记忆类型")}>
           <Select options={KIND_OPTIONS} />
         </Form.Item>
         <Form.Item
           name="assertion"
-          label={t("memory.create.assertion", "Memory")}
+          label={t("memory.create.assertion", "记忆内容")}
           rules={[
             {
               required: true,
-              message: t("memory.create.assertionRequired", "Please enter the memory"),
+              message: t("memory.create.assertionRequired", "请填写记忆内容"),
             },
           ]}
         >

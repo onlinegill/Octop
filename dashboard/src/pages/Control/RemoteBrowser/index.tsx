@@ -206,7 +206,7 @@ function BookmarkBar({
   return (
     <div
       role="navigation"
-      aria-label={t("remoteBrowser.bookmarkBarTitle", "Bookmarks")}
+      aria-label={t("remoteBrowser.bookmarkBarTitle", "书签栏")}
       style={{
         display: "flex",
         alignItems: "center",
@@ -250,7 +250,7 @@ function BookmarkBar({
             </span>
             <button
               type="button"
-              aria-label={t("remoteBrowser.bookmarkRemove", "Remove bookmark")}
+              aria-label={t("remoteBrowser.bookmarkRemove", "移除书签")}
               onClick={(e) => {
                 e.stopPropagation();
                 onRemove(bm.url);
@@ -568,7 +568,7 @@ export default function RemoteBrowserPage({
         setInstallPhase("idle");
         setEnvModalOpen(false);
         void refreshEnv();
-        antMessage.success(t("remoteBrowser.installSuccess", "Browser installed successfully"));
+        antMessage.success(t("remoteBrowser.installSuccess", "浏览器安装成功"));
       },
     );
   }, [refreshEnv, t]);
@@ -587,8 +587,8 @@ export default function RemoteBrowserPage({
   }, [t]);
 
   const handleCopyInstallLog = useCallback(async () => {
-    const title = t("remoteBrowser.installFailed", "Installation failed");
-    const hint = t("remoteBrowser.installFailedHint", "Automatic installation failed. Copy the error details below and send them to Octop, or set PLAYWRIGHT_DOWNLOAD_HOST to a mirror URL and retry.");
+    const title = t("remoteBrowser.installFailed", "安装失败");
+    const hint = t("remoteBrowser.installFailedHint", "自动安装失败，请重试。");
     const logBody =
       installLogs.length > 0
         ? installLogs.join("\n")
@@ -605,12 +605,12 @@ export default function RemoteBrowserPage({
   const handleUninstall = useCallback(() => {
     if (!envStatus?.playwright_chromium || uninstalling) return;
     modal.confirm({
-      title: t("remoteBrowser.uninstallTitle", "Uninstall built-in browser"),
+      title: t("remoteBrowser.uninstallTitle", "卸载内置浏览器"),
       content: t(
         "remoteBrowser.uninstallConfirm",
         "将关闭当前浏览器窗口，并卸载 Octop 自动安装的浏览器。你电脑上已有的 Chrome 等浏览器不受影响。",
       ),
-      okText: t("remoteBrowser.uninstall", "Uninstall"),
+      okText: t("remoteBrowser.uninstall", "卸载"),
       okButtonProps: { danger: true },
       cancelText: t("common.cancel"),
       onOk: () =>
@@ -624,7 +624,7 @@ export default function RemoteBrowserPage({
           setUninstalling(true);
           setUninstallLogs([]);
           const hide = antMessage.loading(
-            t("remoteBrowser.uninstalling", "Uninstalling…"),
+            t("remoteBrowser.uninstalling", "正在卸载…"),
             0,
           );
           uninstallAbortRef.current = browserApi.uninstallBrowser(
@@ -638,13 +638,13 @@ export default function RemoteBrowserPage({
                 if (removed) {
                   setUninstallLogs([]);
                   antMessage.success(
-                    t("remoteBrowser.uninstallSuccess", "Built-in browser removed"),
+                    t("remoteBrowser.uninstallSuccess", "内置浏览器已卸载"),
                   );
                   resolve();
                   return;
                 }
                 antMessage.error(
-                  t("remoteBrowser.uninstallFailed", "Uninstall failed"),
+                  t("remoteBrowser.uninstallFailed", "卸载失败"),
                 );
                 reject(new Error("uninstall failed"));
               });
@@ -732,12 +732,12 @@ export default function RemoteBrowserPage({
 
   const shutdownBrowser = useCallback(() => {
     modal.confirm({
-      title: t("remoteBrowser.shutdownTitle", "Close browser"),
+      title: t("remoteBrowser.shutdownTitle", "关闭浏览器"),
       content: t(
         "remoteBrowser.shutdownConfirm",
         "将关闭当前浏览器窗口。已登录的网站下次打开时仍然有效。",
       ),
-      okText: t("remoteBrowser.stop", "Close browser"),
+      okText: t("remoteBrowser.stop", "关闭浏览器"),
       okButtonProps: { danger: true },
       cancelText: t("common.cancel"),
       onOk: async () => {
@@ -746,7 +746,7 @@ export default function RemoteBrowserPage({
         } catch (err: unknown) {
           showApiError(
             err,
-            t("remoteBrowser.shutdownFailed", "Failed to close the browser"),
+            t("remoteBrowser.shutdownFailed", "关闭浏览器失败"),
             t,
           );
           throw err;
@@ -957,7 +957,7 @@ export default function RemoteBrowserPage({
         setBrowserRecordingId(rid);
         if (rid) setBrowserLastRecordingId(rid);
         antMessage.success(
-          t("browser.recordReplay.started", "Browser recording started"),
+          t("browser.recordReplay.started", "已开始浏览器录制"),
         );
 
         // Push a prompt asking the user to input their task objective
@@ -966,14 +966,14 @@ export default function RemoteBrowserPage({
         );
       } else {
         antMessage.error(
-          data.error || t("browser.recordReplay.startFailed", "Failed to start recording"),
+          data.error || t("browser.recordReplay.startFailed", "开始录制失败"),
         );
       }
     } catch (err) {
       antMessage.error(
         err instanceof Error
           ? err.message
-          : t("browser.recordReplay.startFailed", "Failed to start recording"),
+          : t("browser.recordReplay.startFailed", "开始录制失败"),
       );
     }
   }, [antMessage, t]);
@@ -993,7 +993,7 @@ export default function RemoteBrowserPage({
     >
       {installLogs.length === 0 ? (
         <div>
-          {emptyLabel ?? t("remoteBrowser.installing", "Starting installation...")}
+          {emptyLabel ?? t("remoteBrowser.installing", "正在启动安装...")}
         </div>
       ) : (
         installLogs.map((line, i) => <div key={i}>{line}</div>)
@@ -1006,11 +1006,11 @@ export default function RemoteBrowserPage({
     <div className={styles.installProgress}>
       <RefreshCw size={32} className={styles.streamLoadingIcon} />
       <div className={styles.installProgressTitle}>
-        {t("remoteBrowser.uninstalling", "Uninstalling…")}
+        {t("remoteBrowser.uninstalling", "正在卸载…")}
       </div>
       <div className={styles.installLog}>
         {uninstallLogs.length === 0 ? (
-          <div>{t("remoteBrowser.uninstalling", "Uninstalling…")}</div>
+          <div>{t("remoteBrowser.uninstalling", "正在卸载…")}</div>
         ) : (
           uninstallLogs.map((line, i) => <div key={i}>{line}</div>)
         )}
@@ -1022,7 +1022,7 @@ export default function RemoteBrowserPage({
     <div className={styles.installProgress}>
       <RefreshCw size={32} className={styles.streamLoadingIcon} />
       <div className={styles.installProgressTitle}>
-        {t("remoteBrowser.installProgress", "Installing…")}
+        {t("remoteBrowser.installProgress", "正在安装中…")}
       </div>
       {renderInstallLog()}
       <div className={styles.installProgressActions}>
@@ -1046,7 +1046,7 @@ export default function RemoteBrowserPage({
           <div style={{ textAlign: "center", marginBottom: 12 }}>
             <Spin />
             <Text style={{ marginLeft: 8 }}>
-              {t("remoteBrowser.installingBrowser", "Installing Browser")}
+              {t("remoteBrowser.installingBrowser", "正在安装...")}
             </Text>
           </div>
           {renderInstallLog()}
@@ -1060,7 +1060,7 @@ export default function RemoteBrowserPage({
           icon={
             <CheckCircle2 size={40} color="var(--fn-color-success,#52c41a)" />
           }
-          title={t("remoteBrowser.installSuccess", "Browser installed successfully")}
+          title={t("remoteBrowser.installSuccess", "安装成功")}
           subTitle={t(
             "remoteBrowser.installSuccessHint",
             "浏览器已就绪，可启动会话",
@@ -1075,7 +1075,7 @@ export default function RemoteBrowserPage({
         <div>
           <Result
             icon={<Terminal size={40} color="var(--fn-color-error,#ff4d4f)" />}
-            title={t("remoteBrowser.installFailed", "Installation failed")}
+            title={t("remoteBrowser.installFailed", "安装失败")}
             subTitle={t(
               "remoteBrowser.installFailedHint",
               "自动安装失败，请重试。",
@@ -1092,14 +1092,14 @@ export default function RemoteBrowserPage({
               }}
             >
               <span style={{ fontSize: 12, color: "var(--fn-text-tertiary)" }}>
-                {t("remoteBrowser.installLog", "Install log")}
+                {t("remoteBrowser.installLog", "安装日志")}
               </span>
               <Button
                 size="small"
                 icon={<Copy size={14} />}
                 onClick={() => void handleCopyInstallLog()}
               >
-                {t("common.copyErrorForOctop", "Copy error details")}
+                {t("common.copyErrorForOctop", "复制错误信息")}
               </Button>
             </div>
             {renderInstallLog(180, undefined, t("common.installLogEmpty"))}
@@ -1127,7 +1127,7 @@ export default function RemoteBrowserPage({
           icon={
             <CheckCircle2 size={40} color="var(--fn-color-success,#52c41a)" />
           }
-          title={t("remoteBrowser.browserAlreadyInstalled", "Browser is ready")}
+          title={t("remoteBrowser.browserAlreadyInstalled", "浏览器已就绪")}
           subTitle={t(
             "remoteBrowser.envReady",
             "可以帮你打开网页、填写表单和截图了",
@@ -1160,7 +1160,7 @@ export default function RemoteBrowserPage({
         <Alert
           type="error"
           showIcon
-          message={t("remoteBrowser.playwrightMissing", "The playwright package is missing. Install octop[browser] extras first.")}
+          message={t("remoteBrowser.playwrightMissing", "playwright 包未安装")}
           description={envStatus?.error ?? undefined}
         />
       );
@@ -1169,7 +1169,7 @@ export default function RemoteBrowserPage({
     return (
       <Result
         icon={<AlertCircle size={40} color="var(--fn-color-warning,#faad14)" />}
-        title={t("remoteBrowser.notInstalled", "No browser detected")}
+        title={t("remoteBrowser.notInstalled", "未检测到可用浏览器")}
         subTitle={t(
           "remoteBrowser.notInstalledHint",
           "Octop 需要浏览器才能帮你自动打开网页、填写表单和截图。点击下方按钮即可自动安装，无需手动配置。",
@@ -1188,7 +1188,7 @@ export default function RemoteBrowserPage({
         <Space>
           <Button onClick={closeEnvModal}>{t("common.close")}</Button>
           <Button type="primary" onClick={startInstall}>
-            {t("remoteBrowser.installRetry", "Retry install")}
+            {t("remoteBrowser.installRetry", "重新安装")}
           </Button>
         </Space>
       );
@@ -1205,7 +1205,7 @@ export default function RemoteBrowserPage({
         <Space>
           <Button onClick={closeEnvModal}>{t("common.close")}</Button>
           <Button type="primary" onClick={startInstall}>
-            {t("remoteBrowser.install", "Install browser")}
+            {t("remoteBrowser.install", "安装浏览器")}
           </Button>
         </Space>
       );
@@ -1234,7 +1234,7 @@ export default function RemoteBrowserPage({
   const handleFullscreen = useLandscapeFullscreen(containerRef, {
     isMobile,
     onError: () =>
-      antMessage.error(t("remoteBrowser.fullscreenFailed", "Could not enter fullscreen")),
+      antMessage.error(t("remoteBrowser.fullscreenFailed", "无法进入全屏")),
   });
 
   const openControlsDrawer = useCallback(() => setControlsOpen(true), []);
@@ -1244,7 +1244,7 @@ export default function RemoteBrowserPage({
     <div className={styles.controlsDrawer}>
       <div className={styles.controlsSection}>
         <span className={styles.controlsLabel}>
-          {t("remoteBrowser.autoRefresh", "Auto refresh")}
+          {t("remoteBrowser.autoRefresh", "自动刷新")}
         </span>
         <Select
           size="middle"
@@ -1256,7 +1256,7 @@ export default function RemoteBrowserPage({
       </div>
       <div className={styles.controlsSection}>
         <span className={styles.controlsLabel}>
-          {t("remoteBrowser.viewportMode", "Viewport")}
+          {t("remoteBrowser.viewportMode", "视口模式")}
         </span>
         <Select
           size="middle"
@@ -1275,7 +1275,7 @@ export default function RemoteBrowserPage({
             void handleFullscreen();
           }}
         >
-          {t("remoteBrowser.fullscreen", "Toggle Fullscreen")}
+          {t("remoteBrowser.fullscreen", "全屏")}
         </Button>
         {session ? (
           <Button
@@ -1287,7 +1287,7 @@ export default function RemoteBrowserPage({
               shutdownBrowser();
             }}
           >
-            {t("remoteBrowser.stop", "Close browser")}
+            {t("remoteBrowser.stop", "关闭浏览器")}
           </Button>
         ) : null}
       </div>
@@ -1295,24 +1295,18 @@ export default function RemoteBrowserPage({
   );
 
   const checkAction = {
-    label: (
-      <>
-        {t("remoteBrowser.checkInstallShort", "Check")}
-        {envReady && !envLoading ? (
-          <CheckCircle2
-            size={14}
-            style={{
-              marginLeft: 4,
-              color: "var(--fn-color-success,#52c41a)",
-              verticalAlign: "-2px",
-            }}
-          />
-        ) : null}
-      </>
-    ),
+    label: t("remoteBrowser.checkInstallShort", "检查"),
     onClick: openEnvModal,
-    icon: <Globe size={14} />,
-    type: "default" as const,
+    icon:
+      envReady && !envLoading ? (
+        <CheckCircle2
+          size={14}
+          style={{ color: "var(--fn-color-success,#52c41a)" }}
+        />
+      ) : (
+        <Globe size={14} />
+      ),
+    type: envReady ? ("default" as const) : ("primary" as const),
     title: t(
       "remoteBrowser.checkInstallTip",
       "检查本机是否已准备好浏览器，未安装时可一键安装",
@@ -1321,7 +1315,7 @@ export default function RemoteBrowserPage({
 
   const uninstallAction = envStatus?.playwright_chromium
     ? {
-        label: t("remoteBrowser.uninstall", "Uninstall"),
+        label: t("remoteBrowser.uninstall", "卸载"),
         onClick: handleUninstall,
         icon: <Trash2 size={14} />,
         loading: uninstalling,
@@ -1334,7 +1328,7 @@ export default function RemoteBrowserPage({
   const pageBody = (
     <>
       <Modal
-        title={t("remoteBrowser.checkInstall", "Check Browser")}
+        title={t("remoteBrowser.checkInstall", "检查浏览器")}
         open={envModalOpen}
         onCancel={closeEnvModal}
         footer={envModalFooter()}
@@ -1354,7 +1348,7 @@ export default function RemoteBrowserPage({
       />
 
       <Drawer
-        title={t("remoteBrowser.controlsTitle", "Controls")}
+        title={t("remoteBrowser.controlsTitle", "控制面板")}
         placement={isMobile ? "bottom" : "right"}
         open={controlsOpen}
         onClose={closeControlsDrawer}
@@ -1409,12 +1403,12 @@ export default function RemoteBrowserPage({
                         type={isAiPanelOpen ? "primary" : "default"}
                         icon={<Bot size={14} />}
                         onClick={handleAiPanelToggle}
-                        aria-label={t("remoteBrowser.ai.title", "AI Assistant")}
-                        title={t("remoteBrowser.ai.title", "AI Assistant")}
+                        aria-label={t("remoteBrowser.ai.title", "AI 助手")}
+                        title={t("remoteBrowser.ai.title", "AI 助手")}
                       >
                         {isMobile
                           ? null
-                          : t("remoteBrowser.ai.title", "AI Assistant")}
+                          : t("remoteBrowser.ai.title", "AI 助手")}
                       </Button>
                       <Tooltip
                         title={t(
@@ -1433,20 +1427,20 @@ export default function RemoteBrowserPage({
                         >
                           {isMobile
                             ? null
-                            : t("skillRecordGuide.buttonLabel", "Skill recording")}
+                            : t("skillRecordGuide.buttonLabel", "技能录制")}
                         </Button>
                       </Tooltip>
-                      <Tooltip title={t("remoteBrowser.stop", "Close browser")}>
+                      <Tooltip title={t("remoteBrowser.stop", "关闭浏览器")}>
                         <Button
                           size="small"
                           danger
                           icon={<Square size={14} />}
                           onClick={shutdownBrowser}
-                          aria-label={t("remoteBrowser.stop", "Close browser")}
+                          aria-label={t("remoteBrowser.stop", "关闭浏览器")}
                         >
                           {isMobile
                             ? null
-                            : t("remoteBrowser.stop", "Close browser")}
+                            : t("remoteBrowser.stop", "关闭浏览器")}
                         </Button>
                       </Tooltip>
                     </>
@@ -1455,15 +1449,15 @@ export default function RemoteBrowserPage({
                     <StreamEdgeControls
                       visible={showEdgeControls}
                       isMobile={isMobile}
-                      fullscreenLabel={t("remoteBrowser.fullscreen", "Toggle Fullscreen")}
+                      fullscreenLabel={t("remoteBrowser.fullscreen", "全屏")}
                       controlsLabel={t(
                         "remoteBrowser.openControls",
                         "控制与快捷操作",
                       )}
                       streamingLabel={
                         isStreaming
-                          ? t("remoteBrowser.streaming", "Streaming")
-                          : t("remoteBrowser.connecting", "Connecting")
+                          ? t("remoteBrowser.streaming", "推流中")
+                          : t("remoteBrowser.connecting", "连接中")
                       }
                       onFullscreen={() => void handleFullscreen()}
                       onOpenControls={openControlsDrawer}
@@ -1485,8 +1479,8 @@ export default function RemoteBrowserPage({
                     icon={<OctopEmptyMascot />}
                     title={
                       envReady
-                        ? t("remoteBrowser.startBrowserTitle", "Launch remote browser")
-                        : t("remoteBrowser.setupTitle", "A browser is required")
+                        ? t("remoteBrowser.startBrowserTitle", "启动远程浏览器")
+                        : t("remoteBrowser.setupTitle", "需要安装浏览器")
                     }
                     description={
                       envReady
@@ -1544,7 +1538,7 @@ export default function RemoteBrowserPage({
                                   "remoteBrowser.ai.startingBrowser",
                                   "正在启动...",
                                 )
-                              : t("remoteBrowser.startBrowser", "Launch Browser"),
+                              : t("remoteBrowser.startBrowser", "启动浏览器"),
                             onClick: () => void createSession(),
                             loading: creating,
                             disabled: !envReady,
@@ -1605,10 +1599,10 @@ export default function RemoteBrowserPage({
 
   return (
     <PageShell
-      title={t("pageShell.browser.title", "Browser AI+")}
+      title={t("pageShell.browser.title", "浏览器 AI+")}
       subtitle={t(
         "pageShell.browser.subtitle",
-        "基于 Chromium 的无头浏览器会话",
+        "查看并操控远端无头浏览器，实时接管专家的网页操作",
       )}
       fill
     >

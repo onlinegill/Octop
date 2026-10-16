@@ -106,7 +106,7 @@ export default function FileViewer({
     return (
       <div className={styles.viewerEmpty}>
         <p style={{ color: "var(--fn-text-tertiary)", margin: 0 }}>
-          {t("workspace.binaryHint", "This file may be binary — use Download")}
+          {t("workspace.binaryHint", "该文件可能是二进制内容，请使用下载获取")}
         </p>
       </div>
     );
@@ -129,7 +129,7 @@ export default function FileViewer({
     return (
       <div className={styles.viewerEmpty}>
         <p style={{ color: "var(--fn-text-tertiary)", margin: 0 }}>
-          {t("workspace.emptyFile", "File is empty")}
+          {t("workspace.emptyFile", "文件为空")}
         </p>
       </div>
     );

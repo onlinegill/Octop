@@ -61,7 +61,7 @@ export default function ProactiveConfig({
       const errMsg =
         err instanceof Error
           ? err.message
-          : t("proactiveConfig.loadFailed", "Failed to load proactive reminder settings");
+          : t("proactiveConfig.loadFailed", "加载配置失败");
       setError(errMsg);
     } finally {
       setLoading(false);
@@ -97,7 +97,7 @@ export default function ProactiveConfig({
 
       setSaving(true);
       await api.updateProactiveCareConfig(agentId, payload);
-      message.success(t("proactiveConfig.saveSuccess", "Proactive reminder settings saved"));
+      message.success(t("proactiveConfig.saveSuccess", "保存成功"));
     } catch (err) {
       if (err instanceof Error && "errorFields" in err) {
         // Form validation failed; antd already shows errors, so do not add another toast.
@@ -106,7 +106,7 @@ export default function ProactiveConfig({
       const errMsg =
         err instanceof Error
           ? err.message
-          : t("proactiveConfig.saveFailed", "Failed to save proactive reminder settings");
+          : t("proactiveConfig.saveFailed", "保存失败");
       message.error(errMsg);
     } finally {
       setSaving(false);
@@ -122,7 +122,7 @@ export default function ProactiveConfig({
       <div className={styles.centerState}>
         <Spin />
         <span className={styles.stateText}>
-          {t("common.loading", "Loading…")}
+          {t("common.loading", "加载中…")}
         </span>
       </div>
     );
@@ -133,7 +133,7 @@ export default function ProactiveConfig({
       <div className={styles.centerState}>
         <span className={styles.stateTextError}>{error}</span>
         <Button size="small" onClick={fetchConfig} style={{ marginTop: 12 }}>
-          {t("environments.retry", "Retry")}
+          {t("environments.retry", "重试")}
         </Button>
       </div>
     );
@@ -145,7 +145,7 @@ export default function ProactiveConfig({
       <div className={styles.configHeader}>
         <div>
           <h3 className={styles.configTitle}>
-            {t("proactiveConfig.title", "Proactive Reminders")}
+            {t("proactiveConfig.title", "主动关心")}
           </h3>
           <p className={styles.configDesc}>
             {t(
@@ -183,7 +183,7 @@ export default function ProactiveConfig({
                     fontSize: "inherit",
                   }}
                 >
-                  {t("proactiveConfig.viewEpisodes", "Open Episodes →")}
+                  {t("proactiveConfig.viewEpisodes", "去看情绪日记 →")}
                 </button>
               </>
             )}
@@ -195,7 +195,7 @@ export default function ProactiveConfig({
         <Form form={form} layout="vertical" className={styles.form}>
           {/* ── Enable switch ── */}
           <Form.Item
-            label={t("proactiveConfig.enabled", "Enable Proactive Reminders")}
+            label={t("proactiveConfig.enabled", "开启主动关心")}
             name="enabled"
             valuePropName="checked"
             className={styles.switchItem}
@@ -208,7 +208,7 @@ export default function ProactiveConfig({
           {/* ── Active hours ── */}
           <div className={styles.timeRangeRow}>
             <Form.Item
-              label={t("proactiveConfig.activeHoursStart", "Care hours · start")}
+              label={t("proactiveConfig.activeHoursStart", "关心时段 · 开始")}
               name="active_hours_start"
               className={styles.timeRangeItem}
               rules={[
@@ -229,7 +229,7 @@ export default function ProactiveConfig({
               />
             </Form.Item>
             <Form.Item
-              label={t("proactiveConfig.activeHoursEnd", "Care hours · end")}
+              label={t("proactiveConfig.activeHoursEnd", "关心时段 · 结束")}
               name="active_hours_end"
               className={styles.timeRangeItem}
               rules={[
@@ -254,7 +254,7 @@ export default function ProactiveConfig({
           {/* ── Push interval ── */}
           <div className={styles.timeRangeRow}>
             <Form.Item
-              label={t("proactiveConfig.minIntervalHours", "Min interval (hours)")}
+              label={t("proactiveConfig.minIntervalHours", "最短间隔（小时）")}
               name="min_interval_hours"
               className={styles.timeRangeItem}
               rules={[
@@ -301,7 +301,7 @@ export default function ProactiveConfig({
               />
             </Form.Item>
             <Form.Item
-              label={t("proactiveConfig.maxIntervalHours", "Max interval (hours)")}
+              label={t("proactiveConfig.maxIntervalHours", "最长间隔（小时）")}
               name="max_interval_hours"
               className={styles.timeRangeItem}
               rules={[
@@ -343,10 +343,10 @@ export default function ProactiveConfig({
 
         <div className={styles.actions}>
           <Button type="primary" loading={saving} onClick={handleSave}>
-            {t("common.save", "Save")}
+            {t("common.save", "保存")}
           </Button>
           <Button onClick={handleReset} disabled={saving}>
-            {t("common.reset", "Reset")}
+            {t("common.reset", "重置")}
           </Button>
         </div>
       </Card>

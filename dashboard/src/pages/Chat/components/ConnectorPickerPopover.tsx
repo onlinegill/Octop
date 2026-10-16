@@ -69,7 +69,7 @@ export default function ConnectorPickerPopover({
               <span className={pickerStyles.itemName}>{connector.label}</span>
               {connector.default_open ? (
                 <span className={pickerStyles.itemDesc}>
-                  {t("connectors.defaultOpenLockedBadge", "Default on")}
+                  {t("connectors.defaultOpenLockedBadge", "默认打开")}
                 </span>
               ) : null}
             </span>

@@ -47,10 +47,13 @@ import { workspaceApi } from "../../../../api/modules/workspace";
 import { useAgent } from "../../../../context/AgentContext";
 import { useIsMobile } from "../../../../hooks/useIsMobile";
 import { useHorizontalResize } from "../../../../hooks/useHorizontalResize";
+import { useListPanelCollapsed } from "../../../../hooks/useListPanelCollapsed";
 import { useServerTimezone } from "../../../../hooks/useServerTimezone";
 import { formatServerIsoDateTime } from "../../../../utils/formatMessageTime";
 import { isAgentChatReady } from "../../../../utils/agentError";
 import { apiErrorMessage } from "../../../../utils/apiError";
+import { saveBlobAsFile } from "../../../../utils/saveBlobAsFile";
+import { isImeComposing } from "../../../../utils/ime";
 import AgentNotReadyScreen from "../../../Chat/components/AgentNotReadyScreen";
 import { fileTreeIcon } from "../../../../utils/fileTreeIcon";
 import { dedupeFileTreeInfos } from "../../../../utils/fileTreeNodes";
@@ -289,27 +292,13 @@ export default function WorkspaceDrawer({
   const [expandedKeys, setExpandedKeys] = useState<string[]>([
     workspaceRootKey(),
   ]);
-  const [treeCollapsed, setTreeCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(TREE_COLLAPSED_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
-
-  const rootLabel = t("workspace.root", "Workspace");
-
-  const toggleTreeCollapsed = useCallback(() => {
-    setTreeCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(TREE_COLLAPSED_KEY, next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
+  const { collapsed: treeCollapsed, toggle: toggleTreeCollapsed } =
+    useListPanelCollapsed(TREE_COLLAPSED_KEY, {
+      // Chat dock (embedded) starts with the folder tree hidden.
+      defaultCollapsed: embedded,
     });
-  }, []);
+
+  const rootLabel = t("workspace.root", "工作区");
 
   const { size: treeWidth, onResizeStart } = useHorizontalResize({
     min: 180,
@@ -357,7 +346,7 @@ export default function WorkspaceDrawer({
       } catch (err: unknown) {
         message.error(
           (err instanceof Error ? err.message : String(err)) ||
-            t("workspace.refreshFailed", "Refresh failed"),
+            t("workspace.refreshFailed", "刷新失败"),
         );
       } finally {
         setTreeLoading(false);
@@ -403,7 +392,7 @@ export default function WorkspaceDrawer({
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.loadChildrenFailed", "Failed to load folder"),
+          t("workspace.loadChildrenFailed", "加载子目录失败"),
       );
     }
   };
@@ -437,7 +426,7 @@ export default function WorkspaceDrawer({
       } catch (err: unknown) {
         message.error(
           (err instanceof Error ? err.message : String(err)) ||
-            t("workspace.loadChildrenFailed", "Failed to load folder"),
+            t("workspace.loadChildrenFailed", "加载子目录失败"),
         );
       }
     },
@@ -460,7 +449,7 @@ export default function WorkspaceDrawer({
       } catch (err: unknown) {
         message.error(
           (err instanceof Error ? err.message : String(err)) ||
-            t("workspace.loadChildrenFailed", "Failed to load folder"),
+            t("workspace.loadChildrenFailed", "加载子目录失败"),
         );
         setDirEntries([]);
       } finally {
@@ -775,7 +764,7 @@ export default function WorkspaceDrawer({
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.readFailed", "Read failed"),
+          t("workspace.readFailed", "读取失败"),
       );
     } finally {
       setFileLoading(false);
@@ -802,7 +791,7 @@ export default function WorkspaceDrawer({
     return (
       <nav
         className={styles.pathBreadcrumb}
-        aria-label={t("workspace.pathBreadcrumb", "Path navigation")}
+        aria-label={t("workspace.pathBreadcrumb", "路径导航")}
       >
         {segments.map((seg, index) => {
           const isLast = index === segments.length - 1;
@@ -853,15 +842,15 @@ export default function WorkspaceDrawer({
           className={styles.resizeHandle}
           role="separator"
           aria-orientation="vertical"
-          aria-label={t("workspace.resizeTree", "Resize tree panel")}
+          aria-label={t("workspace.resizeTree", "调整目录宽度")}
           onPointerDown={onResizeStart}
         />
       )}
       <Tooltip
         title={
           treeCollapsed
-            ? t("workspace.showTree", "Show folder tree")
-            : t("workspace.hideTree", "Hide folder tree")
+            ? t("workspace.showTree", "显示目录树")
+            : t("workspace.hideTree", "收起目录树")
         }
       >
         <button
@@ -874,8 +863,8 @@ export default function WorkspaceDrawer({
           onMouseDown={(e) => e.stopPropagation()}
           aria-label={
             treeCollapsed
-              ? t("workspace.showTree", "Show folder tree")
-              : t("workspace.hideTree", "Hide folder tree")
+              ? t("workspace.showTree", "显示目录树")
+              : t("workspace.hideTree", "收起目录树")
           }
         >
           {treeCollapsed ? (
@@ -907,7 +896,7 @@ export default function WorkspaceDrawer({
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.readFailed", "Read failed"),
+          t("workspace.readFailed", "读取失败"),
       );
     } finally {
       setFileLoading(false);
@@ -942,12 +931,12 @@ export default function WorkspaceDrawer({
           },
         );
       }
-      message.success(t("workspace.saved", "Saved"));
+      message.success(t("workspace.saved", "已保存"));
       setEditMode(false);
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.saveFailed", "Save failed"),
+          t("workspace.saveFailed", "保存失败"),
       );
     } finally {
       setSaving(false);
@@ -965,15 +954,11 @@ export default function WorkspaceDrawer({
           )}`,
         ),
       );
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = path.split("/").pop() || "download";
-      a.click();
-      URL.revokeObjectURL(a.href);
+      await saveBlobAsFile(blob, path.split("/").pop() || "download");
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.downloadFailed", "Download failed"),
+          t("workspace.downloadFailed", "下载失败"),
       );
     }
   };
@@ -1007,7 +992,7 @@ export default function WorkspaceDrawer({
       }
     } catch (err: unknown) {
       message.error(
-        apiErrorMessage(err, t("workspace.uploadFailed", "Upload failed"), t),
+        apiErrorMessage(err, t("workspace.uploadFailed", "上传失败"), t),
       );
     }
     return false;
@@ -1017,11 +1002,7 @@ export default function WorkspaceDrawer({
     setArchiveExporting(true);
     try {
       const blob = await workspaceApi.downloadWorkspaceArchive(agentId);
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `workspace-${agentId}.zip`;
-      a.click();
-      URL.revokeObjectURL(a.href);
+      await saveBlobAsFile(blob, `workspace-${agentId}.zip`);
       message.success(t("workspace.archiveExportSuccess"));
     } catch (err: unknown) {
       message.error(
@@ -1192,7 +1173,9 @@ export default function WorkspaceDrawer({
         <Input
           value={createName}
           onChange={(e) => setCreateName(e.target.value)}
-          onPressEnter={() => void confirmCreate()}
+          onPressEnter={(e) => {
+            if (!isImeComposing(e)) void confirmCreate();
+          }}
           placeholder={
             createKind === "folder"
               ? t("workspace.newFolderName")
@@ -1216,7 +1199,9 @@ export default function WorkspaceDrawer({
         <Input
           value={renameValue}
           onChange={(e) => setRenameValue(e.target.value)}
-          onPressEnter={() => void confirmRename()}
+          onPressEnter={(e) => {
+            if (!isImeComposing(e)) void confirmRename();
+          }}
           autoFocus
         />
       </Modal>
@@ -1291,7 +1276,7 @@ export default function WorkspaceDrawer({
                         type="button"
                         className={styles.mobileBackBtn}
                         onClick={() => setMobilePane("tree")}
-                        aria-label={t("common.back", "Back")}
+                        aria-label={t("common.back", "返回")}
                       >
                         <ChevronLeft size={18} />
                       </button>
@@ -1425,7 +1410,7 @@ export default function WorkspaceDrawer({
                         type="button"
                         className={styles.mobileBackBtn}
                         onClick={() => setMobilePane("tree")}
-                        aria-label={t("common.back", "Back")}
+                        aria-label={t("common.back", "返回")}
                       >
                         <ChevronLeft size={18} />
                       </button>
@@ -1441,7 +1426,7 @@ export default function WorkspaceDrawer({
                           options={[
                             { label: t("common.preview"), value: "preview" },
                             {
-                              label: t("workspace.source", "Source"),
+                              label: t("workspace.source", "源码"),
                               value: "source",
                             },
                           ]}
@@ -1488,7 +1473,7 @@ export default function WorkspaceDrawer({
                           >
                             <Save size={14} />
                             {saving
-                              ? t("workspace.saving", "Saving…")
+                              ? t("workspace.saving", "保存中…")
                               : t("common.save")}
                           </button>
                         ) : (

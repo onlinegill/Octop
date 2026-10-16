@@ -214,11 +214,11 @@ export function CronJobCard({
           placement="bottomLeft"
           trigger={["click"]}
         >
-          <Tooltip title={t("common.more", "More")} mouseEnterDelay={0.5}>
+          <Tooltip title={t("common.more", "更多")} mouseEnterDelay={0.5}>
             <button
               type="button"
               className={styles.cronCardEditBtn}
-              aria-label={t("common.more", "More")}
+              aria-label={t("common.more", "更多")}
             >
               <MoreHorizontal size={13} />
             </button>

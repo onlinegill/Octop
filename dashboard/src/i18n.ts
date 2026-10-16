@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import { getApiUrl } from "./api/config";
 import { i18nApi } from "./api/modules/i18n";
 import {
+  resolveInitialLocale,
   syncDocumentLang,
   type UiLocale,
 } from "./utils/localePrefs";
@@ -82,17 +83,17 @@ let initPromise: Promise<void> | null = null;
 export function initI18n(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
-      const initial: UiLocale = "en";
-      const fallback: UiLocale = "en";
-      const primaryBundle = await loadLocaleBundle("en");
+      const initial = resolveInitialLocale();
+      const fallback: UiLocale = initial === "zh" ? "en" : "zh";
+      const primaryBundle = await loadLocaleBundle(initial);
 
       await i18n.use(initReactI18next).init({
         resources: {
-          en: { translation: primaryBundle },
+          [initial]: { translation: primaryBundle },
         },
-        lng: "en",
-        fallbackLng: "en",
-        supportedLngs: ["en"],
+        lng: initial,
+        fallbackLng: fallback,
+        supportedLngs: ["zh", "en"],
         nonExplicitSupportedLngs: true,
         interpolation: {
           escapeValue: false,

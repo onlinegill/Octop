@@ -182,7 +182,7 @@ export default function EpisodesList({ agentId }: Props) {
       </div>
 
       <Drawer
-        title={t("memory.episodeDetail", "Episode detail")}
+        title={t("memory.episodeDetail", "情绪日记详情")}
         open={!!selected}
         onClose={() => setSelected(null)}
         width={520}

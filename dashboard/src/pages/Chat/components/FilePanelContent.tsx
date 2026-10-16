@@ -21,6 +21,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { probeAuthResource, request, requestBlob } from "../../../api/request";
 import { isNotFoundApiError } from "../../../utils/apiError";
+import { saveBlobAsFile } from "../../../utils/saveBlobAsFile";
 import FileViewer from "../../Agent/Workspace/components/FileViewer";
 import { getDocKind } from "../../Agent/Workspace/utils/docKind";
 import { isProbablyText } from "../../Agent/Workspace/utils/fileKind";
@@ -108,7 +109,7 @@ export default function FilePanelContent({
       }
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.readFailed", "Read failed"),
+          t("workspace.readFailed", "读取失败"),
       );
     };
 
@@ -168,12 +169,12 @@ export default function FilePanelContent({
         )}`,
         { method: "PUT", body: JSON.stringify({ content }) },
       );
-      message.success(t("workspace.saved", "Saved"));
+      message.success(t("workspace.saved", "已保存"));
       setEditMode(false);
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.saveFailed", "Save failed"),
+          t("workspace.saveFailed", "保存失败"),
       );
     } finally {
       setSaving(false);
@@ -188,11 +189,7 @@ export default function FilePanelContent({
           apiFilePath,
         )}`,
       );
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = dockFileBasename(resolvedPath) || "download";
-      a.click();
-      URL.revokeObjectURL(a.href);
+      await saveBlobAsFile(blob, dockFileBasename(resolvedPath) || "download");
     } catch (err: unknown) {
       if (isNotFoundApiError(err)) {
         setFileMissing(true);
@@ -206,7 +203,7 @@ export default function FilePanelContent({
       }
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
-          t("workspace.downloadFailed", "Download failed"),
+          t("workspace.downloadFailed", "下载失败"),
       );
     }
   }, [agentId, apiFilePath, resolvedPath, t]);
@@ -225,7 +222,7 @@ export default function FilePanelContent({
         {showPreviewToggle && (
           <Tooltip
             title={
-              previewMode ? t("workspace.source", "Source") : t("common.preview")
+              previewMode ? t("workspace.source", "源码") : t("common.preview")
             }
           >
             <button
@@ -236,7 +233,7 @@ export default function FilePanelContent({
               onClick={() => setPreviewMode((v) => !v)}
               aria-label={
                 previewMode
-                  ? t("workspace.source", "Source")
+                  ? t("workspace.source", "源码")
                   : t("common.preview")
               }
             >

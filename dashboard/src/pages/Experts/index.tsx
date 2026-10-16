@@ -466,7 +466,7 @@ export default function ExpertsPage() {
                   label: (
                     <span className={styles.viewModeLabel}>
                       <LayoutGrid size={14} />
-                      {t("experts.viewCard", "Cards")}
+                      {t("experts.viewCard", "卡片")}
                     </span>
                   ),
                 },
@@ -475,7 +475,7 @@ export default function ExpertsPage() {
                   label: (
                     <span className={styles.viewModeLabel}>
                       <List size={14} />
-                      {t("experts.viewTable", "Table")}
+                      {t("experts.viewTable", "表格")}
                     </span>
                   ),
                 },

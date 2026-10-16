@@ -164,15 +164,15 @@ export default function MemoryPanel({
             onChange={(v) => setLibraryView(v as LibraryView)}
             options={[
               {
-                label: t("memory.library.viewTree", "Topic view"),
+                label: t("memory.library.viewTree", "主题视图"),
                 value: "tree",
               },
               {
-                label: t("memory.library.viewAtoms", "List view"),
+                label: t("memory.library.viewAtoms", "列表视图"),
                 value: "atoms",
               },
               {
-                label: t("memory.library.viewRaw", "Raw material"),
+                label: t("memory.library.viewRaw", "原始素材"),
                 value: "raw",
               },
             ]}

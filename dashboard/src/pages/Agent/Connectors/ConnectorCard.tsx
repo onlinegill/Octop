@@ -59,7 +59,7 @@ export const ConnectorCard = memo(function ConnectorCard({
       {!disabled ? (
         <div className={styles.typeCardFooter}>
           <div className={styles.typeCardHint}>
-            {t("connectors.clickToConnect", "Click to connect")}
+            {t("connectors.clickToConnect", "点击连接")}
           </div>
         </div>
       ) : (

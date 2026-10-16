@@ -87,7 +87,7 @@ export function CustomMcpServerCard({
   const effectiveEnabled = !authPending && card.enabled;
   const showOAuthConnectLink =
     isHttp && card.collapsed && authPending && onAuthorize;
-  const connectLabel = t("connectors.clickToConnect", "Click to connect");
+  const connectLabel = t("connectors.clickToConnect", "点击连接");
 
   const handleConnectClick = () => {
     if (oauthAvailable && onAuthorize) {
@@ -140,7 +140,7 @@ export function CustomMcpServerCard({
         <div className={styles.customMcpServerControls}>
           <div className={styles.customMcpEnableControl}>
             <span className={styles.customMcpEnableLabel}>
-              {t("connectors.customMcp.enable", "Enable connector")}
+              {t("connectors.customMcp.enable", "启用连接器")}
             </span>
             <Switch
               checked={authPending ? false : card.enabled}
@@ -180,7 +180,7 @@ export function CustomMcpServerCard({
             disabled={authorizing}
           >
             {authorizing
-              ? t("connectors.customMcp.authorizing", "Authorizing…")
+              ? t("connectors.customMcp.authorizing", "授权中…")
               : connectLabel}
           </button>
         </div>
@@ -189,7 +189,7 @@ export function CustomMcpServerCard({
       {!card.collapsed ? (
         <div className={styles.customMcpCardBody}>
           <div className={styles.customMcpField}>
-            <label>{t("connectors.customMcp.displayName", "Display name")}</label>
+            <label>{t("connectors.customMcp.displayName", "显示名称")}</label>
             <Input
               value={card.displayName}
               onChange={(e) =>
@@ -210,7 +210,7 @@ export function CustomMcpServerCard({
           </div>
           <div className={styles.customMcpField}>
             <label>
-              {t("connectors.customMcp.serverId", "Server ID")}{" "}
+              {t("connectors.customMcp.serverId", "服务器 ID")}{" "}
               <span className={styles.requiredMark}>*</span>
             </label>
             <Input
@@ -282,7 +282,7 @@ export function CustomMcpServerCard({
               </div>
               <div className={styles.customMcpField}>
                 <label>
-                  {t("connectors.customMcp.args", "Args (one argument per line)")}
+                  {t("connectors.customMcp.args", "Args（一行一个参数）")}
                 </label>
                 <Input.TextArea
                   value={card.argsText}
@@ -295,7 +295,7 @@ export function CustomMcpServerCard({
               </div>
               <div className={styles.customMcpField}>
                 <label>
-                  {t("connectors.customMcp.env", "Env (one KEY=VALUE per line)")}
+                  {t("connectors.customMcp.env", "Env（每行 KEY=VALUE）")}
                 </label>
                 <Input.TextArea
                   value={card.envText}
@@ -310,7 +310,7 @@ export function CustomMcpServerCard({
           )}
 
           <div className={styles.customMcpField}>
-            <label>{t("connectors.shared", "Share with others")}</label>
+            <label>{t("connectors.shared", "是否共享")}</label>
             <div className={styles.customMcpDefaultOpenRow}>
               <Switch
                 checked={card.shared}
@@ -332,7 +332,7 @@ export function CustomMcpServerCard({
           </div>
 
           <div className={styles.customMcpField}>
-            <label>{t("connectors.defaultEnabled", "Enable by default")}</label>
+            <label>{t("connectors.defaultEnabled", "是否默认开启")}</label>
             <div className={styles.customMcpDefaultOpenRow}>
               <Switch
                 checked={card.defaultOpen}
@@ -404,7 +404,7 @@ export function CustomMcpServerCard({
                     loading={authorizing}
                     onClick={onAuthorize}
                   >
-                    {t("connectors.oneClickOAuth", "Authorize")}
+                    {t("connectors.oneClickOAuth", "一键授权")}
                   </Button>
                 ) : undefined
               }
@@ -418,7 +418,7 @@ export function CustomMcpServerCard({
                 loading={probing}
                 onClick={onProbe}
               >
-                {t("connectors.probe", "Probe")}
+                {t("connectors.probe", "探测")}
               </Button>
             </div>
           ) : null}
@@ -433,7 +433,7 @@ export function CustomMcpServerCard({
                 />
                 <div className={styles.probeResultMeta}>
                   <div className={styles.probeResultTitle}>
-                    {t("connectors.probeToolsTitle", "Probe succeeded")}
+                    {t("connectors.probeToolsTitle", "探测成功")}
                   </div>
                   <div className={styles.probeResultSubtitle}>
                     {probeTools.length > 0

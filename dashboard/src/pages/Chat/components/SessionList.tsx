@@ -18,13 +18,20 @@ import {
 import type { Session } from "../hooks/useSessions";
 import type { OctopAgent } from "../../../context/AgentContext";
 import { isAgentChatReady } from "../../../utils/agentError";
-import { showConfirmModal } from "../../../utils/confirmModal";
+import { confirmDeleteConversation } from "../utils/deleteConversation";
+import { isImeComposing } from "../../../utils/ime";
 import { ExpertIcon } from "../../Experts/components/iconForName";
 import { useHiddenSharedExperts } from "../hooks/useHiddenSharedExperts";
 import SessionChannelIcon from "./SessionChannelIcon";
+import SessionWorkStatusIcon from "./SessionWorkStatusIcon";
 import SharedExpertHint from "./SharedExpertHint";
 import RemoteExpertHint from "./RemoteExpertHint";
 import TeamChatBadge from "./TeamChatBadge";
+import { useSessionWorkIds } from "../hooks/useSessionWorkIds";
+import {
+  resolveSessionWorkStatus,
+  type SessionWorkStatus,
+} from "../utils/sessionWorkStatus";
 import styles from "../index.module.less";
 
 function AgentUnreadBadge({ count }: { count: number }) {
@@ -33,7 +40,7 @@ function AgentUnreadBadge({ count }: { count: number }) {
   return (
     <span
       className={styles.agentUnreadBadge}
-      aria-label={t("chat.unreadMessages", "Unread messages")}
+      aria-label={t("chat.unreadMessages", "未读消息")}
     >
       {count > 99 ? "99+" : count}
     </span>
@@ -43,8 +50,9 @@ function AgentUnreadBadge({ count }: { count: number }) {
 interface SessionItemProps {
   session: Session;
   isActive: boolean;
+  workStatus?: SessionWorkStatus;
   onSelect: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, compact: boolean) => void | Promise<boolean | void>;
   onRename: (id: string, name: string) => void;
   onPin: (id: string, pinned: boolean) => void;
   onFork: (id: string) => void;
@@ -55,6 +63,7 @@ interface SessionItemProps {
 const SessionItem = memo(function SessionItem({
   session,
   isActive,
+  workStatus = "idle",
   onSelect,
   onDelete,
   onRename,
@@ -98,8 +107,8 @@ const SessionItem = memo(function SessionItem({
     {
       key: "pin",
       label: session.pinned
-        ? t("chat.unpin", "Unpin")
-        : t("chat.pin", "Pin"),
+        ? t("chat.unpin", "取消置顶")
+        : t("chat.pin", "置顶"),
       icon: session.pinned ? <PinOff size={14} /> : <Pin size={14} />,
       onClick: ({ domEvent }) => {
         domEvent.stopPropagation();
@@ -108,7 +117,7 @@ const SessionItem = memo(function SessionItem({
     },
     {
       key: "fork",
-      label: t("chat.fork", "Fork"),
+      label: t("chat.fork", "分叉"),
       icon: <GitFork size={14} />,
       disabled: itemForkDisabled,
       title: itemForkDisabled && itemForkHint ? itemForkHint : undefined,
@@ -133,14 +142,8 @@ const SessionItem = memo(function SessionItem({
       danger: true,
       onClick: ({ domEvent }) => {
         domEvent.stopPropagation();
-        showConfirmModal({
-          title: t("chat.deleteSessionConfirm"),
-          okText: t("common.delete"),
-          cancelText: t("common.cancel"),
-          okButtonProps: { danger: true },
-          onOk: () => {
-            onDelete(session.id);
-          },
+        confirmDeleteConversation(t, (compact) => {
+          void onDelete(session.id, compact);
         });
       },
     },
@@ -160,11 +163,17 @@ const SessionItem = memo(function SessionItem({
         if (e.key === "Enter" && !isEditing) onSelect(session.id);
       }}
     >
-      <SessionChannelIcon
-        channelType={session.channelType}
-        size={12}
-        className={styles.sessionRowIcon}
-      />
+      <span className={styles.sessionRowLead}>
+        {workStatus !== "idle" ? (
+          <SessionWorkStatusIcon status={workStatus} />
+        ) : (
+          <SessionChannelIcon
+            channelType={session.channelType}
+            size={12}
+            className={styles.sessionRowIcon}
+          />
+        )}
+      </span>
       {isEditing ? (
         <input
           ref={inputRef}
@@ -173,6 +182,7 @@ const SessionItem = memo(function SessionItem({
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={commitEdit}
           onKeyDown={(e) => {
+            if (isImeComposing(e)) return;
             if (e.key === "Enter") commitEdit();
             if (e.key === "Escape") {
               setEditValue(session.name);
@@ -223,13 +233,14 @@ interface AgentCardProps {
   onFetchAllSessions: () => void;
   onSelect: (sessionId: string, agentId: string) => void;
   onNewChat: (agentId: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, compact: boolean) => void | Promise<boolean | void>;
   onRename: (id: string, name: string) => void;
   onPin: (id: string, pinned: boolean) => void;
   onFork: (id: string) => void;
   activeForkDisabled?: boolean;
   activeForkDisabledHint?: string;
   onHide?: () => void;
+  liveWorkingIds: ReadonlySet<string>;
 }
 
 function ActiveAgentCard({
@@ -250,6 +261,7 @@ function ActiveAgentCard({
   activeForkDisabled,
   activeForkDisabledHint,
   onHide,
+  liveWorkingIds,
 }: AgentCardProps) {
   const { t } = useTranslation();
   const accent = agent.color || "#6366f1";
@@ -338,7 +350,7 @@ function ActiveAgentCard({
             <div className={styles.agentCardDesc}>{agent.description}</div>
           ) : (
             <div className={styles.agentCardDescMuted}>
-              {t("chat.agentNoDescription", "No description")}
+              {t("chat.agentNoDescription", "暂无描述")}
             </div>
           )}
         </div>
@@ -351,11 +363,11 @@ function ActiveAgentCard({
           </div>
         ) : sessions.length === 0 ? (
           <div className={styles.agentCardSessionsEmpty}>
-            {t("chat.noSessionsYet", "Send a message to start chatting")}
+            {t("chat.noSessionsYet", "直接发消息即可开始对话")}
           </div>
         ) : filteredSessions.length === 0 ? (
           <div className={styles.agentCardSessionsEmpty}>
-            {t("chat.noSearchResults", "No matching conversations")}
+            {t("chat.noSearchResults", "没有匹配的会话")}
           </div>
         ) : (
           <>
@@ -364,6 +376,7 @@ function ActiveAgentCard({
                 key={s.id}
                 session={s}
                 isActive={activeId === s.id}
+                workStatus={resolveSessionWorkStatus(s, liveWorkingIds)}
                 onSelect={(id) => onSelect(id, agent.agent_id)}
                 onDelete={onDelete}
                 onRename={onRename}
@@ -386,7 +399,7 @@ function ActiveAgentCard({
               >
                 {loadingMore
                   ? t("common.loading")
-                  : t("chat.expandMore", "Show more")}
+                  : t("chat.expandMore", "展开更多")}
               </button>
             ) : null}
           </>
@@ -503,7 +516,7 @@ interface SessionListProps {
   onSelect: (sessionId: string, agentId: string) => void;
   onAgentSelect: (agentId: string) => void;
   onNewChat: (agentId: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, compact: boolean) => void | Promise<boolean | void>;
   onRename: (id: string, name: string) => void;
   onPin: (id: string, pinned: boolean) => void;
   onFork: (id: string) => void;
@@ -532,6 +545,7 @@ export default function SessionList({
 }: SessionListProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const liveWorkingIds = useSessionWorkIds();
   const [searchQuery, setSearchQuery] = useState("");
   const [showingHidden, setShowingHidden] = useState(false);
   const { filterVisible, pickHidden, hide, unhide, canHide } =
@@ -578,8 +592,8 @@ export default function SessionList({
             className={styles.sessionSearchInput}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t("chat.searchSessions", "Search conversations")}
-            aria-label={t("chat.searchSessions", "Search conversations")}
+            placeholder={t("chat.searchSessions", "搜索会话")}
+            aria-label={t("chat.searchSessions", "搜索会话")}
           />
         </div>
       ) : null}
@@ -637,6 +651,7 @@ export default function SessionList({
                       onHide={
                         canHide(agent) ? () => hide(agent.agent_id) : undefined
                       }
+                      liveWorkingIds={liveWorkingIds}
                     />
                   );
                 }

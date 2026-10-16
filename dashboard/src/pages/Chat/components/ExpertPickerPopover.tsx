@@ -164,7 +164,7 @@ export default function ExpertPickerPopover({
                 <span className={pickerStyles.itemName}>{agent.name}</span>
                 {agent.is_shared && (
                   <span className={styles.expertSharedBadge}>
-                    {t("chat.expertSharedBadge", "Shared")}
+                    {t("chat.expertSharedBadge", "共享")}
                   </span>
                 )}
                 <RemoteExpertHint agent={agent} />

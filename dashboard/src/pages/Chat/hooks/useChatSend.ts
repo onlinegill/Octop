@@ -108,7 +108,7 @@ export function useChatSend({
     ): boolean => {
       const agent = overrides?.agentId ?? resolvedAgentId;
       if (!agent) {
-        message.warning(t("chat.pickAgent", "Select an Agent first"));
+        message.warning(t("chat.pickAgent", "请先选择一个 Agent"));
         return false;
       }
 
@@ -182,7 +182,7 @@ export function useChatSend({
 
       if (targetThreadId) {
         if (isPendingThread(targetThreadId)) {
-          message.info(t("chat.creatingSession", "Creating session…"));
+          message.info(t("chat.creatingSession", "正在创建会话，请稍候"));
           return false;
         }
         const hadMessages =
@@ -209,7 +209,7 @@ export function useChatSend({
         if (!tid) {
           chatStore.clearMessages(PENDING_THREAD_ID);
           navigate(`/chat/${agent}`, { replace: true });
-          message.error(t("chat.createSessionFailed", "Failed to create a session — please try again"));
+          message.error(t("chat.createSessionFailed", "创建会话失败，请重试"));
           return;
         }
         const currentSnap = chatStore.getSnapshot(PENDING_THREAD_ID);
@@ -307,7 +307,7 @@ export function useChatSend({
               const pushMsg = {
                 id: generateId(),
                 role: "assistant" as const,
-                content: `🎬 录制已开始！请在浏览器中进行你想要自动化的操作。\n\n操作完成后，输入"结束"即可结束录制，系统将自动生成技能脚本。`,
+                content: t("skillRecord.recordingStartedMessage"),
                 timestamp: Date.now(),
                 status: "done" as const,
               };
@@ -328,7 +328,7 @@ export function useChatSend({
     window.addEventListener("octop:pending-chat-message", handler);
     return () =>
       window.removeEventListener("octop:pending-chat-message", handler);
-  }, [handleSend, activeThreadId, onAutoRecordingStarted]);
+  }, [handleSend, activeThreadId, onAutoRecordingStarted, t]);
 
   return { handleSend };
 }

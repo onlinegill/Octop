@@ -29,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 
 import MigrateMemory from "./MigrateMemory";
+import LastExtractionStatus from "./LastExtractionStatus";
 import {
   memoryDashboardApi,
   type ExtractConfig,
@@ -123,7 +124,7 @@ export default function Overview({
           </span>
           <div>
             <div className={styles.overviewTitleRow}>
-              <h2>{t("memory.overview.dashboardTitle", "Memory overview")}</h2>
+              <h2>{t("memory.overview.dashboardTitle", "记忆概览")}</h2>
               {!state.firstLoading && state.config ? (
                 <span
                   className={
@@ -134,8 +135,8 @@ export default function Overview({
                 >
                   <i />
                   {memoryEnabled
-                    ? t("memory.overview.memoryOn", "Memory active")
-                    : t("memory.overview.memoryOff", "Memory off")}
+                    ? t("memory.overview.memoryOn", "记忆运行中")
+                    : t("memory.overview.memoryOff", "记忆已关闭")}
                 </span>
               ) : null}
             </div>
@@ -150,12 +151,12 @@ export default function Overview({
         <div className={styles.overviewActions}>
           {onOpenSettings ? (
             <Button icon={<Settings2 size={14} />} onClick={onOpenSettings}>
-              {t("memory.tabs.settings", "Settings")}
+              {t("memory.tabs.settings", "设置")}
             </Button>
           ) : null}
-          <Tooltip title={t("common.refresh", "Refresh")}>
+          <Tooltip title={t("common.refresh", "刷新")}>
             <Button
-              aria-label={t("common.refresh", "Refresh")}
+              aria-label={t("common.refresh", "刷新")}
               icon={
                 state.refreshing ? (
                   <Loader2 className={styles.spinning} size={14} />
@@ -175,7 +176,7 @@ export default function Overview({
         <SummaryCard
           icon={<Sparkles size={18} />}
           tone="rose"
-          label={t("memory.overview.atoms", "Long-term memories")}
+          label={t("memory.overview.atoms", "长期记忆")}
           value={state.counts?.atoms}
           delta={state.counts?.atoms_delta_7d}
           loading={state.firstLoading}
@@ -183,7 +184,7 @@ export default function Overview({
         <SummaryCard
           icon={<Tags size={18} />}
           tone="violet"
-          label={t("memory.overview.entities", "Key topics")}
+          label={t("memory.overview.entities", "关键主题")}
           value={state.counts?.entities}
           delta={state.counts?.entities_delta_7d}
           loading={state.firstLoading}
@@ -191,14 +192,14 @@ export default function Overview({
         <SummaryCard
           icon={<Database size={18} />}
           tone="blue"
-          label={t("memory.overview.rawEvents", "Conversation memory")}
+          label={t("memory.overview.rawEvents", "对话记忆")}
           value={state.counts?.raw_events}
           loading={state.firstLoading}
         />
         <SummaryCard
           icon={<Workflow size={18} />}
           tone="amber"
-          label={t("memory.overview.candidatesPending", "Needs attention")}
+          label={t("memory.overview.candidatesPending", "待处理")}
           value={state.counts?.candidates_pending}
           loading={state.firstLoading}
           warn={(state.counts?.candidates_pending ?? 0) > 0}
@@ -215,14 +216,14 @@ export default function Overview({
 
       <Card
         className={`${styles.overviewChartCard} ${styles.overviewTurnsCard}`}
-        title={t("memory.overview.turnsTitle", "Conversation turns · 7 days")}
+        title={t("memory.overview.turnsTitle", "近 7 天对话轮次")}
       >
         {state.firstLoading && !state.growth ? (
           <Skeleton active paragraph={{ rows: 4 }} />
         ) : !state.growth || state.growth.series.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={t("memory.overview.turnsEmpty", "No conversation turns in the last 7 days")}
+            description={t("memory.overview.turnsEmpty", "近 7 天暂无对话轮次")}
           />
         ) : (
           <div className={styles.turnsChart}>
@@ -251,7 +252,7 @@ export default function Overview({
                 <ChartTooltip
                   formatter={(value) => [
                     value,
-                    t("memory.overview.turns", "Turns"),
+                    t("memory.overview.turns", "对话轮次"),
                   ]}
                 />
                 <Line
@@ -271,14 +272,14 @@ export default function Overview({
       <div className={styles.overviewCharts}>
         <Card
           className={styles.overviewChartCard}
-          title={t("memory.overview.growthTitle", "Memory growth · 7 days")}
+          title={t("memory.overview.growthTitle", "近 7 天记忆增长")}
         >
           {state.firstLoading && !state.growth ? (
             <Skeleton active paragraph={{ rows: 4 }} />
           ) : !state.growth || state.growth.series.length === 0 ? (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={t("memory.overview.growthEmpty", "No new memories in the last 7 days")}
+              description={t("memory.overview.growthEmpty", "近 7 天暂无新增")}
             />
           ) : (
             <div className={styles.growthChart}>
@@ -307,7 +308,7 @@ export default function Overview({
                   <ChartTooltip
                     formatter={(value) => [
                       value,
-                      t("memory.overview.atoms", "Long-term memories"),
+                      t("memory.overview.atoms", "长期记忆"),
                     ]}
                   />
                   <Bar dataKey="atoms" fill={brand} radius={[5, 5, 0, 0]} />
@@ -319,14 +320,14 @@ export default function Overview({
 
         <Card
           className={styles.overviewChartCard}
-          title={t("memory.overview.kindsTitle", "Memory types")}
+          title={t("memory.overview.kindsTitle", "记忆类型")}
         >
           {state.firstLoading && !state.kinds ? (
             <Skeleton active paragraph={{ rows: 4 }} />
           ) : !state.kinds || state.kinds.series.length === 0 ? (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={t("memory.overview.kindsEmpty", "No memory type data yet")}
+              description={t("memory.overview.kindsEmpty", "暂无记忆类型数据")}
             />
           ) : (
             <div className={styles.kindChart}>
@@ -431,12 +432,6 @@ function PipelineCard({
   const raw = counts.raw_events ?? 0;
   const pending = counts.candidates_pending ?? 0;
   const atoms = counts.atoms ?? 0;
-  const lastExtract = counts.last_extract_run?.timestamp;
-  const lastExtractLabel = lastExtract
-    ? t("memory.pipeline.lastExtract", "上次整理 {{time}}", {
-        time: lastExtract.slice(0, 16).replace("T", " "),
-      })
-    : null;
   const hint =
     raw === 0
       ? t(
@@ -459,29 +454,27 @@ function PipelineCard({
       <div className={styles.pipelineHeader}>
         <span>
           <Workflow size={16} />
-          {t("memory.pipeline.title", "Memory pipeline")}
+          {t("memory.pipeline.title", "记忆处理进度")}
         </span>
-        <small>
-          {hint}
-          {lastExtractLabel ? ` · ${lastExtractLabel}` : ""}
-        </small>
+        <small>{hint}</small>
       </div>
+      <LastExtractionStatus run={counts.last_extract_run} />
       <div className={styles.pipelineRow}>
         <PipelineStage
-          label={t("memory.pipeline.stageRaw", "Conversation memory")}
+          label={t("memory.pipeline.stageRaw", "对话记忆")}
           value={raw}
           onClick={onViewConversations}
         />
         <span className={styles.pipelineConnector} />
         <PipelineStage
-          label={t("memory.pipeline.stagePending", "Pending review")}
+          label={t("memory.pipeline.stagePending", "待处理")}
           value={pending}
           onClick={onReviewCandidates}
           warn={pending > 0}
         />
         <span className={styles.pipelineConnector} />
         <PipelineStage
-          label={t("memory.pipeline.stageAtoms", "Promoted memories")}
+          label={t("memory.pipeline.stageAtoms", "长期记忆")}
           value={atoms}
         />
       </div>
@@ -517,11 +510,11 @@ function PipelineStage({
 
 function kindLabel(kind: string, t: TFunction): string {
   const labels: Record<string, string> = {
-    Fact: t("memory.kind.fact", "Fact"),
-    Decision: t("memory.kind.decision", "Decision"),
-    Task: t("memory.kind.task", "Task"),
-    Preference: t("memory.kind.preference", "Preference"),
-    ConflictCandidate: t("memory.kind.conflict", "Possible conflict"),
+    Fact: t("memory.kind.fact", "事实"),
+    Decision: t("memory.kind.decision", "决定"),
+    Task: t("memory.kind.task", "任务"),
+    Preference: t("memory.kind.preference", "偏好"),
+    ConflictCandidate: t("memory.kind.conflict", "可能冲突"),
   };
   return labels[kind] ?? kind;
 }

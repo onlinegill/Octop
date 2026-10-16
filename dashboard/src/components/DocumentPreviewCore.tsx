@@ -540,7 +540,7 @@ export default function DocumentPreviewCore({
     return (
       <div className={styles.viewerEmpty}>
         <p style={{ color: "var(--fn-text-tertiary)", margin: 0 }}>
-          {t("workspace.emptyFile", "File is empty")}
+          {t("workspace.emptyFile", "文件为空")}
         </p>
       </div>
     );
@@ -557,8 +557,8 @@ export default function DocumentPreviewCore({
           }}
         >
           {error === "missing"
-            ? t("workspace.fileMaybeDeleted", "File may have been deleted")
-            : t("workspace.mediaLoadFailed", "Could not load preview")}
+            ? t("workspace.fileMaybeDeleted", "文件可能已被删除")
+            : t("workspace.mediaLoadFailed", "无法加载预览")}
         </p>
         <Button type="default" onClick={handleRetry}>
           {t("workspace.retryPreview", "Retry")}
@@ -588,7 +588,7 @@ export default function DocumentPreviewCore({
             icon={<ArrowDownToLine size={14} />}
             onClick={handleDownload}
           >
-            {t("common.download", "Download")}
+            {t("common.download", "下载")}
           </Button>
         ) : null}
       </div>

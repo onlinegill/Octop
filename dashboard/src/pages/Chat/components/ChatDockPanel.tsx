@@ -103,7 +103,7 @@ const DockAddTabButton: React.FC<{
     if (addTab.onOpenWorkspace) {
       next.push({
         key: "workspace",
-        label: t("chat.openWorkspace", "Workspace"),
+        label: t("chat.openWorkspace", "工作区"),
         icon: <FolderOpen size={14} />,
         disabled: addTab.workspaceDisabled,
         title: addTab.workspaceDisabled
@@ -115,7 +115,7 @@ const DockAddTabButton: React.FC<{
     if (addTab.onOpenFiles) {
       next.push({
         key: "files",
-        label: t("chat.dockFileList", "File changes"),
+        label: t("chat.dockFileList", "文件变更"),
         icon: <FilePen size={14} />,
         extra: check("files"),
       });
@@ -123,7 +123,7 @@ const DockAddTabButton: React.FC<{
     if (addTab.onOpenBrowser) {
       next.push({
         key: "browser",
-        label: t("chat.remoteBrowserTitle", "Remote Browser"),
+        label: t("chat.remoteBrowserTitle", "远程浏览器"),
         icon: <Globe size={14} />,
         extra: check("browser"),
       });
@@ -131,7 +131,7 @@ const DockAddTabButton: React.FC<{
     if (addTab.onOpenTerminal) {
       next.push({
         key: "terminal",
-        label: t("chat.dockTerminalTitle", "Terminal"),
+        label: t("chat.dockTerminalTitle", "终端"),
         icon: <Terminal size={14} />,
         extra: check("terminal"),
       });
@@ -154,7 +154,7 @@ const DockAddTabButton: React.FC<{
 
   if (!items?.length) return null;
 
-  const label = t("chat.dockAddTab", "Add panel");
+  const label = t("chat.dockAddTab", "添加面板");
 
   return (
     <Dropdown
@@ -395,22 +395,22 @@ const ChatDockPanel: React.FC<ChatDockPanelProps> = ({
             tab.kind === "files" ? (
               <>
                 <FolderOpen size={16} strokeWidth={2} aria-hidden />
-                <span>{t("chat.dockFileList", "File changes")}</span>
+                <span>{t("chat.dockFileList", "文件变更")}</span>
               </>
             ) : tab.kind === "workspace" ? (
               <>
                 <FolderOpen size={16} strokeWidth={2} aria-hidden />
-                <span>{t("chat.openWorkspace", "Workspace")}</span>
+                <span>{t("chat.openWorkspace", "工作区")}</span>
               </>
             ) : tab.kind === "browser" ? (
               <>
                 <Globe size={16} strokeWidth={2} aria-hidden />
-                <span>{t("chat.remoteBrowserTitle", "Remote Browser")}</span>
+                <span>{t("chat.remoteBrowserTitle", "远程浏览器")}</span>
               </>
             ) : tab.kind === "terminal" ? (
               <>
                 <Terminal size={16} strokeWidth={2} aria-hidden />
-                <span>{t("chat.dockTerminalTitle", "Terminal")}</span>
+                <span>{t("chat.dockTerminalTitle", "终端")}</span>
               </>
             ) : tab.kind === "toolUi" ? (
               <>
@@ -472,7 +472,7 @@ const ChatDockPanel: React.FC<ChatDockPanelProps> = ({
                   e.stopPropagation();
                   onCloseTab(tab.id);
                 }}
-                aria-label={t("common.close", "Close")}
+                aria-label={t("common.close", "关闭")}
               >
                 <X size={12} strokeWidth={2} />
               </button>
