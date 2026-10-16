@@ -11,7 +11,7 @@ describe("guided connector helpers", () => {
   it("extracts a pasted URL without surrounding prose", () => {
     expect(
       extractHttpUrl(
-        "MCP Server URL: https://dify.example.com/mcp/server/code/mcp。",
+        "MCP Server URL: https://dify.example.com/mcp/server/code/mcp.",
       ),
     ).toBe("https://dify.example.com/mcp/server/code/mcp");
     expect(extractHttpUrl("sk-secret")).toBeNull();
@@ -26,15 +26,11 @@ describe("guided connector helpers", () => {
 
   it("derives safe console origins", () => {
     expect(
-      consoleUrlFromServiceUrl("weknora", "http://127.0.0.1:8080/api/v1"),
-    ).toBe("http://127.0.0.1");
-    expect(
       consoleUrlFromServiceUrl(
         "dify",
         "https://dify.example.com/mcp/server/code/mcp",
       ),
     ).toBe("https://dify.example.com");
-    expect(isGuidedConnector("weknora")).toBe(true);
     expect(isGuidedConnector("notion")).toBe(false);
   });
 });

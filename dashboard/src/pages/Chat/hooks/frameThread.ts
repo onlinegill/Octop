@@ -1,5 +1,5 @@
 /**
- * Drop live frames that belong to another dashboard thread (anti-串流).
+ * Drop live frames that belong to another dashboard thread (anti-Streaming).
  * Frames without ``thread_id`` still pass — ping/pong and some error paths.
  */
 

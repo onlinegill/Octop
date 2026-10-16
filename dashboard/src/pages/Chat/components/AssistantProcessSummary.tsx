@@ -39,7 +39,7 @@ function resolveLiveProcessHint(
   );
   if (runningTool && runningTool.kind === "tool") {
     return t("chat.processRunningTools", {
-      defaultValue: "正在调用工具",
+      defaultValue: "Calling tool",
     });
   }
 
@@ -47,7 +47,7 @@ function resolveLiveProcessHint(
     (step) => step.kind === "thinking" && step.item.isStreaming,
   );
   if (thinkingLive) {
-    return t("chat.processThinkingLive", { defaultValue: "深度思考中" });
+    return t("chat.processThinkingLive", { defaultValue: "Thinking deeply" });
   }
 
   // Tool finished, next tokens not yet — keep the fold "alive" so it does
@@ -57,7 +57,7 @@ function resolveLiveProcessHint(
     split.thinkings.length > 0 ||
     split.processSteps.length > 0;
   if (hasProcess) {
-    return t("chat.processOrganizing", { defaultValue: "整理结果中" });
+    return t("chat.processOrganizing", { defaultValue: "Sorting results" });
   }
 
   return null;
@@ -117,16 +117,16 @@ function AssistantProcessSummary({
       ? t("chat.processSummary", {
           tools: toolCount,
           thinking: thinkingCount,
-          defaultValue: "已调用 {{tools}} 次工具，{{thinking}} 次深度思考",
+          defaultValue: "Has been called {{tools}} Secondary tools,{{thinking}} Deep thinking",
         })
       : toolCount > 0
       ? t("chat.processSummaryToolsOnly", {
           tools: toolCount,
-          defaultValue: "已调用 {{tools}} 次工具",
+          defaultValue: "Has been called {{tools}} Secondary tool",
         })
       : t("chat.processSummaryThinkingOnly", {
           thinking: thinkingCount,
-          defaultValue: "{{thinking}} 次深度思考",
+          defaultValue: "{{thinking}} Deep thinking",
         });
 
   return (

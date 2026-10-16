@@ -114,13 +114,13 @@ describe("toLedgerRow", () => {
           result: [
             {
               type: "text",
-              text: '{\n  "id": "1",\n  "name": "工作"\n}',
+              text: '{\n  "id": "1",\n  "name": "Work"\n}',
             },
           ],
         },
       }),
     );
-    expect(row.toolResult).toContain('"name": "工作"');
+    expect(row.toolResult).toContain('"name": "Work"');
     expect(row.toolResult).not.toContain('"type": "text"');
   });
 
@@ -133,9 +133,9 @@ describe("toLedgerRow", () => {
 describe("coerceToolResultText", () => {
   it("pretty-prints unwrapped MCP text JSON", () => {
     const text = coerceToolResultText([
-      { type: "text", text: '{"id":"1","name":"工作"}' },
+      { type: "text", text: '{"id":"1","name":"Work"}' },
     ]);
-    expect(text).toContain('"name": "工作"');
+    expect(text).toContain('"name": "Work"');
     expect(text).not.toContain("type");
   });
 });

@@ -197,7 +197,7 @@ describe("groupConsecutiveAssistantMessages", () => {
   it("keeps a team member answer on one bubble across completed tools", () => {
     const messages = [
       msg("assistant", "member", {
-        content: "我先查一下",
+        content: "Let me check first",
         speakerAgentId: "doctor",
         status: "done",
       }),
@@ -221,7 +221,7 @@ describe("groupConsecutiveAssistantMessages", () => {
       findSpeakerTextToContinue(
         [
           msg("assistant", "host", {
-            content: "稍等",
+            content: "Wait a moment",
             speakerAgentId: "host",
             status: "done",
           }),
@@ -303,6 +303,37 @@ describe("groupConsecutiveAssistantMessages", () => {
     expect(findSpeakerTextToContinue(messages, undefined, "C9EBEC")).toBe(0);
   });
 
+  it("continues the answer that was already on screen, not the approval card", () => {
+    const messages = [
+      msg("assistant", "text", {
+        content: "磁盘还剩 8G",
+        speakerAgentId: "doctor",
+      }),
+      msg("assistant", "card", {
+        speakerAgentId: "doctor",
+        hitlData: {
+          action_requests: [{ name: "execute", args: {} }],
+          status: "approved",
+        },
+      }),
+    ];
+    expect(
+      findSpeakerTextToContinue(messages, "doctor", "host", {
+        teamRoom: true,
+      }),
+    ).toBe(0);
+    const plain = [
+      msg("assistant", "text", { content: "磁盘还剩 8G" }),
+      msg("assistant", "card", {
+        hitlData: {
+          action_requests: [{ name: "execute", args: {} }],
+          status: "approved",
+        },
+      }),
+    ];
+    expect(findSpeakerTextToContinue(plain, undefined, "host")).toBe(0);
+  });
+
   it("merges split member texts into one answer bubble", () => {
     const split = splitAssistantTurn([
       msg("assistant", "m1", {
@@ -320,7 +351,7 @@ describe("groupConsecutiveAssistantMessages", () => {
   it("keeps member narration across tool rounds in the answer", () => {
     const split = splitAssistantTurn([
       msg("assistant", "m1", {
-        content: "我先查一下资料",
+        content: "Let me check the information first",
         speakerAgentId: "doctor",
       }),
       msg("assistant", "tool", {
@@ -328,11 +359,28 @@ describe("groupConsecutiveAssistantMessages", () => {
         toolData: { name: "read_file", arguments: "{}", output: "ok" },
       }),
       msg("assistant", "m2", {
-        content: "结论如下",
+        content: "The conclusion is as follows",
         speakerAgentId: "doctor",
       }),
     ]);
-    expect(split.answerMessage?.content).toBe("我先查一下资料 结论如下");
+    expect(split.answerMessage?.content).toBe("Let me check the information first The conclusion is as follows");
+  });
+
+  it("keeps a stream error out of the joined answer", () => {
+    const split = splitAssistantTurn([
+      msg("assistant", "m1", { content: "先看一下日志" }),
+      msg("assistant", "err", {
+        content:
+          "LLM call failed: LengthFinishReasonError('length limit was reached')",
+        status: "error",
+      }),
+    ]);
+    expect(split.answerMessage?.content).toBe("先看一下日志");
+    expect(split.answerMessage?.status).not.toBe("error");
+    expect(split.errorMessages).toHaveLength(1);
+    expect(split.errorMessages?.[0]?.content).toBe(
+      "LLM call failed: LengthFinishReasonError('length limit was reached')",
+    );
   });
 
   it("keeps a 1:1 ReAct conclusion as the answer", () => {
@@ -349,16 +397,16 @@ describe("groupConsecutiveAssistantMessages", () => {
   it("does not join an identical host dispatch twice", () => {
     const split = splitAssistantTurn([
       msg("assistant", "h1", {
-        content: "已安排临床助手为您整理心脏病的治疗方案，稍等片刻。",
+        content: "A clinical assistant has been arranged to sort out the treatment plan for your heart disease. Please wait a moment.",
         speakerAgentId: "host",
       }),
       msg("assistant", "h2", {
-        content: "已安排临床助手为您整理心脏病的治疗方案，稍等片刻。",
+        content: "A clinical assistant has been arranged to sort out the treatment plan for your heart disease. Please wait a moment.",
         speakerAgentId: "host",
       }),
     ]);
     expect(split.answerMessage?.content).toBe(
-      "已安排临床助手为您整理心脏病的治疗方案，稍等片刻。",
+      "A clinical assistant has been arranged to sort out the treatment plan for your heart disease. Please wait a moment.",
     );
   });
 

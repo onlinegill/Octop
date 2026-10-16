@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ExternalLink, Variable } from "lucide-react";
+import { Variable } from "lucide-react";
 import { TabPanelHeader } from "../../AdvancedSettings/TabPanelHeader";
 
 interface PageHeaderProps {
@@ -14,29 +14,7 @@ export function PageHeader({ className }: PageHeaderProps) {
       <TabPanelHeader
         icon={<Variable size={22} />}
         title={t("environments.title")}
-        description={
-          <>
-            {t("environments.description")}
-            <p style={{ marginTop: 8, marginBottom: 0, fontSize: 13 }}>
-              {t("environments.secretGuide")}{" "}
-              <a
-                href="https://console.cloud.tencent.com/cam/capi"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "var(--fn-text-brand)",
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 3,
-                }}
-              >
-                {t("environments.secretGuideLink")}
-                <ExternalLink size={12} />
-              </a>
-            </p>
-          </>
-        }
+        description={t("environments.description")}
       />
     </div>
   );

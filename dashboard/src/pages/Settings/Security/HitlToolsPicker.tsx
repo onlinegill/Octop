@@ -6,10 +6,6 @@ import styles from "./index.module.less";
 
 const { Text } = Typography;
 
-function localizedLabel(item: HitlToolCatalogItem, locale: string): string {
-  return locale.startsWith("zh") ? item.label_zh : item.label_en;
-}
-
 interface HitlToolsPickerProps {
   catalog: HitlToolCatalogItem[];
   defaultTools?: string[];
@@ -25,7 +21,7 @@ export default function HitlToolsPicker({
   onChange,
   disabled,
 }: HitlToolsPickerProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const options = useMemo(() => {
     const known = new Set(catalog.map((item) => item.name));
@@ -34,7 +30,6 @@ export default function HitlToolsPicker({
       ...catalog,
       ...extras.map((name) => ({
         name,
-        label_zh: name,
         label_en: name,
       })),
     ];
@@ -103,7 +98,7 @@ export default function HitlToolsPicker({
             className={styles.hitlToolTile}
           >
             <span className={styles.hitlToolLabel}>
-              {localizedLabel(item, i18n.language)}
+              {item.label_en}
             </span>
             <span className={styles.hitlToolName}>{item.name}</span>
           </Checkbox>

@@ -25,9 +25,6 @@ import {
   notifySsoOpener,
   openSsoPopup,
 } from "../../utils/ssoPopup";
-import feishuIcon from "../../assets/channels/feishu.svg";
-import dingtalkIcon from "../../assets/channels/dingtalk.svg";
-import wecomIcon from "../../assets/channels/wecom.svg";
 import googleIcon from "../../assets/providers/google.svg";
 import CaptchaField, { type CaptchaFieldHandle } from "./CaptchaField";
 import ForgotPasswordModal from "./ForgotPasswordModal";
@@ -45,21 +42,6 @@ function providerLabel(
 }
 
 function providerIcon(provider: OauthProviderStatus): ReactNode {
-  if (provider.kind === "feishu") {
-    return (
-      <img src={feishuIcon} alt="" width={18} height={18} draggable={false} />
-    );
-  }
-  if (provider.kind === "dingtalk") {
-    return (
-      <img src={dingtalkIcon} alt="" width={18} height={18} draggable={false} />
-    );
-  }
-  if (provider.kind === "wecom") {
-    return (
-      <img src={wecomIcon} alt="" width={18} height={18} draggable={false} />
-    );
-  }
   const name = provider.display_name.trim().toLowerCase();
   if (
     provider.kind === "oidc" &&
@@ -295,31 +277,17 @@ export default function LoginPage() {
           {t("login.title")}
         </h2>
 
-        <div style={{ width: "100%" }}>
-          <Input
-            prefix={
-              <User size={16} style={{ color: "var(--fn-text-quaternary)" }} />
-            }
-            placeholder={t("login.username")}
-            size="large"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoFocus
-            aria-describedby="login-username-hint"
-            style={{ borderRadius: 10 }}
-          />
-          <div
-            id="login-username-hint"
-            style={{
-              marginTop: 6,
-              fontSize: 12,
-              color: "var(--fn-text-tertiary)",
-              lineHeight: 1.4,
-            }}
-          >
-            {t("login.usernameHint")}
-          </div>
-        </div>
+        <Input
+          prefix={
+            <User size={16} style={{ color: "var(--fn-text-quaternary)" }} />
+          }
+          placeholder={t("login.username")}
+          size="large"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoFocus
+          style={{ borderRadius: 10 }}
+        />
 
         <Input.Password
           prefix={

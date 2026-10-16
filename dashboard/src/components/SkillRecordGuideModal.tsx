@@ -34,28 +34,28 @@ export default function SkillRecordGuideModal({
       title: t("skillRecordGuide.step1Title", "Start recording"),
       description: t(
         "skillRecordGuide.step1Desc",
-        "点击下方按钮，系统将开始录制所有浏览器操作。",
+        "Click the button below and the system will start recording all browser actions.",
       ),
     },
     {
       title: t("skillRecordGuide.step2Title", "Enter the task goal"),
       description: t(
         "skillRecordGuide.step2Desc",
-        '录制开始后，AI助手会提示你输入任务目标——这将成为技能的名称和触发关键词（例如"登录OA系统"）。',
+        'After recording starts,AIThe assistant will prompt you to enter the task goal——This will become the name of the skill and the trigger keyword (e.g."LoginOASystem").',
       ),
     },
     {
       title: t("skillRecordGuide.step3Title", "Describe the steps"),
       description: t(
         "skillRecordGuide.step3Desc",
-        "接着描述你想让AI助手在浏览器中执行的操作，助手会自动执行并录制。",
+        "Then describe what you wantAIThe operations performed by the assistant in the browser will be automatically performed and recorded by the assistant.",
       ),
     },
     {
       title: t("skillRecordGuide.step4Title", "Stop and confirm"),
       description: t(
         "skillRecordGuide.step4Desc",
-        '操作完成后，输入"结束"停止录制，确认后技能将以任务目标为名保存。之后只需输入任务目标关键词即可触发回放。',
+        'After the operation is completed, enter"End"Stop recording. After confirmation, the skill will be saved under the name of the task target. Then just enter the mission target keyword to trigger playback.',
       ),
     },
   ];
@@ -111,7 +111,7 @@ export default function SkillRecordGuideModal({
         >
           {t(
             "skillRecordGuide.intro",
-            "通过录制浏览器操作，自动生成可复用的技能脚本。录制开始后，你将在AI助手对话中输入任务目标和操作描述。",
+            "By recording browser operations, reusable skill scripts are automatically generated. Once recording starts, you willAIEnter the task goal and operation description in the assistant dialog.",
           )}
         </Typography.Paragraph>
 
@@ -134,7 +134,7 @@ export default function SkillRecordGuideModal({
             message={t("skillRecordGuide.envWarning", "Browser environment not ready")}
             description={t(
               "skillRecordGuide.envWarningDesc",
-              "请先确保浏览器环境可用，然后再开始录制。",
+              "Please make sure the browser environment is available before starting recording.",
             )}
             style={{ marginBottom: 8 }}
           />

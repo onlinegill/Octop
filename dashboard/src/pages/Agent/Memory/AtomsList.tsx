@@ -38,19 +38,19 @@ const PAGE_SIZE = 20;
 
 // Type filter: map backend enum values to user-facing labels.
 const KIND_OPTIONS: { value: AtomKind | ""; label: string }[] = [
-  { value: "", label: "全部类型" },
-  { value: "Fact", label: "事实" },
-  { value: "Decision", label: "决定" },
-  { value: "Task", label: "任务" },
-  { value: "Preference", label: "偏好" },
-  { value: "ConflictCandidate", label: "可能矛盾" },
+  { value: "", label: "All types" },
+  { value: "Fact", label: "Facts" },
+  { value: "Decision", label: "Decide" },
+  { value: "Task", label: "Task" },
+  { value: "Preference", label: "Preference" },
+  { value: "ConflictCandidate", label: "May be contradictory" },
 ];
 
 const IMPORTANCE_OPTIONS: { value: Importance | ""; label: string }[] = [
-  { value: "", label: "全部" },
-  { value: "low", label: "一般" },
-  { value: "medium", label: "重要" },
-  { value: "high", label: "非常重要" },
+  { value: "", label: "All" },
+  { value: "low", label: "Average" },
+  { value: "medium", label: "Important" },
+  { value: "high", label: "Very important" },
 ];
 
 interface Props {
@@ -190,7 +190,7 @@ export default function AtomsList({ agentId }: Props) {
           >
             <Space size={4}>
               <ImportanceStars importance={a.importance} />
-              {isAtomDeprecated(a) ? <Tag color="red">已忘记</Tag> : null}
+              {isAtomDeprecated(a) ? <Tag color="red">Forgot</Tag> : null}
             </Space>
             <div style={{ marginTop: 4, fontSize: 13 }}>{a.assertion}</div>
             <div style={{ marginTop: 2, fontSize: 12, color: "#8c8c8c" }}>
@@ -254,27 +254,27 @@ export default function AtomsList({ agentId }: Props) {
               {atom.kind ? <Tag>{kindLabel(atom.kind)}</Tag> : null}
               <ImportanceStars importance={atom.importance} />
               <Tag color={isAtomDeprecated(atom) ? "red" : "green"}>
-                {isAtomDeprecated(atom) ? "已忘记" : "在用"}
+                {isAtomDeprecated(atom) ? "Forgot" : "In use"}
               </Tag>
             </Space>
 
             <LineageStrip agentId={agentId} atom={atom} />
 
-            <Typography.Title level={5}>记忆内容</Typography.Title>
+            <Typography.Title level={5}>Memory content</Typography.Title>
             <Typography.Paragraph>{atom.assertion}</Typography.Paragraph>
 
-            <Typography.Title level={5}>原话依据</Typography.Title>
+            <Typography.Title level={5}>Original story based on</Typography.Title>
             <Typography.Paragraph type="secondary">
               {atom.verbatim_quote}
             </Typography.Paragraph>
 
-            <Typography.Title level={5}>可信度</Typography.Title>
+            <Typography.Title level={5}>Credibility</Typography.Title>
             <ConfidenceBar confidence={atom.confidence} />
 
             {(atom.search_terms ?? []).length > 0 ? (
               <>
                 <Typography.Title level={5} style={{ marginTop: 12 }}>
-                  关联关键词
+                  Related keywords
                 </Typography.Title>
                 <Space size={4} wrap>
                   {(atom.search_terms ?? []).map((s) => (
@@ -288,9 +288,9 @@ export default function AtomsList({ agentId }: Props) {
               type="secondary"
               style={{ fontSize: 12, marginTop: 16 }}
             >
-              首次记录于 {formatRelativeTime(atom.created_at)}
+              First recorded in {formatRelativeTime(atom.created_at)}
               {atom.occurred_at
-                ? ` · 发生于 ${formatRelativeTime(atom.occurred_at)}`
+                ? ` · Occurs in ${formatRelativeTime(atom.occurred_at)}`
                 : ""}
             </Typography.Paragraph>
 
@@ -340,15 +340,15 @@ export default function AtomsList({ agentId }: Props) {
 function kindLabel(k: string): string {
   switch (k) {
     case "Fact":
-      return "事实";
+      return "Facts";
     case "Decision":
-      return "决定";
+      return "Decide";
     case "Task":
-      return "任务";
+      return "Task";
     case "Preference":
-      return "偏好";
+      return "Preference";
     case "ConflictCandidate":
-      return "可能矛盾";
+      return "May be contradictory";
     default:
       return k;
   }
@@ -358,12 +358,12 @@ function ImportanceStars({ importance }: { importance: string }) {
   const n = importance === "high" ? 3 : importance === "medium" ? 2 : 1;
   return (
     <span
-      title={`重要程度：${
+      title={`Importance:${
         importance === "high"
-          ? "非常重要"
+          ? "Very important"
           : importance === "medium"
-          ? "重要"
-          : "一般"
+          ? "Important"
+          : "Average"
       }`}
       style={{ color: "#faad14", fontSize: 13, letterSpacing: 1 }}
     >
@@ -377,10 +377,10 @@ function ConfidenceBar({ confidence }: { confidence: string }) {
   const pct = confidence === "high" ? 90 : confidence === "medium" ? 60 : 30;
   const label =
     confidence === "high"
-      ? "很有把握"
+      ? "Very confident"
       : confidence === "medium"
-      ? "一般把握"
-      : "不太确定";
+      ? "General grasp"
+      : "Not sure";
   return (
     <div style={{ maxWidth: 320 }}>
       <Progress
@@ -404,16 +404,16 @@ function formatRelativeTime(iso: string): string {
     const then = new Date(iso).getTime();
     const now = Date.now();
     const diffSec = Math.max(0, Math.floor((now - then) / 1000));
-    if (diffSec < 60) return "刚刚";
+    if (diffSec < 60) return "Just now";
     const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return `${diffMin} 分钟前`;
+    if (diffMin < 60) return `${diffMin} Minutes ago`;
     const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr} 小时前`;
+    if (diffHr < 24) return `${diffHr} Hours ago`;
     const diffDay = Math.floor(diffHr / 24);
-    if (diffDay < 30) return `${diffDay} 天前`;
+    if (diffDay < 30) return `${diffDay} Days ago`;
     const diffMonth = Math.floor(diffDay / 30);
-    if (diffMonth < 12) return `${diffMonth} 个月前`;
-    return `${Math.floor(diffMonth / 12)} 年前`;
+    if (diffMonth < 12) return `${diffMonth} Months ago`;
+    return `${Math.floor(diffMonth / 12)} Years ago`;
   } catch {
     return iso;
   }

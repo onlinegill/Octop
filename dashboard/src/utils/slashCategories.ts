@@ -13,12 +13,12 @@ export const SLASH_CATEGORY_ORDER = [
 export type SlashCategory = (typeof SLASH_CATEGORY_ORDER)[number];
 
 const CATEGORY_LABELS: Record<SlashCategory, { en: string; zh: string }> = {
-  core: { en: "Core", zh: "核心命令" },
-  skills: { en: "Skills", zh: "技能" },
-  session: { en: "Sessions", zh: "会话管理" },
-  media: { en: "Media", zh: "多媒体" },
-  system: { en: "System", zh: "系统" },
-  debug: { en: "Debug", zh: "调试" },
+  core: { en: "Core", zh: "Core commands" },
+  skills: { en: "Skills", zh: "Skills" },
+  session: { en: "Sessions", zh: "Session management" },
+  media: { en: "Media", zh: "Multimedia" },
+  system: { en: "System", zh: "System" },
+  debug: { en: "Debug", zh: "Debugging" },
 };
 
 export function slashCategoryLabel(category: string, locale: string): string {

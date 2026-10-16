@@ -100,11 +100,17 @@ describe("replaceFileMentionQuery", () => {
       text: "@docs/api.md ",
       cursor: 13,
     });
+    const draft = "Please see @note";
     expect(
-      replaceFileMentionQuery("请看 @note", 3, "note", "notes/my file.md"),
+      replaceFileMentionQuery(
+        draft,
+        draft.indexOf("@note"),
+        "note",
+        "notes/my file.md",
+      ),
     ).toEqual({
-      text: "请看 @notes/my file.md ",
-      cursor: 21,
+      text: "Please see @notes/my file.md ",
+      cursor: 29,
     });
   });
 

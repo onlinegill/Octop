@@ -1,4 +1,4 @@
-/** Ensure a navigable URL — ``baidu.com`` → ``https://baidu.com``. */
+/** Ensure a navigable URL — ``example.com`` → ``https://example.com``. */
 export function normalizeUrl(raw: string): string {
   const t = raw.trim();
   if (!t) return "";

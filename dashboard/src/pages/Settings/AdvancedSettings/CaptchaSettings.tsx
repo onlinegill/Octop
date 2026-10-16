@@ -19,8 +19,6 @@ export default function CaptchaSettingsPanel() {
   const [active, setActive] = useState("slider");
   const [siteKey, setSiteKey] = useState("");
   const [secret, setSecret] = useState("");
-  const [camId, setCamId] = useState("");
-  const [camSecret, setCamSecret] = useState("");
 
   const applyView = useCallback((next: CaptchaSettings) => {
     setView(next);
@@ -28,8 +26,6 @@ export default function CaptchaSettingsPanel() {
     const pair = next.providers[next.active];
     setSiteKey(pair?.site_key ?? "");
     setSecret("");
-    setCamId(pair?.cam_secret_id ?? "");
-    setCamSecret("");
   }, []);
 
   const load = useCallback(async () => {
@@ -53,8 +49,6 @@ export default function CaptchaSettingsPanel() {
     const pair = view?.providers[next];
     setSiteKey(pair?.site_key ?? "");
     setSecret("");
-    setCamId(pair?.cam_secret_id ?? "");
-    setCamSecret("");
   };
 
   const persist = async () => {
@@ -67,12 +61,6 @@ export default function CaptchaSettingsPanel() {
               [active]: {
                 site_key: siteKey,
                 ...(secret ? { secret } : {}),
-                ...(active === "tencent" && camId
-                  ? { cam_secret_id: camId }
-                  : {}),
-                ...(active === "tencent" && camSecret
-                  ? { cam_secret: camSecret }
-                  : {}),
               },
             };
       const saved = await octopSettingsApi.putCaptcha({ active, providers });
@@ -168,43 +156,6 @@ export default function CaptchaSettingsPanel() {
                 autoComplete="new-password"
               />
             </div>
-            {active === "tencent" ? (
-              <>
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ marginBottom: 8 }}>
-                    {t("advancedSettings.captcha.camSecretId")}
-                  </div>
-                  <Input
-                    value={camId}
-                    onChange={(e) => setCamId(e.target.value)}
-                    autoComplete="off"
-                  />
-                </div>
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ marginBottom: 8 }}>
-                    {t("advancedSettings.captcha.camSecret")}
-                  </div>
-                  <Input.Password
-                    value={camSecret}
-                    onChange={(e) => setCamSecret(e.target.value)}
-                    placeholder={
-                      view?.providers[active]?.has_cam_secret
-                        ? t("advancedSettings.captcha.secretPlaceholder")
-                        : undefined
-                    }
-                    autoComplete="new-password"
-                  />
-                </div>
-                <div
-                  style={{
-                    marginBottom: 16,
-                    color: "var(--fn-text-tertiary)",
-                  }}
-                >
-                  {t("advancedSettings.captcha.camHint")}
-                </div>
-              </>
-            ) : null}
           </>
         ) : null}
         {view ? (

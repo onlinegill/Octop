@@ -102,9 +102,7 @@ export interface OauthAppConfigPut {
 }
 
 /** @deprecated Prefer OauthAppConfig */
-export type FeishuConfig = OauthAppConfig;
 /** @deprecated Prefer OauthAppConfigPut */
-export type FeishuConfigPut = OauthAppConfigPut;
 
 export const ssoApi = {
   getOidcConfig(): Promise<OidcConfig> {
@@ -151,17 +149,5 @@ export const ssoApi = {
     return request<OidcConfigTestResult>(`/auth/oauth/providers/${kind}/test`, {
       method: "POST",
     });
-  },
-  /** @deprecated Prefer getOauthProvider("feishu") */
-  getFeishuConfig(): Promise<OauthAppConfig> {
-    return ssoApi.getOauthProvider("feishu");
-  },
-  /** @deprecated Prefer putOauthProvider("feishu", body) */
-  putFeishuConfig(body: OauthAppConfigPut): Promise<OauthAppConfig> {
-    return ssoApi.putOauthProvider("feishu", body);
-  },
-  /** @deprecated Prefer testOauthProvider("feishu") */
-  testFeishuConfig(): Promise<OidcConfigTestResult> {
-    return ssoApi.testOauthProvider("feishu");
   },
 };

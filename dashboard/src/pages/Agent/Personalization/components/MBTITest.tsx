@@ -26,7 +26,6 @@ function ResultCard({
   code,
   profile,
   dimensions,
-  lang,
   onApply,
   applying,
 }: {
@@ -38,13 +37,12 @@ function ResultCard({
     tf: [string, number];
     jp: [string, number];
   };
-  lang: "zh" | "en";
   onApply: () => void;
   applying: boolean;
 }) {
   const { t } = useTranslation();
-  const name = lang === "zh" ? profile.name_zh : profile.name_en;
-  const summary = lang === "zh" ? profile.summary_zh : profile.summary_en;
+  const name = profile.name_en;
+  const summary = profile.summary_en;
 
   const axes = [
     { label: "E/I", data: dimensions.ei },
@@ -196,10 +194,10 @@ export default function MBTITest({
     try {
       await api.applyMBTIType(result.code, lang, agentId);
       const name =
-        lang === "zh" ? result.profile.name_zh : result.profile.name_en;
+        result.profile.name_en;
       const pendingMsg =
         lang === "zh"
-          ? `我刚刚把你的 MBTI 人格设定为了 ${result.code}（${name}），快用你的新性格跟我打个招呼吧！`
+          ? `I just took your MBTI The personality is set to ${result.code}(${name}), come and say hello to me with your new personality!`
           : `I just set your MBTI personality to ${result.code} (${name}). Say hi with your new character!`;
       localStorage.setItem("octop.pendingChatMessage", pendingMsg);
       onComplete(result.code);
@@ -290,9 +288,9 @@ export default function MBTITest({
           {/* Question */}
           {(() => {
             const q = questions[currentIdx];
-            const questionText = lang === "zh" ? q.question_zh : q.question_en;
-            const optionA = lang === "zh" ? q.option_a_zh : q.option_a_en;
-            const optionB = lang === "zh" ? q.option_b_zh : q.option_b_en;
+            const questionText = q.question_en;
+            const optionA = q.option_a_en;
+            const optionB = q.option_b_en;
             const currentAnswer = answers[String(q.id)];
 
             return (
@@ -341,7 +339,7 @@ export default function MBTITest({
                   const remaining = questions.length - answeredCount;
                   message.warning(
                     lang === "zh"
-                      ? `还有 ${remaining} 题没答完哦，去答题卡看看哪些漏了~`
+                      ? `Also ${remaining} I haven’t finished answering the questions yet. Go to the answer sheet to see what’s missing.~`
                       : `${remaining} question${
                           remaining > 1 ? "s" : ""
                         } remaining. Check the answer sheet above!`,
@@ -385,7 +383,6 @@ export default function MBTITest({
           code={result.code}
           profile={result.profile}
           dimensions={result.dimensions}
-          lang={lang}
           onApply={handleApply}
           applying={applying}
         />

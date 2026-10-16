@@ -54,10 +54,7 @@ export interface StorageFieldDef {
 
 /** Kinds that map to a harness backend spec. */
 export const AGENT_RESOLVABLE_STORAGE_KINDS = new Set([
-  "cos",
   "s3",
-  "oss",
-  "obs",
   "custom",
   "filesystem",
   "shell",
@@ -86,46 +83,6 @@ export interface StorageTypeDef {
 }
 
 export const STORAGE_TYPE_DEFS: StorageTypeDef[] = [
-  {
-    kind: "cos",
-    nameKey: "storage.kindCos",
-    descKey: "storage.descCos",
-    color: "#0052d9",
-    icon: storageBrandIcon("cos"),
-    fields: [
-      {
-        key: "access_key",
-        labelKey: "storage.accessKeyLabel",
-        required: true,
-        secret: false,
-        placeholder: "AKIDxxx",
-      },
-      {
-        key: "secret_key",
-        labelKey: "storage.secretKeyLabel",
-        required: true,
-        secret: true,
-        placeholder: "SKEYxxx",
-      },
-      {
-        key: "bucket",
-        labelKey: "storage.bucketLabel",
-        required: true,
-        placeholder: "my-bucket-1250000000",
-      },
-      {
-        key: "region",
-        labelKey: "storage.regionLabel",
-        required: true,
-        placeholder: "ap-guangzhou",
-      },
-      {
-        key: "endpoint",
-        labelKey: "storage.endpointLabel",
-        placeholder: "cos.ap-guangzhou.myqcloud.com",
-      },
-    ],
-  },
   {
     kind: "s3",
     nameKey: "storage.kindS3",
@@ -162,84 +119,6 @@ export const STORAGE_TYPE_DEFS: StorageTypeDef[] = [
         key: "endpoint",
         labelKey: "storage.endpointLabel",
         placeholder: "s3.us-east-1.amazonaws.com",
-      },
-    ],
-  },
-  {
-    kind: "oss",
-    nameKey: "storage.kindOss",
-    descKey: "storage.descOss",
-    color: "#ff6a00",
-    icon: storageBrandIcon("oss"),
-    fields: [
-      {
-        key: "access_key",
-        labelKey: "storage.accessKeyLabel",
-        required: true,
-        placeholder: "LTAIxxx",
-      },
-      {
-        key: "secret_key",
-        labelKey: "storage.secretKeyLabel",
-        required: true,
-        secret: true,
-        placeholder: "xxxxxxxx",
-      },
-      {
-        key: "bucket",
-        labelKey: "storage.bucketLabel",
-        required: true,
-        placeholder: "my-bucket",
-      },
-      {
-        key: "region",
-        labelKey: "storage.regionLabel",
-        required: true,
-        placeholder: "oss-cn-hangzhou",
-      },
-      {
-        key: "endpoint",
-        labelKey: "storage.endpointLabel",
-        placeholder: "oss-cn-hangzhou.aliyuncs.com",
-      },
-    ],
-  },
-  {
-    kind: "obs",
-    nameKey: "storage.kindObs",
-    descKey: "storage.descObs",
-    color: "#cf0a2c",
-    icon: storageBrandIcon("obs"),
-    fields: [
-      {
-        key: "access_key",
-        labelKey: "storage.accessKeyLabel",
-        required: true,
-        placeholder: "AKxxx",
-      },
-      {
-        key: "secret_key",
-        labelKey: "storage.secretKeyLabel",
-        required: true,
-        secret: true,
-        placeholder: "xxxxxxxx",
-      },
-      {
-        key: "bucket",
-        labelKey: "storage.bucketLabel",
-        required: true,
-        placeholder: "my-bucket",
-      },
-      {
-        key: "region",
-        labelKey: "storage.regionLabel",
-        required: true,
-        placeholder: "cn-north-4",
-      },
-      {
-        key: "endpoint",
-        labelKey: "storage.endpointLabel",
-        placeholder: "obs.cn-north-4.myhuaweicloud.com",
       },
     ],
   },
@@ -424,7 +303,7 @@ export const STORAGE_TYPE_GROUPS: StorageTypeGroup[] = [
   {
     id: "object",
     titleKey: "storage.groupObject",
-    kinds: ["cos", "s3", "oss", "obs", "custom"],
+    kinds: ["s3", "custom"],
   },
   {
     id: "sandbox",
@@ -465,7 +344,7 @@ export function useStorageBackends(): UseStorageBackendsResult {
       );
       setBackends(Array.isArray(rows) ? rows : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "加载存储后端失败");
+      setError(err instanceof Error ? err.message : "Failed to load storage backend");
     } finally {
       setLoading(false);
     }

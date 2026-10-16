@@ -1,7 +1,7 @@
 /**
  * Incremental WAV/PCM playback for streaming TTS responses.
  *
- * The server streams MiMo TTS as a WAV (24kHz PCM16LE mono) whose data-size
+ * The server streams TTS as a WAV (24kHz PCM16LE mono) whose data-size
  * field is a max-size sentinel — a blob/<audio> player would have to wait for
  * the full body. Here we parse the header once, decode incoming PCM chunks,
  * and schedule them back-to-back on an AudioContext as they arrive.

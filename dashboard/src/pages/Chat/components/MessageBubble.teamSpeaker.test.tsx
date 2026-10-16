@@ -7,7 +7,7 @@ import { ChatAgentProfileProvider } from "../ChatAgentProfileContext";
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, opts?: { name?: string }) =>
-      key === "chat.teamHostHover" ? `[${opts?.name ?? ""}] 主持人` : key,
+      key === "chat.teamHostHover" ? `[${opts?.name ?? ""}] Moderator` : key,
   }),
 }));
 
@@ -31,20 +31,20 @@ vi.mock("../../../context/AgentContext", () => ({
   useAgent: () => ({
     activeAgent: {
       agent_id: "host",
-      name: "主持团队",
+      name: "Hosting team",
       kind: "team",
       icon_name: "bot",
     },
     agents: [
       {
         agent_id: "host",
-        name: "主持团队",
+        name: "Hosting team",
         kind: "team",
         icon_name: "bot",
       },
       {
         agent_id: "doctor",
-        name: "小通 · 通用助手",
+        name: "Xiaotong · Universal Assistant",
         icon_name: "sparkles",
       },
     ],
@@ -74,7 +74,7 @@ describe("MessageBubble team speaker chrome", () => {
     );
 
     expect(screen.getByText("please rest")).toBeInTheDocument();
-    expect(screen.queryByText("小通 · 通用助手")).not.toBeInTheDocument();
+    expect(screen.queryByText("Xiaotong · Universal Assistant")).not.toBeInTheDocument();
   });
 
   it("labels the host avatar as team host and opens a member profile", () => {
@@ -82,7 +82,7 @@ describe("MessageBubble team speaker chrome", () => {
     const { rerender } = render(
       <ChatAgentProfileProvider canOpen onOpen={onOpen} isTeam>
         <MessageBubble
-          message={assistant({ content: "稍等", speakerAgentId: "host" })}
+          message={assistant({ content: "Wait a moment", speakerAgentId: "host" })}
           agentId="host"
           showAvatar
           groupPosition="only"
@@ -90,7 +90,7 @@ describe("MessageBubble team speaker chrome", () => {
       </ChatAgentProfileProvider>,
     );
     expect(
-      screen.getByRole("button", { name: "[主持团队] 主持人" }),
+      screen.getByRole("button", { name: "[Hosting team] Moderator" }),
     ).toBeInTheDocument();
 
     rerender(
@@ -103,7 +103,7 @@ describe("MessageBubble team speaker chrome", () => {
         />
       </ChatAgentProfileProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "小通 · 通用助手" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xiaotong · Universal Assistant" }));
     expect(onOpen).toHaveBeenCalledWith("doctor");
   });
 });

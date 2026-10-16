@@ -17,6 +17,9 @@ vi.mock("../../../hooks/useVoiceInput", () => ({
   useVoiceInput: () => ({
     recording: false,
     transcribing: false,
+    realtime: false,
+    start: vi.fn(),
+    stop: vi.fn(),
     toggle: vi.fn(),
   }),
 }));
@@ -36,7 +39,9 @@ vi.mock("../hooks/useChatAttachments", () => ({
     uploading: false,
     dragOver: false,
     fileInputRef: { current: null },
+    folderInputRef: { current: null },
     handleFileSelect: vi.fn(),
+    handleFolderSelect: vi.fn(),
     handleFileChange: vi.fn(),
     removeAttachment: vi.fn(),
     clearAttachments: vi.fn(),
@@ -158,7 +163,7 @@ describe("ChatInput prefill clear-on-send", () => {
     );
 
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-    const prefill = "请填写收件人：";
+    const prefill = "Please fill in the recipient:";
 
     act(() => {
       inputRef.current?.setPrefillText(prefill);
@@ -210,18 +215,18 @@ describe("ChatInput prefill clear-on-send", () => {
     );
 
     const textarea = screen.getByRole("textbox") as HTMLTextAreaElement;
-    const prefill = "请填写收件人：";
+    const prefill = "Please fill in the recipient:";
     parentPrefill = prefill;
 
     act(() => {
       inputRef.current?.setPrefillText(prefill);
     });
     fireEvent.change(textarea, {
-      target: { value: `${prefill}\n张三` },
+      target: { value: `${prefill}\nZhang San` },
     });
 
     fireEvent.click(screen.getByRole("button", { name: "send" }));
-    expect(onSend).toHaveBeenCalledWith(`${prefill}\n张三`, undefined);
+    expect(onSend).toHaveBeenCalledWith(`${prefill}\nZhang San`, undefined);
     expect(textarea.value).toBe("");
     expect(parentPrefill).toBe("");
 

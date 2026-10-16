@@ -19,6 +19,7 @@ import DocumentPreviewCore from "../../../components/DocumentPreviewCore";
 import DocumentPreviewLoading from "../../../components/DocumentPreviewLoading";
 import Markdown from "../../../components/Markdown";
 import { apiErrorMessage, isNotFoundApiError } from "../../../utils/apiError";
+import { saveBlobAsFile } from "../../../utils/saveBlobAsFile";
 import { getDocKind, type DocKind } from "../../../utils/docKind";
 import { knowledgeCitationHref } from "../../../utils/knowledgeCitationDisplay";
 import {
@@ -62,7 +63,7 @@ interface KnowledgeCitationPanelContentProps {
 
 /**
  * Knowledge citation preview body for a chat dock tab (same shell as workspace
- * file tabs opened from “编辑了 N 个文件”).
+ * file tabs opened from “Edited N Files”).
  */
 export default function KnowledgeCitationPanelContent({
   citation,
@@ -238,12 +239,7 @@ export default function KnowledgeCitationPanelContent({
         citation.docId,
         "attachment",
       );
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename || citation.filename || "download";
-      a.click();
-      URL.revokeObjectURL(url);
+      await saveBlobAsFile(blob, filename || citation.filename || "download");
     } catch (error) {
       if (isNotFoundApiError(error)) {
         setCanDownload(false);

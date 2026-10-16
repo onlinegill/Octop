@@ -52,26 +52,26 @@ function fakeAgent(
   };
 }
 
-const writer = fakeAgent({ agent_id: "writer", name: "写手" });
+const writer = fakeAgent({ agent_id: "writer", name: "Writer" });
 const crew = fakeAgent({
   agent_id: "crew",
-  name: "调研团",
+  name: "Research team",
   kind: "team",
 });
 const remoteWriter = fakeAgent({
   agent_id: "bridge:c1:writer",
-  name: "对端写手",
+  name: "Peer writer",
   bridge: true,
   bridge_connection_id: "c1",
-  bridge_connection_name: "云端",
+  bridge_connection_name: "Cloud",
 });
 const remoteCrew = fakeAgent({
   agent_id: "bridge:c1:crew",
-  name: "对端调研团",
+  name: "Opposite end research team",
   kind: "team",
   bridge: true,
   bridge_connection_id: "c1",
-  bridge_connection_name: "云端",
+  bridge_connection_name: "Cloud",
 });
 
 describe("AgentSelector groups", () => {
@@ -85,23 +85,23 @@ describe("AgentSelector groups", () => {
   it("hides teams unless showTeams is on", () => {
     const { rerender } = render(<AgentSelector />);
     const chips = () => within(screen.getByTestId("agent-selector-chips"));
-    expect(chips().getByText("写手")).toBeInTheDocument();
-    expect(chips().queryByText("调研团")).not.toBeInTheDocument();
-    expect(screen.getByText("专家")).toBeInTheDocument();
-    expect(chips().queryByText("团队")).not.toBeInTheDocument();
+    expect(chips().getByText("Writer")).toBeInTheDocument();
+    expect(chips().queryByText("Research team")).not.toBeInTheDocument();
+    expect(screen.getByText("Expert")).toBeInTheDocument();
+    expect(chips().queryByText("Team")).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "更多" }),
+      screen.queryByRole("button", { name: "More" }),
     ).not.toBeInTheDocument();
     expect(setActiveAgent).not.toHaveBeenCalled();
 
     rerender(<AgentSelector showTeams />);
-    expect(chips().getByText("写手")).toBeInTheDocument();
-    expect(chips().getByText("调研团")).toBeInTheDocument();
-    expect(chips().getByText("专家")).toBeInTheDocument();
-    expect(chips().getByText("团队")).toBeInTheDocument();
-    expect(screen.queryByText("此页可管理专家和团队")).not.toBeInTheDocument();
+    expect(chips().getByText("Writer")).toBeInTheDocument();
+    expect(chips().getByText("Research team")).toBeInTheDocument();
+    expect(chips().getByText("Expert")).toBeInTheDocument();
+    expect(chips().getByText("Team")).toBeInTheDocument();
+    expect(screen.queryByText("This page allows you to manage experts and teams")).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "更多" }),
+      screen.queryByRole("button", { name: "More" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
@@ -110,14 +110,14 @@ describe("AgentSelector groups", () => {
     state.agents = [writer, crew, remoteWriter, remoteCrew];
     render(<AgentSelector showTeams />);
     const chips = within(screen.getByTestId("agent-selector-chips"));
-    expect(chips.getByText("专家")).toBeInTheDocument();
-    expect(chips.getByText("团队")).toBeInTheDocument();
-    expect(chips.getByText("云端·专家")).toBeInTheDocument();
-    expect(chips.getByText("云端·团队")).toBeInTheDocument();
-    expect(chips.getByText("对端写手")).toBeInTheDocument();
-    expect(chips.getByText("对端调研团")).toBeInTheDocument();
+    expect(chips.getByText("Expert")).toBeInTheDocument();
+    expect(chips.getByText("Team")).toBeInTheDocument();
+    expect(chips.getByText("Cloud·Expert")).toBeInTheDocument();
+    expect(chips.getByText("Cloud·Team")).toBeInTheDocument();
+    expect(chips.getByText("Peer writer")).toBeInTheDocument();
+    expect(chips.getByText("Opposite end research team")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "更多" }),
+      screen.queryByRole("button", { name: "More" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
@@ -126,10 +126,10 @@ describe("AgentSelector groups", () => {
     state.activeAgentId = "crew";
     render(<AgentSelector />);
     expect(setActiveAgent).not.toHaveBeenCalled();
-    expect(screen.queryByText("调研团")).not.toBeInTheDocument();
-    expect(screen.getByText("专家")).toBeInTheDocument();
+    expect(screen.queryByText("Research team")).not.toBeInTheDocument();
+    expect(screen.getByText("Expert")).toBeInTheDocument();
     expect(
-      screen.getByText("当前是团队「调研团」，此页请选择专家"),
+      screen.getByText("The current team is “Research Team”, please select an expert on this page"),
     ).toBeInTheDocument();
   });
 });

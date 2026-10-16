@@ -45,8 +45,8 @@ describe("Login forgot-password hint", () => {
     expect(dialog).toContainElement(hint);
     expect(hint.textContent).toMatch(/octop user passwd/);
     expect(hint.textContent).toMatch(/--password/);
-    expect(hint.textContent).toMatch(/Users|用户/);
-    expect(hint.textContent).toMatch(/Linux|终端|Terminal/);
+    expect(hint.textContent).toMatch(/Users|User/);
+    expect(hint.textContent).toMatch(/Linux|Terminal|Terminal/);
 
     // antd Segmented radios use pointer-events:none on the input; click the label text.
     await user.click(screen.getByText("Windows"));

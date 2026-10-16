@@ -38,7 +38,7 @@ describe("<JournalList />", () => {
           actor: "user",
           target_atom_id: "atom-deadbeef-1",
           note: "no existing entity matched 'User'; will create",
-          target_summary: "我最喜欢喝一点点抹茶奶冻",
+          target_summary: "I like to drink a little bit of matcha custard the most",
         }),
         makeJournal({
           id: "j-2",
@@ -55,8 +55,8 @@ describe("<JournalList />", () => {
     render(<JournalList agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getByText("采纳")).toBeInTheDocument();
-      expect(screen.getByText("弃用")).toBeInTheDocument();
+      expect(screen.getByText("Adopt")).toBeInTheDocument();
+      expect(screen.getByText("Deprecated")).toBeInTheDocument();
     });
 
     expect(api.listJournal).toHaveBeenCalledWith("ZYWZTD", {
@@ -66,11 +66,11 @@ describe("<JournalList />", () => {
 
     // With target_summary, show the specific adopted item; without it, fall back to a generic topic.
     expect(
-      screen.getByText("「我最喜欢喝一点点抹茶奶冻」"),
+      screen.getByText("“I like to drink a little bit of matcha custard the most”"),
     ).toBeInTheDocument();
-    expect(screen.getByText("一个主题")).toBeInTheDocument();
+    expect(screen.getByText("A theme")).toBeInTheDocument();
     // Notes show only Chinese: English dev logs are translated and the original English is hidden.
-    expect(screen.getByText("新建主题「User」")).toBeInTheDocument();
+    expect(screen.getByText("Create a new theme “User”")).toBeInTheDocument();
     expect(
       screen.queryByText(/no existing entity matched/),
     ).not.toBeInTheDocument();
@@ -107,12 +107,12 @@ describe("<JournalList />", () => {
     render(<JournalList agentId="ZYWZTD" />);
 
     await waitFor(() =>
-      expect(screen.getAllByText("提取运行")).toHaveLength(2),
+      expect(screen.getAllByText("Extract run")).toHaveLength(2),
     );
     expect(
-      screen.getByText("处理 4 段对话，生成 2 条草稿，晋升 2 条记忆"),
+      screen.getByText("Process 4 Dialogue, generate 2 Draft, promotion 2 Memory"),
     ).toBeInTheDocument();
-    expect(screen.getByText("扫描 4 段对话，无新增内容")).toBeInTheDocument();
+    expect(screen.getByText("Scan 4 Dialogue, no new content")).toBeInTheDocument();
   });
 
   it("renders empty state on no entries", async () => {

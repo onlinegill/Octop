@@ -55,14 +55,14 @@ describe("<Overview />", () => {
     stubOverview();
     render(<Overview agentId="ZYWZTD" />);
 
-    await screen.findByText("记忆概览");
-    expect(screen.getByText("记忆运行中")).toBeInTheDocument();
-    expect(screen.getAllByText("长期记忆").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText("关键主题")).toBeInTheDocument();
-    expect(screen.getByText("记忆处理进度")).toBeInTheDocument();
-    expect(screen.getByText("近 7 天对话轮次")).toBeInTheDocument();
-    expect(screen.getByText("近 7 天记忆增长")).toBeInTheDocument();
-    expect(screen.getByText("记忆类型")).toBeInTheDocument();
+    await screen.findByText("Memory overview");
+    expect(screen.getByText("Memory running")).toBeInTheDocument();
+    expect(screen.getAllByText("Long term memory").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Key themes")).toBeInTheDocument();
+    expect(screen.getByText("Memory processing progress")).toBeInTheDocument();
+    expect(screen.getByText("Near 7 Daily dialogue rounds")).toBeInTheDocument();
+    expect(screen.getByText("Near 7 Day memory growth")).toBeInTheDocument();
+    expect(screen.getByText("Memory type")).toBeInTheDocument();
 
     expect(api.statsGrowth).toHaveBeenCalledWith("ZYWZTD", 7);
     expect(api.getExtractConfig).toHaveBeenCalledWith("ZYWZTD");
@@ -75,7 +75,7 @@ describe("<Overview />", () => {
       memory_enabled: false,
     });
     render(<Overview agentId="ZYWZTD" />);
-    expect(await screen.findByText("记忆已关闭")).toBeInTheDocument();
+    expect(await screen.findByText("Memory is off")).toBeInTheDocument();
   });
 
   it("keeps memory enabled for responses from an older API process", async () => {
@@ -84,7 +84,7 @@ describe("<Overview />", () => {
       memoryConfig;
     api.getExtractConfig.mockResolvedValue(legacyConfig);
     render(<Overview agentId="ZYWZTD" />);
-    expect(await screen.findByText("记忆运行中")).toBeInTheDocument();
+    expect(await screen.findByText("Memory running")).toBeInTheDocument();
   });
 
   it("supports pipeline and settings navigation", async () => {
@@ -101,10 +101,10 @@ describe("<Overview />", () => {
       />,
     );
 
-    await screen.findByText("记忆处理进度");
-    fireEvent.click(screen.getByRole("button", { name: /对话记忆/ }));
-    fireEvent.click(screen.getByRole("button", { name: /待处理/ }));
-    fireEvent.click(screen.getByRole("button", { name: "设置" }));
+    await screen.findByText("Memory processing progress");
+    fireEvent.click(screen.getByRole("button", { name: /Dialogue memory/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Pending/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(onViewConversations).toHaveBeenCalledOnce();
     expect(onReviewCandidates).toHaveBeenCalledOnce();
     expect(onOpenSettings).toHaveBeenCalledOnce();
@@ -117,17 +117,17 @@ describe("<Overview />", () => {
     api.getExtractConfig.mockRejectedValue(new Error("config"));
     render(<Overview agentId="ZYWZTD" />);
 
-    await screen.findByText("记忆概览");
-    expect(screen.getByText("暂无记忆类型数据")).toBeInTheDocument();
-    expect(screen.getByText("近 7 天暂无对话轮次")).toBeInTheDocument();
-    expect(screen.getByText("近 7 天暂无新增")).toBeInTheDocument();
+    await screen.findByText("Memory overview");
+    expect(screen.getByText("No memory type data yet")).toBeInTheDocument();
+    expect(screen.getByText("Near 7 No dialogue rounds for the day")).toBeInTheDocument();
+    expect(screen.getByText("Near 7 No new additions for days")).toBeInTheDocument();
   });
 
   it("refreshes all overview sources", async () => {
     stubOverview();
     render(<Overview agentId="ZYWZTD" />);
     await waitFor(() => expect(api.statsCounts).toHaveBeenCalledOnce());
-    fireEvent.click(screen.getByRole("button", { name: "刷新" }));
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
     await waitFor(() => expect(api.statsCounts).toHaveBeenCalledTimes(2));
     expect(api.getExtractConfig).toHaveBeenCalledTimes(2);
   });

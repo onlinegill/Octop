@@ -273,7 +273,7 @@ export default function AgentSelector({
   const hint = activeIsHiddenTeam
     ? t("agentSelector.teamNeedsExpert", {
         name: activeAgent?.name ?? "",
-        defaultValue: "当前是团队「{{name}}」，此页请选择专家",
+        defaultValue: "\"{{name}}\" is a team. Choose an expert for this page.",
       })
     : soloSelectable.length === 0 && allTeams.length > 0
     ? t("agentSelector.expertsRequired", "This page needs an expert")

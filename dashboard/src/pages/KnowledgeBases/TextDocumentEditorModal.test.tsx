@@ -19,7 +19,7 @@ describe("<TextDocumentEditorModal />", () => {
       <TextDocumentEditorModal
         open
         mode="edit"
-        initialName="高德地图.md"
+        initialName="Gaode map.md"
         initialFormat="md"
         initialContent={"line1\n"}
         onCancel={() => undefined}
@@ -37,7 +37,7 @@ describe("<TextDocumentEditorModal />", () => {
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit).toHaveBeenCalledWith({
-      name: "高德地图.md",
+      name: "Gaode map.md",
       format: "md",
       content: "updated body",
     });
@@ -52,7 +52,7 @@ describe("<TextDocumentEditorModal />", () => {
       <TextDocumentEditorModal
         open
         mode="edit"
-        initialName="高德地图.md"
+        initialName="Gaode map.md"
         initialFormat="md"
         initialContent={"same body\n"}
         onCancel={onCancel}
@@ -75,7 +75,7 @@ describe("<TextDocumentEditorModal />", () => {
       <TextDocumentEditorModal
         open
         mode="edit"
-        initialName="高德地图.md"
+        initialName="Gaode map.md"
         initialFormat="md"
         initialContent={"same body"}
         onCancel={onCancel}
@@ -92,7 +92,7 @@ describe("<TextDocumentEditorModal />", () => {
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit).toHaveBeenCalledWith({
-      name: "高德地图.md",
+      name: "Gaode map.md",
       format: "md",
       content: "same body!",
     });

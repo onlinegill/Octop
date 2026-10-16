@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore, useState } from "react";
 import { createPortal } from "react-dom";
 import { Tooltip } from "antd";
+import { useTranslation } from "react-i18next";
 import { Download, MonitorDown, Share, X } from "lucide-react";
 import {
   subscribePwaPrompt,
@@ -33,12 +34,13 @@ function isStandalone(): boolean {
 // ─── iOS guide sheet ──────────────────────────────────────────────────────────
 
 export function IosGuide({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   return createPortal(
     <div
       className={styles.iosOverlay}
       role="dialog"
       aria-modal="true"
-      aria-label="添加到主屏幕"
+      aria-label="Add to home screen"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -47,27 +49,27 @@ export function IosGuide({ onClose }: { onClose: () => void }) {
         <button
           className={styles.guideClose}
           onClick={onClose}
-          aria-label="关闭"
+          aria-label="Close"
         >
           <X size={18} />
         </button>
-        <div className={styles.guideTitle}>添加到主屏幕</div>
-        <p className={styles.guideDesc}>将 Octop 安装为 App，随时一键打开。</p>
+        <div className={styles.guideTitle}>Add to home screen</div>
+        <p className={styles.guideDesc}>Will Octop Installed as App, open it at any time with one click.</p>
         <ol className={styles.guideList}>
           <li>
             <span className={styles.guideStep}>1</span>
             <span>
-              点击底部工具栏的{" "}
-              <Share size={14} className={styles.guideInlineIcon} /> 分享按钮
+              Click on the bottom toolbar{" "}
+              <Share size={14} className={styles.guideInlineIcon} /> Share button
             </span>
           </li>
           <li>
             <span className={styles.guideStep}>2</span>
-            <span>向下滚动，点击「添加到主屏幕」</span>
+            <span>Scroll down and click “Add to Home Screen”</span>
           </li>
           <li>
             <span className={styles.guideStep}>3</span>
-            <span>点击右上角「添加」完成安装</span>
+            <span>Click “Add” in the upper right corner to complete the installation</span>
           </li>
         </ol>
         <div className={styles.iosArrow}>↓</div>
@@ -80,13 +82,14 @@ export function IosGuide({ onClose }: { onClose: () => void }) {
 // ─── Desktop / Android guide (when beforeinstallprompt is not yet available) ──
 
 export function DesktopInstallGuide({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const isEdge = /edg/i.test(navigator.userAgent);
   return createPortal(
     <div
       className={styles.desktopOverlay}
       role="dialog"
       aria-modal="true"
-      aria-label="安装为桌面应用"
+      aria-label="Install as desktop app"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -95,38 +98,37 @@ export function DesktopInstallGuide({ onClose }: { onClose: () => void }) {
         <button
           className={styles.guideClose}
           onClick={onClose}
-          aria-label="关闭"
+          aria-label="Close"
         >
           <X size={18} />
         </button>
-        <div className={styles.guideTitle}>安装为桌面应用</div>
+        <div className={styles.guideTitle}>Install as desktop app</div>
         <p className={styles.guideDesc}>
-          浏览器尚未准备好一键安装。请按以下方式操作，或刷新页面后再点 Header
-          中的安装按钮。
+          The browser is not ready for one-click installation. Please operate as follows, or refresh the page and click Header
+          Install button in .
         </p>
         <ol className={styles.guideList}>
           <li>
             <span className={styles.guideStep}>1</span>
             <span>
-              查看地址栏右侧的{" "}
+              Look to the right of the address bar{" "}
               <MonitorDown size={14} className={styles.guideInlineIcon} />{" "}
-              安装图标并点击
+              Install icon and click
             </span>
           </li>
           <li>
             <span className={styles.guideStep}>2</span>
             <span>
-              或打开浏览器菜单，选择「{isEdge ? "应用" : "安装"} Octop」/
-              Install Octop
+              Or open the browser menu and choose “{isEdge ? "Install app" : "Install Octop"}”
             </span>
           </li>
           <li>
             <span className={styles.guideStep}>3</span>
-            <span>确认安装后，可从桌面或程序坞一键打开</span>
+            <span>After confirming the installation, you can open it with one click from the desktop or the program dock.</span>
           </li>
         </ol>
         <p className={styles.guideHint}>
-          通过局域网 IP 访问时需使用 HTTPS，否则浏览器不会提供安装选项。
+          Via LAN IP Required for access HTTPS, otherwise the browser will not provide the installation option.
         </p>
       </div>
     </div>,
@@ -154,6 +156,7 @@ export default function PwaInstallPrompt({
   compact,
   appearance = "default",
 }: PwaInstallPromptProps) {
+  const { t } = useTranslation();
   const installState = useSyncExternalStore(
     subscribePwaPrompt,
     getPwaInstallSnapshot,
@@ -209,10 +212,10 @@ export default function PwaInstallPrompt({
   };
 
   const tooltipTitle = ios
-    ? "添加到主屏幕"
+    ? "Add to home screen"
     : installState.prompt
-    ? "安装为桌面应用"
-    : "安装为桌面应用";
+    ? "Install as desktop app"
+    : "Install as desktop app";
 
   const btnClass = chatFloat
     ? styles.installBtnChatFloat
@@ -224,14 +227,14 @@ export default function PwaInstallPrompt({
       className={btnClass}
       onClick={() => void handleAndroidInstall()}
       disabled={installing}
-      aria-label="安装应用"
+      aria-label="Install app"
     >
       <Download
         size={chatFloat ? 20 : compact ? 15 : 16}
         strokeWidth={chatFloat ? 2.1 : 1.8}
         className={styles.installIcon}
       />
-      {!compact && !chatFloat && <span className={styles.label}>安装</span>}
+      {!compact && !chatFloat && <span className={styles.label}>Installation</span>}
     </button>
   );
 

@@ -33,27 +33,27 @@ beforeEach(() => {
 
 function stubProfile() {
   api.terminalAboutMe.mockResolvedValue(
-    terminalAtomResp([makeAtom({ id: "a1", assertion: "你只喝美式咖啡。" })]),
+    terminalAtomResp([makeAtom({ id: "a1", assertion: "You only drink Americano." })]),
   );
   api.terminalCurrentFocus.mockResolvedValue(
     terminalAtomResp([
       makeAtom({
         id: "a2",
-        assertion: "你正在写记忆模块的设计文档。",
+        assertion: "You are writing a design document for a memory module.",
         kind: "Task",
       }),
     ]),
   );
   api.terminalThingsYouToldMe.mockResolvedValue(
     terminalAtomResp([
-      makeAtom({ id: "a3", assertion: "你出生于1995年。", kind: "Fact" }),
+      makeAtom({ id: "a3", assertion: "Were you born in1995Years.", kind: "Fact" }),
     ]),
   );
   api.terminalEntities.mockResolvedValue(
     terminalEntityResp([
       makeEntity({
         id: "e1",
-        canonical_name: "Bo5heng项目",
+        canonical_name: "Bo5hengProject",
         entity_type: "Project",
       }),
     ]),
@@ -76,17 +76,17 @@ describe("<ProfileOverview />", () => {
     render(<ProfileOverview agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getAllByText(/用户画像/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/User portrait/).length).toBeGreaterThan(0);
     });
 
-    expect(screen.getByText(/只喝美式咖啡/)).toBeInTheDocument();
-    expect(screen.getByText(/记忆模块的设计文档/)).toBeInTheDocument();
-    expect(screen.getByText(/出生于1995年/)).toBeInTheDocument();
-    expect(screen.getByText("Bo5heng项目")).toBeInTheDocument();
-    expect(screen.getByText("关于你")).toBeInTheDocument();
-    expect(screen.getByText("当前重点")).toBeInTheDocument();
-    expect(screen.getByText("你提到的事实")).toBeInTheDocument();
-    expect(screen.getByText("关键人事物")).toBeInTheDocument();
+    expect(screen.getByText(/Just drink Americano coffee/)).toBeInTheDocument();
+    expect(screen.getByText(/Memory module design documentation/)).toBeInTheDocument();
+    expect(screen.getByText(/Born in1995Year/)).toBeInTheDocument();
+    expect(screen.getByText("Bo5hengProject")).toBeInTheDocument();
+    expect(screen.getByText("About you")).toBeInTheDocument();
+    expect(screen.getByText("Current focus")).toBeInTheDocument();
+    expect(screen.getByText("The facts you mentioned")).toBeInTheDocument();
+    expect(screen.getByText("Key people and things")).toBeInTheDocument();
 
     expect(api.terminalAboutMe).toHaveBeenCalledWith("ZYWZTD", 12);
     expect(api.terminalCurrentFocus).toHaveBeenCalledWith("ZYWZTD", 12);
@@ -106,14 +106,14 @@ describe("<ProfileOverview />", () => {
     render(<ProfileOverview agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getAllByText(/用户画像/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/User portrait/).length).toBeGreaterThan(0);
     });
-    expect(screen.getByText(/Octop 还在了解你/)).toBeInTheDocument();
+    expect(screen.getByText(/Octop Still getting to know you/)).toBeInTheDocument();
   });
 
-  it("caps a section at 6 rows and shows 查看全部 that calls onViewAll", async () => {
+  it("caps a section at 6 rows and shows View all that calls onViewAll", async () => {
     const many = Array.from({ length: 8 }, (_, i) =>
-      makeAtom({ id: `m${i}`, assertion: `关于你条目${i + 1}` }),
+      makeAtom({ id: `m${i}`, assertion: `About you entry${i + 1}` }),
     );
     api.terminalAboutMe.mockResolvedValue(terminalAtomResp(many));
     api.terminalCurrentFocus.mockResolvedValue(terminalAtomResp([]));
@@ -126,13 +126,13 @@ describe("<ProfileOverview />", () => {
     render(<ProfileOverview agentId="ZYWZTD" onViewAll={onViewAll} />);
 
     await waitFor(() => {
-      expect(screen.getByText("关于你条目1")).toBeInTheDocument();
+      expect(screen.getByText("About you entry1")).toBeInTheDocument();
     });
     // Visible rows are capped at 6: the 6th row exists, the 7th does not.
-    expect(screen.getByText("关于你条目6")).toBeInTheDocument();
-    expect(screen.queryByText("关于你条目7")).not.toBeInTheDocument();
+    expect(screen.getByText("About you entry6")).toBeInTheDocument();
+    expect(screen.queryByText("About you entry7")).not.toBeInTheDocument();
 
-    const viewAll = screen.getByRole("button", { name: /查看全部/ });
+    const viewAll = screen.getByRole("button", { name: /View all/ });
     fireEvent.click(viewAll);
     expect(onViewAll).toHaveBeenCalledTimes(1);
   });

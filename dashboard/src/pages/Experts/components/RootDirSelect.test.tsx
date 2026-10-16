@@ -144,8 +144,8 @@ describe("<RootDirSelect /> mkdir + rename", () => {
       }
       if (path === "/filesystem/mkdir" && init?.method === "POST") {
         return {
-          path: "/Users/jubaoliang/新建文件夹",
-          name: "新建文件夹",
+          path: "/Users/jubaoliang/Create new folder",
+          name: "Create new folder",
         };
       }
       throw new Error(`unexpected request: ${String(path)}`);
@@ -193,7 +193,7 @@ describe("<RootDirSelect /> mkdir + rename", () => {
       .map((n) => n.textContent ?? "");
     expect(
       rootLevelTitles.some((text) =>
-        text.includes("/Users/jubaoliang/新建文件夹"),
+        text.includes("/Users/jubaoliang/Create new folder"),
       ),
     ).toBe(false);
   });

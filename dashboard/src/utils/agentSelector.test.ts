@@ -16,13 +16,13 @@ describe("labelSelectorGroups", () => {
           agent_id: "bridge:c1:a1",
           bridge: true,
           bridge_connection_id: "c1",
-          bridge_connection_name: "云端",
+          bridge_connection_name: "Cloud",
         },
       ],
-      "专家",
-      (name) => `${name}·专家`,
+      "Expert",
+      (name) => `${name}·Expert`,
     );
-    expect(groups.map((group) => group.label)).toEqual(["专家", "云端·专家"]);
+    expect(groups.map((group) => group.label)).toEqual(["Expert", "Cloud·Expert"]);
   });
 });
 

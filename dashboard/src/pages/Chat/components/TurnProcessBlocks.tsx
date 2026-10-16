@@ -121,7 +121,7 @@ export function turnHasVisibleProcess(split: AssistantTurnSplit): boolean {
   return hasFoldContent(folded) || pinned.length > 0;
 }
 
-/** True when the foldable「已调用 N 次工具 / 深度思考」row will render. */
+/** True when the foldable "Ran N tools / deep thinking" row will render. */
 export function turnHasProcessSummary(split: AssistantTurnSplit): boolean {
   return hasFoldContent(partitionPinnedTools(split).folded);
 }

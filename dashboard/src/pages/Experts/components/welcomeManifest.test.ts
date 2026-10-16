@@ -11,9 +11,9 @@ import {
 import type { QuickPrompt } from "./welcomeManifest";
 
 const prompt = (over: Partial<QuickPrompt> = {}): QuickPrompt => ({
-  title: { zh: "标题", en: "Title" },
-  description: { zh: "描述", en: "Desc" },
-  prompt: { zh: "提示", en: "Prompt" },
+  title: { zh: "Title", en: "Title" },
+  description: { zh: "Description", en: "Desc" },
+  prompt: { zh: "Tips", en: "Prompt" },
   color: "#e8f4ff",
   icon_name: "sparkles",
   ...over,
@@ -53,22 +53,22 @@ describe("mergeWelcomeIntoManifest", () => {
     const merged = mergeWelcomeIntoManifest(
       {
         id: "demo",
-        label: { zh: "演示", en: "Demo" },
-        source: { type: "skillhub" },
-        welcome_message: { zh: "旧中文", en: "Old English" },
+        label: { zh: "Demo", en: "Demo" },
+        source: { type: "custom" },
+        welcome_message: { zh: "Old chinese", en: "Old English" },
         quick_prompts: [],
       },
       {
-        welcome_message: { zh: "新中文", en: "Old English" },
-        quick_prompts: [prompt({ title: { zh: "卡", en: "" } })],
+        welcome_message: { zh: "New Chinese", en: "Old English" },
+        quick_prompts: [prompt({ title: { zh: "Card", en: "" } })],
       },
     );
     expect(merged.id).toBe("demo");
-    expect(merged.label).toEqual({ zh: "演示", en: "Demo" });
-    expect(merged.source).toEqual({ type: "skillhub" });
-    expect(merged.welcome_message).toEqual({ zh: "新中文", en: "Old English" });
+    expect(merged.label).toEqual({ zh: "Demo", en: "Demo" });
+    expect(merged.source).toEqual({ type: "custom" });
+    expect(merged.welcome_message).toEqual({ zh: "New Chinese", en: "Old English" });
     expect(merged.quick_prompts).toEqual([
-      prompt({ title: { zh: "卡", en: "" } }),
+      prompt({ title: { zh: "Card", en: "" } }),
     ]);
   });
 
@@ -89,11 +89,11 @@ describe("mergeWelcomeIntoManifest", () => {
     const merged = mergeWelcomeIntoManifest(
       {
         id: "demo",
-        welcome_message: { zh: "你好", en: "Hi" },
+        welcome_message: { zh: "Hello", en: "Hi" },
       },
       { quick_prompts: [prompt()] },
     );
-    expect(merged.welcome_message).toEqual({ zh: "你好", en: "Hi" });
+    expect(merged.welcome_message).toEqual({ zh: "Hello", en: "Hi" });
     expect(merged.quick_prompts).toEqual([prompt()]);
   });
 });
@@ -112,11 +112,11 @@ describe("filterQuickPrompts", () => {
 describe("normalizeQuickPrompts / serializeQuickPrompts", () => {
   it("fills missing locale fields and drops empty cards on serialize", () => {
     const normalized = normalizeQuickPrompts([
-      { title: { zh: "卡" }, color: "", icon_name: undefined },
+      { title: { zh: "Card" }, color: "", icon_name: undefined },
       { title: { zh: "", en: "" }, prompt: { zh: "", en: "" } },
     ]);
     expect(normalized[0]).toEqual({
-      title: { zh: "卡", en: "" },
+      title: { zh: "Card", en: "" },
       description: { zh: "", en: "" },
       prompt: { zh: "", en: "" },
       color: "#e8f4ff",

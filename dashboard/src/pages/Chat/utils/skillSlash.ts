@@ -1,7 +1,7 @@
 /**
  * Skill tokens in the composer.
  *
- * UI shows ``{emoji} {label}`` (e.g. ``📦 Docker 管理``); the wire format stays
+ * UI shows ``{emoji} {label}`` (e.g. ``📦 Docker Management``); the wire format stays
  * ``/slug`` so the agent can match the invoke. ``materializeSkillSlashes``
  * rewrites those tokens → ``/slug`` on send.
  */

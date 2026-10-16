@@ -86,8 +86,6 @@ export function buildFallbackSlashCommands(t: TFunction): SlashCommandSpec[] {
   return SLASH_FALLBACK_META.map((meta) => ({
     ...meta,
     label_en: t(`slash.fallback.${meta.name}.label`, { lng: "en" }),
-    label_zh: t(`slash.fallback.${meta.name}.label`, { lng: "zh" }),
     description_en: t(`slash.fallback.${meta.name}.description`, { lng: "en" }),
-    description_zh: t(`slash.fallback.${meta.name}.description`, { lng: "zh" }),
   }));
 }

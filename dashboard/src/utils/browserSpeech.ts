@@ -94,7 +94,7 @@ function pickVoiceForLocale(
   return (
     matches.find((v) => v.localService) ??
     matches.find((v) =>
-      /huihui|xiaoxiao|tingting|yaoyao|kangkang|mandarin|chinese|中文|普通话/i.test(
+      /huihui|xiaoxiao|tingting|yaoyao|kangkang|mandarin|chinese|Chinese|Mandarin/i.test(
         v.name,
       ),
     ) ??
@@ -112,7 +112,7 @@ export function chunkTextForSpeech(
   if (trimmed.length <= maxLen) return [trimmed];
 
   const sentences = trimmed
-    .split(/(?<=[。！？.!?])\s*/)
+    .split(/(?<=[.!?])\s*/)
     .map((s) => s.trim())
     .filter(Boolean);
   const parts = sentences.length > 0 ? sentences : [trimmed];

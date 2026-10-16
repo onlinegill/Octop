@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Drawer, Empty, Input, List, Segmented, Spin } from "antd";
+import { Button, Drawer, Empty, Input, List, Spin } from "antd";
 import { useTranslation } from "react-i18next";
 
 import { request } from "../../../api/request";
@@ -7,20 +7,8 @@ import { useAgent } from "../../../context/AgentContext";
 import { ownedSoloExperts } from "../../../utils/sharedExpert";
 import { apiErrorMessage } from "../../../utils/apiError";
 import { message } from "@/utils/antdMessage";
-import SkillHubTab, {
-  hubInstallPresentation,
-} from "../../Agent/Skills/components/SkillHubTab";
-import type { SkillHubSkill } from "../../Agent/Skills/components/SkillHubDetailDrawer";
 import { parseSkillPreviewFromMarkdown } from "../../Agent/Skills/skillMarkdown";
 import styles from "../index.module.less";
-
-export interface PickedHubSkill {
-  skill_name: string;
-  display_name: string;
-  icon_url: string;
-  label?: { zh?: string; en?: string };
-  summary?: { zh?: string; en?: string };
-}
 
 export interface PickedAgentSkill {
   agent_id: string;
@@ -29,8 +17,6 @@ export interface PickedAgentSkill {
   description: string;
   content: string;
 }
-
-type PickerTab = "hub" | "agents";
 
 interface SkillSummary {
   slug?: string;
@@ -45,7 +31,6 @@ interface SkillSourcePickerModalProps {
   excludeAgentId?: string;
   loadContent?: boolean;
   onClose: () => void;
-  onPickHub: (skill: PickedHubSkill) => void;
   onPickAgentSkill: (skill: PickedAgentSkill) => void;
 }
 
@@ -55,12 +40,10 @@ export default function SkillSourcePickerModal({
   excludeAgentId,
   loadContent = true,
   onClose,
-  onPickHub,
   onPickAgentSkill,
 }: SkillSourcePickerModalProps) {
   const { t } = useTranslation();
   const { agents } = useAgent();
-  const [tab, setTab] = useState<PickerTab>("hub");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [skills, setSkills] = useState<SkillSummary[]>([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
@@ -77,7 +60,6 @@ export default function SkillSourcePickerModal({
 
   useEffect(() => {
     if (!open) {
-      setTab("hub");
       setSelectedAgentId(null);
       setSkills([]);
       setQuery("");
@@ -121,19 +103,6 @@ export default function SkillSourcePickerModal({
       );
     });
   }, [excludeSlugs, query, skills]);
-
-  const handlePickHub = (skill: SkillHubSkill) => {
-    if (excludeSlugs.has(skill.slug)) return;
-    const presentation = hubInstallPresentation(skill);
-    onPickHub({
-      skill_name: skill.slug,
-      display_name: skill.name,
-      icon_url: skill.iconUrl ?? "",
-      label: presentation.label,
-      summary: presentation.summary,
-    });
-    onClose();
-  };
 
   const handleCopySkill = async (skill: SkillSummary) => {
     if (!selectedAgentId) return;
@@ -179,23 +148,7 @@ export default function SkillSourcePickerModal({
       onClose={onClose}
       destroyOnHidden
     >
-      <Segmented
-        block
-        value={tab}
-        onChange={(value) => setTab(value === "agents" ? "agents" : "hub")}
-        options={[
-          { label: t("experts.addSkillFromHub"), value: "hub" },
-          { label: t("experts.addSkillFromAgent"), value: "agents" },
-        ]}
-        style={{ marginBottom: 16 }}
-      />
-      {tab === "hub" ? (
-        <SkillHubTab
-          target={{ type: "browse" }}
-          onPick={handlePickHub}
-          pickedSlugs={excludeSlugs}
-        />
-      ) : selectedAgentId ? (
+      {selectedAgentId ? (
         <>
           <div
             style={{

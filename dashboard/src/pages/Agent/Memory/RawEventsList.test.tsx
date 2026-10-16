@@ -43,7 +43,7 @@ function makeRaw(overrides: Record<string, unknown> = {}) {
     user: "u",
     timestamp: new Date("2026-07-15T02:00:00Z").toISOString(),
     event_type: "user_message",
-    content: "项目截止日期是周五",
+    content: "Project deadline is Friday",
     ...overrides,
   };
 }
@@ -59,14 +59,14 @@ describe("<RawEventsList />", () => {
     render(<RawEventsList agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getByText("项目截止日期是周五")).toBeInTheDocument();
+      expect(screen.getByText("Project deadline is Friday")).toBeInTheDocument();
     });
     expect(api.listRawEvents).toHaveBeenCalledWith("ZYWZTD", {
       offset: 0,
       limit: 20,
     });
     // type tag rendered (user message)
-    expect(screen.getAllByText("用户消息").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("User messages").length).toBeGreaterThanOrEqual(1);
   });
 
   it("re-queries with event_type when the filter changes", async () => {
@@ -76,9 +76,9 @@ describe("<RawEventsList />", () => {
     render(<RawEventsList agentId="ZYWZTD" />);
     await waitFor(() => expect(api.listRawEvents).toHaveBeenCalledTimes(1));
 
-    // Open the antd Select and pick "AI 回复".
+    // Open the antd Select and pick "AI Reply".
     await user.click(screen.getByRole("combobox"));
-    const option = await screen.findByText("AI 回复");
+    const option = await screen.findByText("AI Reply");
     await user.click(option);
 
     await waitFor(() => {
@@ -95,18 +95,18 @@ describe("<RawEventsList />", () => {
 
   it("opens the detail drawer with full content on row click", async () => {
     api.listRawEvents.mockResolvedValue(
-      rawResp([makeRaw({ content: "帮我查一下明天的天气" })]),
+      rawResp([makeRaw({ content: "Help me check the weather tomorrow" })]),
     );
     const user = userEvent.setup();
 
     render(<RawEventsList agentId="ZYWZTD" />);
     await waitFor(() => {
-      expect(screen.getByText("帮我查一下明天的天气")).toBeInTheDocument();
+      expect(screen.getByText("Help me check the weather tomorrow")).toBeInTheDocument();
     });
-    await user.click(screen.getByText("帮我查一下明天的天气"));
+    await user.click(screen.getByText("Help me check the weather tomorrow"));
 
     await waitFor(() => {
-      expect(screen.getByText("内容")).toBeInTheDocument();
+      expect(screen.getByText("Content")).toBeInTheDocument();
     });
   });
 
@@ -127,7 +127,7 @@ describe("<RawEventsList />", () => {
 
     render(<RawEventsList agentId="ZYWZTD" />);
     await waitFor(() => {
-      expect(screen.getByText("项目截止日期是周五")).toBeInTheDocument();
+      expect(screen.getByText("Project deadline is Friday")).toBeInTheDocument();
     });
     // 2026-07-15T02:00:00Z == 10:00 in Asia/Shanghai (UTC+8).
     await waitFor(() => {

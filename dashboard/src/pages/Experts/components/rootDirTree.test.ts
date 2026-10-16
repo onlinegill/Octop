@@ -103,8 +103,8 @@ describe("rootDirTree helpers", () => {
         isLeaf: false,
       },
       {
-        value: "/Users/jubaoliang/新建文件夹",
-        title: "/Users/jubaoliang/新建文件夹",
+        value: "/Users/jubaoliang/Create new folder",
+        title: "/Users/jubaoliang/Create new folder",
         isLeaf: false,
       },
     ];
@@ -144,7 +144,7 @@ describe("rootDirTree helpers", () => {
   });
 
   it("ancestorDirPaths returns parents from / down to the parent of path", () => {
-    expect(ancestorDirPaths("/Users/jubaoliang/新建文件夹")).toEqual([
+    expect(ancestorDirPaths("/Users/jubaoliang/Create new folder")).toEqual([
       "/",
       "/Users",
       "/Users/jubaoliang",
@@ -220,13 +220,13 @@ describe("rootDirTree helpers", () => {
     ];
     const next = appendChildren(tree, "/Users/jubaoliang", [
       {
-        value: "/Users/jubaoliang/新建文件夹",
-        title: "新建文件夹",
+        value: "/Users/jubaoliang/Create new folder",
+        title: "Create new folder",
         isLeaf: false,
       },
     ]);
     expect(next[0].children?.[0].children?.map((c) => c.value)).toEqual([
-      "/Users/jubaoliang/新建文件夹",
+      "/Users/jubaoliang/Create new folder",
     ]);
     expect(next[1].children).toBeUndefined();
   });

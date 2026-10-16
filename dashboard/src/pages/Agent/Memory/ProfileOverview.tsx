@@ -133,7 +133,7 @@ export default function ProfileOverview({
             <div className={styles.dossierSubtitle}>
               {t(
                 "memory.overview.profileSubtitle",
-                "AI 当前对你的结构化理解，只展示高价值结论，并非完整记忆库。",
+                "AI The current structured understanding of you only shows high-value conclusions and is not a complete memory bank.",
               )}
             </div>
           </div>
@@ -197,7 +197,7 @@ export default function ProfileOverview({
           items={state.aboutMe.map((a) => atomToConceptItem(a, t, timeZone))}
           emptyHint={t(
             "memory.terminal.emptyAboutMe",
-            "Octop 还在了解你，多聊几次就会补上",
+            "Octop I’m still getting to know you, I’ll catch up after chatting a few more times",
           )}
           onViewAll={onViewAll}
         />
@@ -206,7 +206,7 @@ export default function ProfileOverview({
           title={t("memory.terminal.currentFocus", "Current focus")}
           subtitle={t(
             "memory.terminal.currentFocusDesc",
-            "进行中的任务和最近的决定",
+            "Ongoing tasks and recent decisions",
           )}
           loading={firstLoading}
           items={state.focus.map((a) => atomToConceptItem(a, t, timeZone))}
@@ -218,7 +218,7 @@ export default function ProfileOverview({
           title={t("memory.terminal.toldMe", "Facts you mentioned")}
           subtitle={t(
             "memory.terminal.toldMeDesc",
-            "最近被 Octop 记下的关键内容",
+            "Recently been Octop Key things to note",
           )}
           loading={firstLoading}
           items={state.toldMe.map((a) => atomToConceptItem(a, t, timeZone))}
@@ -321,7 +321,7 @@ function ProfileGroup({
                 onViewAll
                   ? t(
                       "memory.overview.rowHintToLibrary",
-                      "如有误，可在记忆库中弃用",
+                      "If it is wrong, it can be discarded in the memory bank.",
                     )
                   : undefined
               }
@@ -533,7 +533,7 @@ function ImportanceStars({ importance, t }: { importance: string; t: TFn }) {
       : t("memory.importance.low", "Normal");
   return (
     <span
-      title={`${t("memory.importance.title", "Importance")}：${label}`}
+      title={`${t("memory.importance.title", "Importance")}:${label}`}
       style={{ color: "#faad14", fontSize: 13, letterSpacing: 1 }}
     >
       {"★".repeat(n)}

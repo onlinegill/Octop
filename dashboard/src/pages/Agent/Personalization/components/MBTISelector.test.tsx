@@ -1,5 +1,5 @@
 /**
- * MBTISelector.test.tsx — the "n personalities, selected 「…」" toolbar line.
+ * MBTISelector.test.tsx — the "n personalities available, selected …" toolbar line.
  *
  * What we cover:
  *   - an agent with no MBTI configured never renders empty quotes (#973)
@@ -32,12 +32,8 @@ import MBTISelector from "./MBTISelector";
 
 const INFJ: MBTIType = {
   code: "INFJ",
-  name_zh: "提倡者",
   name_en: "Advocate",
-  nickname_zh: "提倡者",
-  summary_zh: "理想主义者",
   summary_en: "Idealist",
-  descriptors_zh: "安静",
   descriptors_en: "Quiet",
   dimensions: { ei: ["I", 70], sn: ["N", 60], tf: ["F", 55], jp: ["J", 50] },
   behavior: {
@@ -47,19 +43,15 @@ const INFJ: MBTIType = {
     creativity: "",
     emotion: "",
     planning: "",
-    answer_style_zh: "",
-    casual_chat_zh: "",
-    conflict_zh: "",
-    creativity_zh: "",
-    emotion_zh: "",
-    planning_zh: "",
   },
   color: "#888",
   symbol: "S",
 };
 
 const meta = (total: number) =>
-  screen.findByText(new RegExp(`当前有（${total}）个人格`));
+  screen.findByText(new RegExp(`${total} personalities available`), undefined, {
+    timeout: 5000,
+  });
 
 describe("<MBTISelector /> selection line", () => {
   beforeEach(() => {
@@ -75,8 +67,8 @@ describe("<MBTISelector /> selection line", () => {
 
     render(<MBTISelector agentId="ag1" />);
 
-    expect(await meta(1)).toHaveTextContent("当前有（1）个人格，尚未选择人格");
-    expect((await meta(1)).textContent).not.toContain("「」");
+    expect(await meta(1)).toHaveTextContent("1 personalities available, none selected");
+    expect((await meta(1)).textContent).not.toContain("“”");
   });
 
   it("keeps showing code and name for a configured personality", async () => {
@@ -87,7 +79,9 @@ describe("<MBTISelector /> selection line", () => {
 
     render(<MBTISelector agentId="ag1" />);
 
-    expect(await meta(1)).toHaveTextContent("已选中「INFJ 提倡者」");
+    expect(await meta(1)).toHaveTextContent(
+      "1 personalities available, selected “INFJ Advocate”",
+    );
   });
 
   it("falls back to the bare code when the catalogue lacks it", async () => {
@@ -99,6 +93,8 @@ describe("<MBTISelector /> selection line", () => {
 
     render(<MBTISelector agentId="ag1" showHeader={false} />);
 
-    expect(await meta(0)).toHaveTextContent("已选中「ENTP」");
+    expect(await meta(0)).toHaveTextContent(
+      "0 personalities available, selected “ENTP”",
+    );
   });
 });

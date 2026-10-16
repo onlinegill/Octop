@@ -1,7 +1,7 @@
 /**
- * Skills page — two-tab layout: Installed skills + SkillHub marketplace.
+ * Skills page — layout: Installed skills + shared skill packages.
  *
- * Visuals match finnie. Tab-bar and hub card styles are at the bottom of
+ * Visuals match finnie. Tab-bar and card styles are at the bottom of
  * this file.
  */
 
@@ -490,7 +490,7 @@
   #skills-grid-layout();
 }
 
-// Shared card chrome for installed + SkillHub marketplace grids.
+// Shared card chrome for installed skill grids.
 #skills-card-shell() {
   background: var(--fn-bg-primary);
   border: 1px solid var(--fn-card-border-normal);
@@ -786,31 +786,6 @@
   }
 }
 
-// ── SkillHub tab ──────────────────────────────────────────────────────────────
-
-.skillHubContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.skillHubToolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.skillHubSearch {
-  flex: 1;
-  max-width: 480px;
-}
-
-.communityNote {
-  font-size: 12px;
-  color: var(--fn-text-quaternary, #9ca3af);
-  margin-bottom: 16px;
-}
 
 .hubGrid {
   #skills-grid-layout();

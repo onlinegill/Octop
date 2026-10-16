@@ -14,19 +14,19 @@ import {
 } from "../../../../api/modules/memoryDashboard";
 
 const KIND_OPTIONS: { value: AtomKind; label: string }[] = [
-  { value: "Fact", label: "事实" },
-  { value: "Preference", label: "偏好" },
-  { value: "Decision", label: "决定" },
-  { value: "Task", label: "任务" },
+  { value: "Fact", label: "Facts" },
+  { value: "Preference", label: "Preference" },
+  { value: "Decision", label: "Decide" },
+  { value: "Task", label: "Task" },
 ];
 
 const ENTITY_TYPE_OPTIONS = [
-  { value: "Fact", label: "事实" },
-  { value: "Person", label: "人物" },
-  { value: "User", label: "用户" },
-  { value: "Project", label: "项目" },
-  { value: "Decision", label: "决定" },
-  { value: "Task", label: "任务" },
+  { value: "Fact", label: "Facts" },
+  { value: "Person", label: "Characters" },
+  { value: "User", label: "User" },
+  { value: "Project", label: "Project" },
+  { value: "Decision", label: "Decide" },
+  { value: "Task", label: "Task" },
 ];
 
 interface Props {
@@ -109,7 +109,7 @@ export default function CreateAtomModal({
           message.error(
             t("memory.create.failed", {
               message: (e as Error).message ?? e,
-              defaultValue: "添加失败：{{message}}",
+              defaultValue: "Add failed:{{message}}",
             }),
           );
           throw e;
@@ -169,7 +169,7 @@ export default function CreateAtomModal({
                   required: true,
                   message: t(
                     "memory.create.topicNameRequired",
-                    "请填写主题名称",
+                    "Please fill in the topic name",
                   ),
                 },
               ]}
@@ -177,7 +177,7 @@ export default function CreateAtomModal({
               <Input
                 placeholder={t(
                   "memory.create.topicNamePlaceholder",
-                  "例如：饮品偏好",
+                  "For example: drink preferences",
                 )}
               />
             </Form.Item>
@@ -207,7 +207,7 @@ export default function CreateAtomModal({
             rows={4}
             placeholder={t(
               "memory.create.assertionPlaceholder",
-              "例如：喜欢喝美式咖啡",
+              "For example: I like to drink Americano coffee",
             )}
           />
         </Form.Item>

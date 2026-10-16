@@ -7,7 +7,7 @@ import { TurnProcessBlocks } from "./TurnProcessBlocks";
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, opts?: { name?: string }) =>
-      key === "chat.teamHostHover" ? `[${opts?.name ?? ""}] 主持人` : key,
+      key === "chat.teamHostHover" ? `[${opts?.name ?? ""}] Moderator` : key,
   }),
 }));
 
@@ -15,20 +15,20 @@ vi.mock("../../../context/AgentContext", () => ({
   useAgent: () => ({
     activeAgent: {
       agent_id: "host",
-      name: "主持团队",
+      name: "Hosting team",
       kind: "team",
       icon_name: "bot",
     },
     agents: [
       {
         agent_id: "host",
-        name: "主持团队",
+        name: "Hosting team",
         kind: "team",
         icon_name: "bot",
       },
       {
         agent_id: "doctor",
-        name: "临床辅助专家",
+        name: "Clinical assistant specialist",
         icon_name: "sparkles",
       },
     ],
@@ -71,7 +71,7 @@ describe("TurnProcessBlocks team speaker chrome", () => {
       </ChatAgentProfileProvider>,
     );
     expect(
-      screen.getByRole("button", { name: "[主持团队] 主持人" }),
+      screen.getByRole("button", { name: "[Hosting team] Moderator" }),
     ).toBeInTheDocument();
   });
 
@@ -88,7 +88,7 @@ describe("TurnProcessBlocks team speaker chrome", () => {
         />
       </ChatAgentProfileProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "临床辅助专家" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clinical assistant specialist" }));
     expect(onOpen).toHaveBeenCalledWith("doctor");
   });
 });

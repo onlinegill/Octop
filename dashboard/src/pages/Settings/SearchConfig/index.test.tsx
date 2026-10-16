@@ -37,7 +37,7 @@ describe("<SearchConfigPage />", () => {
     render(<SearchConfigPage />);
     await waitFor(() => expect(api.listEnvs).toHaveBeenCalled());
 
-    expect(screen.getByText("当前搜索源：内置搜索")).toBeInTheDocument();
+    expect(screen.getByText("Current search source: built-in search")).toBeInTheDocument();
   });
 
   it("shows the configured provider as the current search source", async () => {
@@ -46,6 +46,6 @@ describe("<SearchConfigPage />", () => {
     render(<SearchConfigPage />);
     await waitFor(() => expect(api.listEnvs).toHaveBeenCalled());
 
-    expect(screen.getByText("当前搜索源：Tavily")).toBeInTheDocument();
+    expect(screen.getByText("Current search source:Tavily")).toBeInTheDocument();
   });
 });

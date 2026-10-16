@@ -9,10 +9,8 @@ import {
 
 export type { UiLocale } from "./utils/localePrefs";
 
-async function loadLocaleBundle(locale: UiLocale) {
-  if (locale === "zh") {
-    return (await import("./locales/zh.json")).default;
-  }
+async function loadLocaleBundle(_locale: UiLocale) {
+  // English-only fork: a single locale bundle ships with the dashboard.
   return (await import("./locales/en.json")).default;
 }
 

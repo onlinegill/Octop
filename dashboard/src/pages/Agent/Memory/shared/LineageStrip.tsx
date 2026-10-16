@@ -116,7 +116,7 @@ export default function LineageStrip({ agentId, atom }: Props) {
           </Typography.Text>
           {correctionText ? (
             <div style={{ marginTop: 4, fontSize: 12, color: "#595959" }}>
-              {t("memory.lineage.beforeCorrection", "修正前：{{assertion}}", {
+              {t("memory.lineage.beforeCorrection", "Before correction: {{assertion}}", {
                 assertion: correctionText,
               })}
             </div>

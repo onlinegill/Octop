@@ -59,9 +59,9 @@ describe("resolvePluginUiData", () => {
   it("resolves data_ref envelopes from the artifact", () => {
     const parsed = parseOctopToolOutput(
       JSON.stringify({
-        octop_ui: { renderer: "bilibili_player", version: 1 },
+        octop_ui: { renderer: "example_player", version: 1 },
         data_ref: "artifact",
-        text: "找到 1 部番剧。",
+        text: "Found 1 A drama series.",
       }),
     );
     expect(parsed.data).toBeUndefined();
@@ -71,7 +71,7 @@ describe("resolvePluginUiData", () => {
   it("explicit data wins over data_ref/artifact (patched state)", () => {
     const patched = mergePatchedToolOutput(
       JSON.stringify({
-        octop_ui: { renderer: "bilibili_player" },
+        octop_ui: { renderer: "example_player" },
         data_ref: "artifact",
       }),
       { results: [], current_episode: 5 },
@@ -106,7 +106,7 @@ describe("resolvePluginUiData", () => {
   it("keeps the slim envelope when artifact is missing", () => {
     const parsed = parseOctopToolOutput(
       JSON.stringify({
-        octop_ui: { renderer: "bilibili_player" },
+        octop_ui: { renderer: "example_player" },
         data_ref: "artifact",
       }),
     );

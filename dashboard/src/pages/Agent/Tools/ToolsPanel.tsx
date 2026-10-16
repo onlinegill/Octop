@@ -74,8 +74,8 @@ function pluginToolTitle(tool: ToolSettingsItem): string {
   if (tool.label && !/^[a-zA-Z0-9_-]+$/.test(tool.label)) return tool.label;
   const desc = tool.description?.trim();
   if (desc) {
-    const stripped = desc.replace(/^\[原名:\s*.+?\]\s*/, "");
-    const phrase = stripped.split(/[，,。！？.!?\n]/)[0]?.trim();
+    const stripped = desc.replace(/^\[Original name:\s*.+?\]\s*/, "");
+    const phrase = stripped.split(/[,.!?\n]/)[0]?.trim();
     if (phrase && phrase.length >= 2 && phrase.length <= 36) return phrase;
   }
   return tool.label || tool.name;
@@ -411,7 +411,7 @@ export default function ToolsPanel({
                         const showDesc =
                           !!tool.description &&
                           tool.description !== title &&
-                          !tool.description.startsWith(`[原名: ${title}]`);
+                          !tool.description.startsWith(`[Original name: ${title}]`);
                         return (
                           <div
                             key={key}
@@ -445,7 +445,7 @@ export default function ToolsPanel({
                                   title={tool.description ?? undefined}
                                 >
                                   {tool.description?.replace(
-                                    /^\[原名:\s*.+?\]\s*/,
+                                    /^\[Original name:\s*.+?\]\s*/,
                                     "",
                                   )}
                                 </div>

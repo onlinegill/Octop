@@ -42,16 +42,16 @@ describe("<AtomsList />", () => {
   it("loads with default pagination and renders atom rows", async () => {
     api.listAtoms.mockResolvedValue(
       listAtomsResp([
-        makeAtom({ id: "atom-1", assertion: "用户喜欢喝美式咖啡。" }),
-        makeAtom({ id: "atom-2", assertion: "用户来自上海。", kind: "Fact" }),
+        makeAtom({ id: "atom-1", assertion: "Users like to drink Americano coffee." }),
+        makeAtom({ id: "atom-2", assertion: "The user is from Shanghai.", kind: "Fact" }),
       ]),
     );
 
     render(<AtomsList agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getByText("用户喜欢喝美式咖啡。")).toBeInTheDocument();
-      expect(screen.getByText("用户来自上海。")).toBeInTheDocument();
+      expect(screen.getByText("Users like to drink Americano coffee.")).toBeInTheDocument();
+      expect(screen.getByText("The user is from Shanghai.")).toBeInTheDocument();
     });
 
     expect(api.listAtoms).toHaveBeenCalledWith("ZYWZTD", {
@@ -65,10 +65,10 @@ describe("<AtomsList />", () => {
   it("derives active/deprecated from deprecated_at in the drawer", async () => {
     api.listAtoms.mockResolvedValue(
       listAtomsResp([
-        makeAtom({ id: "live", assertion: "在用记忆。", deprecated_at: null }),
+        makeAtom({ id: "live", assertion: "Using memory.", deprecated_at: null }),
         makeAtom({
           id: "dead",
-          assertion: "已弃用记忆。",
+          assertion: "Memory is deprecated.",
           deprecated_at: "2026-06-28T00:00:00Z",
         }),
       ]),
@@ -78,22 +78,22 @@ describe("<AtomsList />", () => {
     render(<AtomsList agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getByText("在用记忆。")).toBeInTheDocument();
+      expect(screen.getByText("Using memory.")).toBeInTheDocument();
     });
 
     // Active atom: drawer has the deprecate action.
-    await user.click(screen.getByText("在用记忆。"));
+    await user.click(screen.getByText("Using memory."));
     await waitFor(() => {
-      expect(screen.getByText("弃用这条记忆")).toBeInTheDocument();
+      expect(screen.getByText("Deprecate this memory")).toBeInTheDocument();
     });
-    expect(screen.getByText("在用")).toBeInTheDocument();
+    expect(screen.getByText("In use")).toBeInTheDocument();
 
     // Deprecated atom: no deprecate button, forgotten label is shown.
-    await user.click(screen.getByText("已弃用记忆。"));
+    await user.click(screen.getByText("Memory is deprecated."));
     await waitFor(() => {
-      expect(screen.getAllByText("已忘记").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Forgot").length).toBeGreaterThanOrEqual(1);
     });
-    expect(screen.queryByText("弃用这条记忆")).not.toBeInTheDocument();
+    expect(screen.queryByText("Deprecate this memory")).not.toBeInTheDocument();
   });
 
   it("renders Empty when API returns no items", async () => {
@@ -103,7 +103,7 @@ describe("<AtomsList />", () => {
       expect(api.listAtoms).toHaveBeenCalledTimes(1);
     });
     expect(
-      await screen.findByText(/还没有记忆。开始对话后/),
+      await screen.findByText(/No memory yet. Once you start a conversation/),
     ).toBeInTheDocument();
   });
 
@@ -112,8 +112,8 @@ describe("<AtomsList />", () => {
       listAtomsResp([
         makeAtom({
           id: "atom-1",
-          assertion: "用户喜欢喝美式咖啡。",
-          verbatim_quote: "我每天早上都喝美式咖啡，奶咖伤胃",
+          assertion: "Users like to drink Americano coffee.",
+          verbatim_quote: "I drink Americano every morning, milk coffee hurts my stomach",
         }),
       ]),
     );
@@ -122,15 +122,15 @@ describe("<AtomsList />", () => {
     render(<AtomsList agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getByText("用户喜欢喝美式咖啡。")).toBeInTheDocument();
+      expect(screen.getByText("Users like to drink Americano coffee.")).toBeInTheDocument();
     });
-    await user.click(screen.getByText("用户喜欢喝美式咖啡。"));
+    await user.click(screen.getByText("Users like to drink Americano coffee."));
 
     await waitFor(() => {
       // Drawer renders verbatim_quote in a Paragraph. LineageStrip may also render
       // the same verbatim as a fallback source-conversation quote, so >1 match is possible.
       expect(
-        screen.getAllByText(/每天早上都喝美式咖啡/).length,
+        screen.getAllByText(/Americano every morning/).length,
       ).toBeGreaterThanOrEqual(1);
     });
   });
@@ -140,8 +140,8 @@ describe("<AtomsList />", () => {
       listAtomsResp([
         makeAtom({
           id: "atom-corrected",
-          assertion: "用户喜欢喝拿铁。",
-          verbatim_quote: "我每天早上都喝美式咖啡",
+          assertion: "Users like to drink lattes.",
+          verbatim_quote: "I drink Americano every morning",
         }),
       ]),
     );
@@ -153,8 +153,8 @@ describe("<AtomsList />", () => {
           action: "user_edit",
           actor: "user",
           target_atom_id: "atom-corrected",
-          before: { assertion: "用户喜欢喝美式咖啡。", atom_id: "atom-old" },
-          after: { assertion: "用户喜欢喝拿铁。", atom_id: "atom-corrected" },
+          before: { assertion: "Users like to drink Americano coffee.", atom_id: "atom-old" },
+          after: { assertion: "Users like to drink lattes.", atom_id: "atom-corrected" },
         },
       ],
       total: 1,
@@ -163,7 +163,7 @@ describe("<AtomsList />", () => {
 
     const user = userEvent.setup();
     render(<AtomsList agentId="ZYWZTD" />);
-    await user.click(await screen.findByText("用户喜欢喝拿铁。"));
+    await user.click(await screen.findByText("Users like to drink lattes."));
 
     await waitFor(() => {
       expect(api.listJournal).toHaveBeenCalledWith("ZYWZTD", {
@@ -172,10 +172,10 @@ describe("<AtomsList />", () => {
         limit: 1,
       });
     });
-    expect(await screen.findByText(/人工修正的记忆/)).toBeInTheDocument();
+    expect(await screen.findByText(/Manually corrected memory/)).toBeInTheDocument();
     expect(
-      screen.getByText("修正前：用户喜欢喝美式咖啡。"),
+      screen.getByText("Before correction: Users like to drink Americano coffee."),
     ).toBeInTheDocument();
-    expect(screen.getByText(/原始来源上下文：/)).toBeInTheDocument();
+    expect(screen.getByText(/Original source context:/)).toBeInTheDocument();
   });
 });

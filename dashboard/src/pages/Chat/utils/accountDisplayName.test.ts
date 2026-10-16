@@ -29,7 +29,7 @@ describe("accountDisplayName", () => {
 describe("accountInitials", () => {
   it("uses the first character, matching the account avatar", () => {
     expect(accountInitials("Ada")).toBe("A");
-    expect(accountInitials("李雷")).toBe("李");
+    expect(accountInitials("Li Lei")).toBe("L");
     expect(accountInitials("")).toBe("?");
   });
 });

@@ -23,7 +23,7 @@ export default function AppVersionBadge({ isMobile }: AppVersionBadgeProps) {
   const tooltip = t("header.versionUpdateAvailable", {
     current: status.current_version,
     latest: status.latest_version,
-    defaultValue: `当前 v${status.current_version}，新版本 v${status.latest_version} 可用，点击前往更新`,
+    defaultValue: `Current v${status.current_version}, new version v${status.latest_version} Available, click to update`,
   });
 
   const handleClick = () => {

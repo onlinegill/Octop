@@ -146,7 +146,7 @@ export function ProviderCard({
   })();
 
   // Try lookup by name, lowercase name, then fall back to custom logo.
-  // Provider names like "DeepSeek" → "deepseek", "Tencent Cloud Coding Plan" → try both.
+  // Try the raw provider name and its lowercase slug.
   const nameSlug = provider.name.toLowerCase().replace(/\s+/g, "-");
   const logo =
     getProviderLogo(provider.name) ??

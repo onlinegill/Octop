@@ -88,7 +88,7 @@ describe("thinking display preference", () => {
 
   it("shows a live hint while a tool is running", () => {
     render(<AssistantProcessSummary split={runningToolSplit()} isStreaming />);
-    expect(screen.getByText(/正在调用工具|Calling tools/)).toBeInTheDocument();
+    expect(screen.getByText(/Calling tool|Calling tools/)).toBeInTheDocument();
     expect(screen.getByRole("button")).toHaveAttribute("aria-busy", "true");
   });
 
@@ -109,7 +109,7 @@ describe("thinking display preference", () => {
     };
     render(<AssistantProcessSummary split={split} isStreaming />);
     expect(
-      screen.getByText(/整理结果中|Organizing results/),
+      screen.getByText(/Sorting results|Organizing results/),
     ).toBeInTheDocument();
   });
 
@@ -120,7 +120,7 @@ describe("thinking display preference", () => {
         <AssistantProcessSummary split={thinkingSplit()} isStreaming />
       </>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "更多" }));
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
     const preference = await screen.findByRole("switch", {
       name: "chat.collapseThinking",
     });
@@ -138,7 +138,7 @@ describe("thinking display preference", () => {
       </>,
     );
     expect(screen.queryByText("Thinking content")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "更多" }));
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
     expect(
       await screen.findByRole("switch", { name: "chat.collapseThinking" }),
     ).toBeChecked();
@@ -152,7 +152,7 @@ describe("thinking display preference", () => {
       </>,
     );
     expect(screen.queryByText("Thinking content")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "更多" }));
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
     const preference = await screen.findByRole("switch", {
       name: "chat.collapseThinking",
     });
@@ -195,7 +195,7 @@ describe("thinking display preference", () => {
         <AssistantProcessSummary split={thinkingSplit()} isStreaming />
       </>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "更多" }));
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
     const preference = await screen.findByRole("switch", {
       name: "chat.collapseThinking",
     });
@@ -203,7 +203,7 @@ describe("thinking display preference", () => {
     fireEvent.click(preference);
     expect(localStorage.getItem(COLLAPSE_THINKING_SOLO_KEY)).toBe("false");
     expect(screen.getByText("Thinking content")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "更多" }));
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
     expect(
       await screen.findByRole("switch", { name: "chat.collapseThinking" }),
     ).not.toBeChecked();

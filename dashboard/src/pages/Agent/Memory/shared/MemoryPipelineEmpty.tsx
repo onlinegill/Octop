@@ -65,7 +65,7 @@ export default function MemoryPipelineEmpty({ agentId }: Props) {
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description={t(
           "memory.pipeline.emptyNoRaw",
-          "还没有记忆。开始对话后，系统会自动捕获素材并提炼记忆。",
+          "No memory yet. Once you start a conversation, the system automatically captures the footage and refines the memory.",
         )}
       />
     );
@@ -87,7 +87,7 @@ export default function MemoryPipelineEmpty({ agentId }: Props) {
       >
         {t(
           "memory.pipeline.emptyWithRaw",
-          "已捕获 {{n}} 条对话记忆。记忆提炼会在会话空闲后自动运行，首批记忆通常在几轮对话后出现。",
+          "Captured {{n}} Dialogue memory. Memory retrieval runs automatically after a session becomes idle, with the first memories usually appearing after a few rounds of dialogue.",
           { n: rawCount },
         )}
         {pendingCount > 0 ? (
@@ -95,7 +95,7 @@ export default function MemoryPipelineEmpty({ agentId }: Props) {
             {" "}
             {t(
               "memory.pipeline.emptyPendingSuffix",
-              "另有 {{n}} 条候选记忆待确认，请前往「记忆沉淀」查看。",
+              "Also {{n}} Candidate memories are yet to be confirmed, please go to “Memory Precipitation” to view.",
               { n: pendingCount },
             )}
           </>

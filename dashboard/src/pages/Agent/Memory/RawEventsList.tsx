@@ -30,16 +30,16 @@ const EVENT_TYPE_OPTIONS: {
   labelKey: string;
   fallback: string;
 }[] = [
-  { value: "", labelKey: "memory.raw.typeAll", fallback: "全部类型" },
+  { value: "", labelKey: "memory.raw.typeAll", fallback: "All types" },
   {
     value: "user_message",
     labelKey: "memory.raw.typeUser",
-    fallback: "用户消息",
+    fallback: "User messages",
   },
   {
     value: "assistant_message",
     labelKey: "memory.raw.typeAssistant",
-    fallback: "AI 回复",
+    fallback: "AI Reply",
   },
 ];
 

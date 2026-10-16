@@ -119,12 +119,6 @@ export interface ConnectorProbeResult {
   };
 }
 
-export interface WeKnoraLocalDetection {
-  found: boolean;
-  base_url?: string;
-  console_url?: string;
-}
-
 export type CustomMcpTransport = "streamable_http" | "stdio";
 
 export interface CustomMcpOAuthPreview {
@@ -170,39 +164,9 @@ export interface ConnectorCliInstallResult {
   error?: string;
 }
 
-export interface FeishuUserAuthStartResult {
-  device_code: string;
-  verification_url: string;
-  expires_in?: number | null;
-  user_code?: string | null;
-  hint?: string | null;
-  cli_config_key: string;
-}
-
-export interface FeishuUserAuthCompleteResult {
-  ok: boolean;
-  identity: string;
-  default_as: string;
-  user_available: boolean;
-  bot_available?: boolean;
-  search_docs_scope?: boolean;
-  warning?: string | null;
-  cli_config_key: string;
-}
-
-export interface AgentlyAuthStatus {
-  status: "idle" | "pending" | "authorized" | "expired" | "error";
-  verification_url: string | null;
-  user_code: string | null;
-  expires_at: number | null;
-  error: string | null;
-}
-
 export const connectorsApi = {
   catalog: () => request<ConnectorCatalogEntry[]>("/connectors/catalog"),
 
-  detectLocalWeKnora: () =>
-    request<WeKnoraLocalDetection>("/connectors/weknora/detect-local"),
 
   listInstances: (agentId?: string | null) =>
     request<ConnectorInstance[]>("/connector-instances", {
@@ -323,67 +287,6 @@ export const connectorsApi = {
     request<ConnectorCliInstallResult>(
       `/connectors/${encodeURIComponent(kind)}/install-cli`,
       { method: "POST" },
-    ),
-
-  agentlyAuth: (
-    instanceId: string,
-    action: "start" | "status" | "logout" | "refresh",
-  ) =>
-    request<AgentlyAuthStatus>(
-      `/connector-instances/${encodeURIComponent(
-        instanceId,
-      )}/agently-auth/${action}`,
-      { method: action === "status" ? "GET" : "POST" },
-    ),
-
-  feishuUserAuthStart: (body: {
-    app_id: string;
-    app_secret: string;
-    cli_config_key?: string;
-    domains?: string[];
-  }) =>
-    request<FeishuUserAuthStartResult>(
-      "/connectors/feishu-cli/user-auth/start",
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-      },
-    ),
-
-  feishuUserAuthComplete: (body: {
-    app_id: string;
-    app_secret: string;
-    device_code: string;
-    cli_config_key: string;
-  }) =>
-    request<FeishuUserAuthCompleteResult>(
-      "/connectors/feishu-cli/user-auth/complete",
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-      },
-    ),
-
-  feishuUserAuthStartInstance: (instanceId: string) =>
-    request<FeishuUserAuthStartResult>(
-      `/connector-instances/${encodeURIComponent(
-        instanceId,
-      )}/feishu-user-auth/start`,
-      { method: "POST" },
-    ),
-
-  feishuUserAuthCompleteInstance: (
-    instanceId: string,
-    body: { device_code: string; cli_config_key?: string },
-  ) =>
-    request<FeishuUserAuthCompleteResult>(
-      `/connector-instances/${encodeURIComponent(
-        instanceId,
-      )}/feishu-user-auth/complete`,
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-      },
     ),
 
   getCustomMcp: () =>

@@ -16,9 +16,6 @@ vi.mock("../../../api/modules/sso", () => ({
     getOauthProvider: vi.fn(),
     putOauthProvider: vi.fn(),
     testOauthProvider: vi.fn(),
-    getFeishuConfig: vi.fn(),
-    putFeishuConfig: vi.fn(),
-    testFeishuConfig: vi.fn(),
   },
 }));
 

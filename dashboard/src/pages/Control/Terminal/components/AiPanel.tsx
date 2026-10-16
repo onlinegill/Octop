@@ -55,7 +55,7 @@ function findOpsEngineer(agents: OctopAgent[]): OctopAgent | null {
       return (
         name.includes("ops") ||
         name.includes("engineer") ||
-        name.includes("运维")
+        name.includes("Operation and maintenance")
       );
     }) ?? null
   );

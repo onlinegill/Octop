@@ -14,7 +14,7 @@ import type { ConnectorCatalogEntry } from "../../../api/modules/connectors";
 import { ConnectorCard } from "./ConnectorCard";
 
 const LONG_NAME =
-  "一个名称特别长的内置连接器用于验证目录卡片标题截断与悬停提示";
+  "A built-in connector with particularly long names for validating catalog card title truncation and hover prompts";
 
 function makeEntry(
   overrides: Partial<ConnectorCatalogEntry> = {},
