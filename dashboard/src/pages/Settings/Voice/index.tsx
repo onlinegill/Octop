@@ -1,14 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Button,
-  Divider,
-  Drawer,
-  Form,
-  Input,
-  Select,
-  Switch,
-  Typography,
-} from "antd";
+import { Button, Divider, Drawer, Form, Input, Select, Typography } from "antd";
 import { message } from "@/utils/antdMessage";
 
 import { Activity, Mic2, Check, Settings2 } from "lucide-react";
@@ -44,11 +35,72 @@ export function VoiceSettingsPanel() {
   const [loading, setLoading] = useState(true);
   const [configure, setConfigure] = useState<ConfigureState | null>(null);
   const [apiKey, setApiKey] = useState("");
+  const [secretId, setSecretId] = useState("");
+  const [secretKey, setSecretKey] = useState("");
+  const [mimoEndpoint, setMimoEndpoint] = useState<"payg" | "tokenplan">(
+    "payg",
+  );
+  const [mimoVoiceId, setMimoVoiceId] = useState("冰糖");
+  const [saving, setSaving] = useState(false);
+  const [probing, setProbing] = useState(false);
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [presetList, rows, activeVoice] = await Promise.all([
+        voiceApi.getPresets(),
+        voiceApi.getProviders(),
+        voiceApi.getActive(),
+      ]);
+      setPresets(presetList);
+      setProviders(rows);
+      setActive(activeVoice);
+    } catch (err) {
+      message.error(t("voice.loadError"));
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    void fetchAll();
+  }, [fetchAll]);
+
+  const sttPresets = useMemo(
+    () =>
+      presets.filter((p) => p.capability === "stt" || p.capability === "both"),
+    [presets],
+  );
+  const ttsPresets = useMemo(
+    () =>
+      presets.filter((p) => p.capability === "tts" || p.capability === "both"),
+    [presets],
+  );
+
+  const findConfigured = (preset: VoicePreset) =>
+    providers.find((p) => p.name === preset.id || p.name === preset.name);
+
+  const setActiveProvider = async (kind: "stt" | "tts", name: string) => {
+    try {
+      const next = await voiceApi.setActive(
+        kind === "stt" ? { stt: name } : { tts: name },
+      );
+      setActive(next);
+      invalidateVoiceConfigCache();
+      message.success(t("voice.activeUpdated"));
+    } catch {
+      message.error(t("voice.activeUpdateFailed"));
+    }
+  };
+
+  const openConfigure = (preset: VoicePreset) => {
+    const existing = findConfigured(preset);
+    setConfigure({ preset, existing });
+    setApiKey(existing?.api_key ?? "");
     const extra = existing?.extra ?? {};
     setSecretId(String(extra.secret_id ?? ""));
     setSecretKey(String(extra.secret_key ?? ""));
-    setRealtimeStt(extra.realtime_stt === true);
-    setAppId(String(extra.app_id ?? ""));
     setMimoEndpoint(extra.endpoint_type === "tokenplan" ? "tokenplan" : "payg");
     setMimoVoiceId(String(extra.voice_id ?? "冰糖"));
   };
@@ -63,8 +115,6 @@ export function VoiceSettingsPanel() {
         secret_id: secretId,
         secret_key: secretKey,
         region: "ap-guangzhou",
-        realtime_stt: realtimeStt,
-        app_id: appId.trim() || undefined,
       };
     } else if (preset.kind === "edge") {
       extra = { voice_id: "zh-CN-XiaoxiaoNeural" };
@@ -85,19 +135,23 @@ export function VoiceSettingsPanel() {
       kind: preset.kind,
       capability: preset.capability,
       base_url: baseUrl,
-      api_key: apiKey || null,
+      api_key:
+        preset.kind === "tencent"
+          ? secretId && secretKey
+            ? `${secretId}:${secretKey}`
+            : null
+          : apiKey || null,
       extra_json: JSON.stringify(extra),
     };
   };
 
   const validateCredentials = () => {
     if (!configure?.preset.requires_key) return true;
-    const complete = Boolean(apiKey.trim());
+    const complete =
+      configure.preset.kind === "tencent"
+        ? Boolean(secretId.trim() && secretKey.trim())
+        : Boolean(apiKey.trim());
     if (!complete) message.warning(t("voice.credentialsRequired"));
-    if (complete && realtimeStt && !appId.trim()) {
-      message.warning(t("voice.realtimeAppIdRequired"));
-      return false;
-    }
     return complete;
   };
 
@@ -138,9 +192,6 @@ export function VoiceSettingsPanel() {
       } else {
         await voiceApi.createProvider(payload);
       }
-      // The active payload carries `stt_realtime`, so drop the cache even when
-      // the active provider itself does not change (e.g. the switch was toggled).
-      invalidateVoiceConfigCache();
       if (
         preset.kind !== "browser" &&
         (preset.capability === "stt" || preset.capability === "both") &&
@@ -148,6 +199,7 @@ export function VoiceSettingsPanel() {
       ) {
         const next = await voiceApi.setActive({ stt: preset.id });
         setActive(next);
+        invalidateVoiceConfigCache();
       }
       if (
         preset.kind !== "browser" &&
@@ -156,6 +208,7 @@ export function VoiceSettingsPanel() {
       ) {
         const next = await voiceApi.setActive({ tts: preset.id });
         setActive(next);
+        invalidateVoiceConfigCache();
       }
       message.success(t("voice.saved"));
       setConfigure(null);
@@ -366,26 +419,6 @@ export function VoiceSettingsPanel() {
                   onChange={(e) => setSecretKey(e.target.value)}
                 />
               </Form.Item>
-              <Form.Item
-                label={t("voice.realtimeStt")}
-                style={{ marginBottom: 8 }}
-              >
-                <Switch checked={realtimeStt} onChange={setRealtimeStt} />
-              </Form.Item>
-              <Form.Item label="AppID" required={realtimeStt}>
-                <Input
-                  placeholder="1300000000"
-                  value={appId}
-                  disabled={!realtimeStt}
-                  inputMode="numeric"
-                  onChange={(e) => setAppId(e.target.value)}
-                />
-              </Form.Item>
-              {realtimeStt && (
-                <div className={styles.drawerHint}>
-                  {t("voice.realtimeSttHint")}
-                </div>
-              )}
             </>
           )}
           {configure?.preset.kind === "openai" && (
@@ -398,7 +431,7 @@ export function VoiceSettingsPanel() {
                   onChange={(e) => setApiKey(e.target.value)}
                 />
               </Form.Item>
-              <Form.Item label={t("voice.apiEndpoint", "API endpoint")}>
+              <Form.Item label={t("voice.mimoEndpoint")}>
                 <Select
                   value="https://api.openai.com/v1"
                   disabled
@@ -410,6 +443,52 @@ export function VoiceSettingsPanel() {
                   ]}
                 />
               </Form.Item>
+            </>
+          )}
+          {configure?.preset.kind === "mimo" && (
+            <>
+              <div className={styles.drawerHint}>{t("voice.mimoHint")}</div>
+              <Form.Item label={t("voice.mimoEndpoint")} required>
+                <Select
+                  value={mimoEndpoint}
+                  onChange={(v) => setMimoEndpoint(v)}
+                  options={[
+                    {
+                      value: "payg",
+                      label: t("voice.mimoEndpointPayg"),
+                    },
+                    {
+                      value: "tokenplan",
+                      label: t("voice.mimoEndpointTokenplan"),
+                    },
+                  ]}
+                />
+              </Form.Item>
+              <Form.Item label="API Key" required>
+                <Input.Password
+                  placeholder="API Key (sk-... / tp-...)"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                />
+              </Form.Item>
+              {configure.preset.capability === "tts" && (
+                <Form.Item label={t("voice.mimoVoice")}>
+                  <Select
+                    value={mimoVoiceId}
+                    onChange={(v) => setMimoVoiceId(v)}
+                    options={[
+                      { value: "冰糖", label: "冰糖 (中文·女)" },
+                      { value: "茉莉", label: "茉莉 (中文·女)" },
+                      { value: "苏打", label: "苏打 (中文·男)" },
+                      { value: "白桦", label: "白桦 (中文·男)" },
+                      { value: "Mia", label: "Mia (EN·Female)" },
+                      { value: "Chloe", label: "Chloe (EN·Female)" },
+                      { value: "Milo", label: "Milo (EN·Male)" },
+                      { value: "Dean", label: "Dean (EN·Male)" },
+                    ]}
+                  />
+                </Form.Item>
+              )}
             </>
           )}
         </Form>

@@ -1,13 +1,11 @@
 import dify from "./dify.svg";
 import notion from "./notion.png";
-import obsidianCli from "./obsidian-cli.svg";
 import openalex from "./openalex.svg";
-  "tencent-news": tencentNews,
-  "wechat-reading": wechatReading,
-  "youdao-note": youdaoNote,
-  "tencent-weiyun": tencentWeiyun,
-  weknora,
-  "yuque-mcp": yuqueMcp,
+
+export const CONNECTOR_LOGOS: Record<string, string> = {
+  notion,
+  openalex,
+  dify,
 };
 
 export function getConnectorLogo(kind: string): string | undefined {
