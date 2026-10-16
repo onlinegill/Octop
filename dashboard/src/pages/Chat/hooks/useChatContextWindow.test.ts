@@ -10,18 +10,18 @@ import {
 const models: ResolvedModel[] = [
   {
     provider_id: 1,
-    provider_name: "Example Cloud",
+    provider_name: "Tencent Cloud HAI",
     provider_kind: "openai",
-    model: "model-alpha-v1",
-    name: "Model Alpha",
+    model: "MiniMax-M2.7",
+    name: "MiniMax",
     context_window: 1_000_000,
   },
   {
     provider_id: 1,
-    provider_name: "Example Cloud",
+    provider_name: "Tencent Cloud HAI",
     provider_kind: "openai",
-    model: "model-beta-v1",
-    name: "Model Beta",
+    model: "Kimi-K2.5",
+    name: "Kimi",
     context_window: 131_072,
   },
 ];
@@ -32,10 +32,10 @@ describe("useChatContextWindow", () => {
       useChatContextWindow(
         [],
         null,
-        "Example Cloud/model-beta-v1",
+        "Tencent Cloud HAI/Kimi-K2.5",
         models,
         null,
-        "Example Cloud/model-alpha-v1",
+        "Tencent Cloud HAI/MiniMax-M2.7",
       ),
     );
     expect(result.current.contextMaxTokens).toBe(131_072);
@@ -49,7 +49,7 @@ describe("useChatContextWindow", () => {
         null,
         models,
         null,
-        "Example Cloud/model-alpha-v1",
+        "Tencent Cloud HAI/MiniMax-M2.7",
       ),
     );
     expect(result.current.contextMaxTokens).toBe(1_000_000);

@@ -54,8 +54,6 @@ import {
   omitAgentRuntimeConfig,
   readAgentRuntimeFormValues,
 } from "../../../utils/agentRuntimeConfig";
-import { isBridgeAgentId } from "../../../utils/remoteExpert";
-import EditExpertDrawerTitle from "./EditExpertDrawerTitle";
 import { useSkillDisplayName } from "../../Agent/Skills/skillDisplayNames";
 import { DEFAULT_SKILL_EMOJI } from "../../Agent/Skills/skillMarkdown";
 import FileEditModal from "./FileEditModal";
@@ -237,9 +235,8 @@ function EditAgentDrawerBody({
   const [workspaceFiles, setWorkspaceFiles] = useState<string[]>([]);
   const [agentSkills, setAgentSkills] = useState<SkillSummary[]>([]);
   const [agentSubagents, setAgentSubagents] = useState<SubagentSummary[]>([]);
-  const remote = Boolean(agent.bridge) || isBridgeAgentId(agent.agent_id);
   const { models, modelsLoading, backends, backendsLoading } =
-    useAgentFormResources(true, agent.agent_id);
+    useAgentFormResources(true);
   const [pathMappings, setPathMappings] = useState<PathMapping[]>([]);
   const [agentConfig, setAgentConfig] = useState<Record<string, unknown>>({});
   const [colorPalette, setColorPalette] = useState<string>(
@@ -400,7 +397,7 @@ function EditAgentDrawerBody({
         return;
       }
     }
-    if (!remote && shouldProbeRootDir(values.backend_choice, values.root_dir)) {
+    if (shouldProbeRootDir(values.backend_choice, values.root_dir)) {
       const probe = await probeRootDir(values.root_dir ?? "/");
       if (!probe.ok) {
         message.error(
@@ -414,10 +411,7 @@ function EditAgentDrawerBody({
     setSaving(true);
     let bwrapToast: { kind: "success" | "warning"; text: string } | null = null;
     try {
-      if (
-        !remote &&
-        shouldProbeRootDir(values.backend_choice, values.root_dir)
-      ) {
+      if (shouldProbeRootDir(values.backend_choice, values.root_dir)) {
         const bwrap = await ensureBubblewrapAfterProbe();
         const kind = ensureBwrapToastKind(bwrap.status);
         if (kind !== "none") {
@@ -453,7 +447,7 @@ function EditAgentDrawerBody({
 
       // Persist page config before PATCH. Workspace I/O survives the
       // background harness reload; skip when the editor is still loading
-      // or the user never touched Page configuration, so a name/model save cannot
+      // or the user never touched 页面配置, so a name/model save cannot
       // clobber bilingual copy or extra manifest keys.
       const welcomeSnap = welcomeConfigRef.current?.getSnapshot();
       if (
@@ -493,7 +487,7 @@ function EditAgentDrawerBody({
         }),
       });
 
-      if (!remote && !skillPackagesSupported) {
+      if (!skillPackagesSupported) {
         try {
           await skillPackagesApi.replaceMounted(agent.agent_id, []);
         } catch (pkgErr) {
@@ -529,7 +523,6 @@ function EditAgentDrawerBody({
     agent.agent_id,
     agent.state,
     agentConfig,
-    remote,
     colorPalette,
     form,
     iconUrl,
@@ -711,14 +704,6 @@ function EditAgentDrawerBody({
         </div>
       ) : (
         <>
-          {remote ? (
-            <Alert
-              type="info"
-              showIcon
-              message={t("chat.remoteExpert.editBanner")}
-              style={{ marginBottom: 16 }}
-            />
-          ) : null}
           <div className={styles.drawerSection} style={{ marginBottom: 0 }}>
             <div className={styles.drawerSectionTitle}>
               {t("experts.basicInfo")}
@@ -860,13 +845,12 @@ function EditAgentDrawerBody({
                 pathMappings={pathMappings}
                 rootDirMode="edit"
                 disabled
-                skipHostFilesystem={remote}
                 onAddPathMapping={addPathMapping}
                 onRemovePathMapping={removePathMapping}
                 onUpdatePathMapping={updatePathMapping}
               />
               <AgentTrajectoryField />
-              <ExpertComposerDefaultsFields agentId={agent.agent_id} />
+              <ExpertComposerDefaultsFields />
               {!skillPackagesSupported ? (
                 <Alert
                   type="info"
@@ -1376,7 +1360,7 @@ export default function EditAgentDrawer({
   return (
     <Drawer
       open={open}
-      title={<EditExpertDrawerTitle agent={agent} />}
+      title={t("experts.editExpert")}
       width={520}
       onClose={onClose}
       destroyOnHidden

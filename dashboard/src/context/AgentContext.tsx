@@ -146,41 +146,6 @@ function sameMemberIds(left?: string[], right?: string[]): boolean {
   return a.length === b.length && a.every((id, index) => id === b[index]);
 }
 
-/** True when a silent agent refresh would not change chat composer defaults. */
-export function agentsSnapshotEqual(
-  prev: OctopAgent[],
-  next: OctopAgent[],
-): boolean {
-  return (
-    prev.length === next.length &&
-    prev.every((a, i) => {
-      const b = next[i];
-      return (
-        a.agent_id === b.agent_id &&
-        a.state === b.state &&
-        a.unread_count === b.unread_count &&
-        a.bootstrap_pending === b.bootstrap_pending &&
-        a.name === b.name &&
-        a.icon === b.icon &&
-        a.icon_name === b.icon_name &&
-        a.icon_url === b.icon_url &&
-        a.color === b.color &&
-        a.kind === b.kind &&
-        a.bridge === b.bridge &&
-        a.is_owner === b.is_owner &&
-        a.bridge_connection_id === b.bridge_connection_id &&
-        a.bridge_connection_name === b.bridge_connection_name &&
-        a.bridge_disconnected === b.bridge_disconnected &&
-        a.bridge_inbound === b.bridge_inbound &&
-        a.default_model === b.default_model &&
-        sameMemberIds(a.member_ids, b.member_ids) &&
-        sameMemberIds(a.knowledge_base_ids, b.knowledge_base_ids) &&
-        sameMemberIds(a.mcp_servers, b.mcp_servers)
-      );
-    })
-  );
-}
-
 /**
  * Shared projection used by the chat composer (`ChatInput` /
  * ``composerLookups``). Keeps the lightweight ``ChatAgentOption`` shape
@@ -307,26 +272,7 @@ async function fetchBridgeShadowAgents(): Promise<{
   }
 }
 
-function stringIdList(value: unknown): string[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  const ids = value
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  return ids;
-}
-
-/** Peer public config the local composer reads (mode). Other keys stay on the peer. */
-function bridgeShadowConfig(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const mode = (value as Record<string, unknown>).conversation_mode;
-  if (mode === "ask" || mode === "plan" || mode === "craft") {
-    return { conversation_mode: mode };
-  }
-  return {};
-}
-
-export function mapBridgeAgent(
+function mapBridgeAgent(
   agent: {
     id?: string;
     agent_id?: string;
@@ -338,12 +284,6 @@ export function mapBridgeAgent(
     kind?: string | null;
     state?: string | null;
     member_ids?: unknown;
-    is_owner?: boolean;
-    is_shared?: boolean;
-    default_model?: unknown;
-    knowledge_base_ids?: unknown;
-    mcp_servers?: unknown;
-    config?: unknown;
   },
   conn: {
     connection_id: string;
@@ -361,9 +301,6 @@ export function mapBridgeAgent(
         )
         .filter((id): id is string => Boolean(id))
     : undefined;
-  const kind = agent.kind === "team" ? "team" : "expert";
-  const defaultModel =
-    typeof agent.default_model === "string" ? agent.default_model.trim() : "";
   return {
     id: 0,
     agent_id: agentId,
@@ -371,7 +308,7 @@ export function mapBridgeAgent(
     description:
       typeof agent.description === "string" ? agent.description : null,
     persona_mbti: null,
-    default_model: defaultModel || null,
+    default_model: null,
     system_prompt: null,
     template_name: null,
     state: "running",
@@ -380,15 +317,12 @@ export function mapBridgeAgent(
     icon_name: typeof agent.icon_name === "string" ? agent.icon_name : null,
     icon_url: typeof agent.icon_url === "string" ? agent.icon_url : null,
     color: typeof agent.color === "string" ? agent.color : null,
-    config: bridgeShadowConfig(agent.config),
-    knowledge_base_ids: stringIdList(agent.knowledge_base_ids),
-    // Team hosts do not attach connectors; match the local agents list.
-    mcp_servers: kind === "team" ? [] : stringIdList(agent.mcp_servers),
-    kind,
+    config: {},
+    kind: agent.kind === "team" ? "team" : "expert",
     member_ids: memberIds,
     bridge: true,
-    is_owner: agent.is_owner !== false,
-    is_shared: agent.is_shared === true,
+    is_owner: true,
+    is_shared: false,
     bridge_disconnected: false,
     bridge_inbound: Boolean(conn.inbound) || conn.has_password === false,
     bridge_connection_id: conn.connection_id,
@@ -438,7 +372,32 @@ export function AgentProvider({ children }: { children: ReactNode }) {
             list,
             liveConnectionIds,
           );
-          if (!options?.force && agentsSnapshotEqual(prev, merged)) {
+          if (
+            !options?.force &&
+            prev.length === merged.length &&
+            prev.every((a, i) => {
+              const b = merged[i];
+              return (
+                a.agent_id === b.agent_id &&
+                a.state === b.state &&
+                a.unread_count === b.unread_count &&
+                a.bootstrap_pending === b.bootstrap_pending &&
+                a.name === b.name &&
+                a.icon === b.icon &&
+                a.icon_name === b.icon_name &&
+                a.icon_url === b.icon_url &&
+                a.color === b.color &&
+                a.kind === b.kind &&
+                a.bridge === b.bridge &&
+                a.is_owner === b.is_owner &&
+                a.bridge_connection_id === b.bridge_connection_id &&
+                a.bridge_connection_name === b.bridge_connection_name &&
+                a.bridge_disconnected === b.bridge_disconnected &&
+                a.bridge_inbound === b.bridge_inbound &&
+                sameMemberIds(a.member_ids, b.member_ids)
+              );
+            })
+          ) {
             merged = prev;
             return prev; // nothing changed — keep the same reference
           }

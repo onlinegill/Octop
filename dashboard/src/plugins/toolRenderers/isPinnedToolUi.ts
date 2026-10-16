@@ -15,7 +15,7 @@ export function isSilentPluginUiData(data: unknown): boolean {
 /**
  * Tools with custom / structured UI render as sibling blocks outside the
  * foldable process body. They still count toward the summary headline
- * (``Has been called N Secondary tool``); only their detail UI is pinned out of the fold.
+ * (``已调用 N 次工具``); only their detail UI is pinned out of the fold.
  */
 export function isPinnedToolUiMessage(message: ChatMessage): boolean {
   const toolData = message.toolData;
@@ -60,7 +60,6 @@ export function partitionPinnedTools(split: AssistantTurnSplit): {
         (s) => s.kind === "thinking" || !pinnedIds.has(s.message.id),
       ),
       answerMessage: split.answerMessage,
-      errorMessages: split.errorMessages,
     },
   };
 }

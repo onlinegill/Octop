@@ -67,6 +67,10 @@ describe("skillPackagesApi", () => {
   it("uses the package and nested skill endpoints", () => {
     skillPackagesApi.create({ name: "starter", description: "Starter skills" });
     skillPackagesApi.update("pkg-1", { name: "renamed" });
+    skillPackagesApi.fromSkillHub({
+      slug: "starter",
+      icon_name: "sparkles",
+    });
     skillPackagesApi.createSkill("pkg-1", {
       name: "hello",
       content: "---\nname: hello\n---\n",
@@ -85,7 +89,18 @@ describe("skillPackagesApi", () => {
       method: "PATCH",
       body: JSON.stringify({ name: "renamed" }),
     });
-    expect(request).toHaveBeenNthCalledWith(3, "/skill-packages/pkg-1/skills", {
+    expect(request).toHaveBeenNthCalledWith(
+      3,
+      "/skill-packages/from-skillhub",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          slug: "starter",
+          icon_name: "sparkles",
+        }),
+      },
+    );
+    expect(request).toHaveBeenNthCalledWith(4, "/skill-packages/pkg-1/skills", {
       method: "POST",
       body: JSON.stringify({
         name: "hello",
@@ -93,7 +108,7 @@ describe("skillPackagesApi", () => {
       }),
     });
     expect(request).toHaveBeenNthCalledWith(
-      4,
+      5,
       "/skill-packages/pkg-1/skills/hello",
       {
         method: "PUT",
@@ -101,7 +116,7 @@ describe("skillPackagesApi", () => {
       },
     );
     expect(request).toHaveBeenNthCalledWith(
-      5,
+      6,
       "/skill-packages/pkg-1/skills/hello",
       { method: "DELETE" },
     );

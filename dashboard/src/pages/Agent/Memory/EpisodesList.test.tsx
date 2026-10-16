@@ -35,7 +35,7 @@ describe("<EpisodesList />", () => {
       listEpisodesResp([
         makeEpisode({
           id: "ep-1",
-          summary: "I watched a touching movie over the weekend.",
+          summary: "周末看了一场感人的电影。",
           topics: ["movie", "weekend", "emotion"],
         }),
       ]),
@@ -44,7 +44,7 @@ describe("<EpisodesList />", () => {
     render(<EpisodesList agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getByText("I watched a touching movie over the weekend.")).toBeInTheDocument();
+      expect(screen.getByText("周末看了一场感人的电影。")).toBeInTheDocument();
     });
 
     expect(api.listEpisodes).toHaveBeenCalledWith("ZYWZTD", {
@@ -61,9 +61,9 @@ describe("<EpisodesList />", () => {
       listEpisodesResp([
         makeEpisode({
           id: "ep-1",
-          summary: "I did a project with Xiao Li.",
-          verbatim_quote: "Last week, Xiao Li and I paired up and programmed, and finally completed it at three in the morning.",
-          people: ["Xiao Li"],
+          summary: "和小李一起做了个项目。",
+          verbatim_quote: "上周我和小李结对编程，最后凌晨三点完成。",
+          people: ["小李"],
           topics: ["pair-programming"],
         }),
       ]),
@@ -73,14 +73,14 @@ describe("<EpisodesList />", () => {
     render(<EpisodesList agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getByText("I did a project with Xiao Li.")).toBeInTheDocument();
+      expect(screen.getByText("和小李一起做了个项目。")).toBeInTheDocument();
     });
-    await user.click(screen.getByText("I did a project with Xiao Li."));
+    await user.click(screen.getByText("和小李一起做了个项目。"));
 
     await waitFor(() => {
-      expect(screen.getByText(/completed it at three in the morning/)).toBeInTheDocument();
+      expect(screen.getByText(/凌晨三点完成/)).toBeInTheDocument();
     });
-    expect(screen.getAllByText("Xiao Li").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("小李").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders empty state on no items", async () => {

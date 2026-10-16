@@ -26,11 +26,6 @@ import {
   type EditorMode,
   type ServerCardState,
 } from "./customMcpUtils";
-import {
-  isAuthPopupBlocked,
-  navigateAuthWindow,
-  tryOpenAuthPopup,
-} from "./openAuthWindow";
 import styles from "./index.module.less";
 
 interface CustomMcpTabProps {
@@ -177,7 +172,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
         message.warning(
           t(
             "connectors.customMcp.visualInvalid",
-            "The visualization configuration is incomplete. Please correct the name and required fields first.",
+            "可视化配置不完整，请先修正名称与必填项",
           ),
         );
         console.error(e);
@@ -196,13 +191,13 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
         setJsonError(
           t(
             "connectors.customMcp.jsonInvalid",
-            "JSON Invalid format, cannot switch to visualization",
+            "JSON 格式无效，无法切换到可视化",
           ),
         );
         message.error(
           t(
             "connectors.customMcp.jsonInvalid",
-            "JSON Invalid format, cannot switch to visualization",
+            "JSON 格式无效，无法切换到可视化",
           ),
         );
         return;
@@ -320,7 +315,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
         message.warning(
           t(
             "connectors.customMcp.probeNeedsOAuth",
-            "This MCP Need OAuth Only authorized to access",
+            "此 MCP 需要 OAuth 授权才能访问",
           ),
         );
       }
@@ -447,12 +442,12 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       message.warning(t("connectors.customMcp.emptyName", "Server ID is required"));
       return;
     }
-    const popup = tryOpenAuthPopup("", "octop-oauth", "width=520,height=720");
-    if (isAuthPopupBlocked(popup)) {
+    const popup = window.open("", "octop-oauth", "width=520,height=720");
+    if (!popup) {
       message.error(
         t(
           "connectors.oauthPopupBlocked",
-          "The authorization window is blocked by the browser. Please allow this site to pop up the window and try again.",
+          "授权窗口被浏览器拦截，请允许本站弹出窗口后重试",
         ),
       );
       return;
@@ -475,7 +470,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       settled = true;
       cleanup();
       try {
-        popup?.close();
+        popup.close();
       } catch {
         // ignore
       }
@@ -524,7 +519,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
       const servers = resolveServersForSave();
       if (!servers) {
         try {
-          popup?.close();
+          popup.close();
         } catch {
           // ignore
         }
@@ -553,12 +548,12 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
           t("connectors.oauthTimedOut", "Authorization timed out; try one-click auth again"),
         );
       }, 120_000);
-      navigateAuthWindow(popup, authorize_url);
+      popup.location.replace(authorize_url);
     } catch (e) {
       cleanup();
       setAuthorizingKey(null);
       try {
-        popup?.close();
+        popup.close();
       } catch {
         // ignore
       }
@@ -620,7 +615,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
           <p className={styles.customMcpFooterHint}>
             {t(
               "connectors.customMcp.probeOnSaveHint",
-              "Will be filled in to you MCP Address to initiate a request to verify availability; if login is required, you will be guided through OAuth.",
+              "将向您填写的 MCP 地址发起请求以验证可用性；若需登录，会引导您完成 OAuth。",
             )}
           </p>
         </div>
@@ -642,7 +637,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
         <div className={styles.customMcpIntroTitle}>
           {t(
             "connectors.customMcp.introTitle",
-            "MCP Server configuration (JSON Format). Refer to the following format:",
+            "MCP 服务器配置（JSON 格式）。参考以下格式：",
           )}
         </div>
         <pre className={styles.customMcpExample}>{EXAMPLE_JSON}</pre>
@@ -728,7 +723,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
                 <div className={styles.customMcpEmpty}>
                   {t(
                     "connectors.customMcp.emptyList",
-                    "No customizations added yet MCP, click the button above to start configuration",
+                    "尚未添加自定义 MCP，点击上方按钮开始配置",
                   )}
                 </div>
               ) : (
@@ -752,7 +747,7 @@ export function CustomMcpTab({ focusServerName }: CustomMcpTabProps) {
                           message.warning(
                             t(
                               "connectors.customMcp.oauthBeforeEnable",
-                              "Please complete first OAuth Enable after authorization",
+                              "请先完成 OAuth 授权后再启用",
                             ),
                           );
                           return;

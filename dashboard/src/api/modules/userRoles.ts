@@ -26,7 +26,6 @@ export interface UserRole {
 
 export interface UserRoleWriteBody {
   user_role_name: string;
-  user_role_id?: string;
   description?: string | null;
   permissions?: string[];
   policies?: RolePolicy[];
@@ -35,8 +34,8 @@ export interface UserRoleWriteBody {
 
 export const SEEDED_ADMIN_ROLE_ID = "admin";
 export const SEEDED_USER_ROLE_ID = "user";
-const SEEDED_ADMIN_ROLE_NAME = "Administrator";
-const SEEDED_USER_ROLE_NAME = "User";
+const SEEDED_ADMIN_ROLE_NAME = "管理员";
+const SEEDED_USER_ROLE_NAME = "用户";
 
 export const userRolesApi = {
   list: () => request<UserRole[]>("/users/roles"),

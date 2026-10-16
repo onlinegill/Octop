@@ -22,15 +22,6 @@ export function isDesktopExternalURL(
   }
 }
 
-/**
- * Wails WebView cannot host named popups (e.g. `octop-connector-auth`).
- * Treat every non in-page target like `_blank` and open the system browser.
- */
-export function isDesktopExternalWindowTarget(target?: string): boolean {
-  const name = (target ?? "_blank").toString().toLowerCase();
-  return name !== "_self" && name !== "_parent" && name !== "_top";
-}
-
 function wailsInvoke(): ((message: string) => void) | undefined {
   const invoke = (window as DesktopWindow)._wails?.invoke;
   return typeof invoke === "function" ? invoke : undefined;
@@ -78,7 +69,8 @@ function patchWindowOpen(): () => void {
   const original = window.open.bind(window);
   window.open = ((url?: string | URL, target?: string, features?: string) => {
     const href = url == null ? "" : String(url);
-    if (href && isDesktopExternalWindowTarget(target) && openExternal(href)) {
+    const name = target == null ? "_blank" : String(target);
+    if (href && name.toLowerCase() === "_blank" && openExternal(href)) {
       return null;
     }
     return original(url, target, features);

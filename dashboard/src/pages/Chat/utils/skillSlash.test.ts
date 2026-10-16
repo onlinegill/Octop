@@ -13,15 +13,15 @@ describe("skillComposerToken", () => {
     expect(
       skillComposerToken({
         slug: "docker-management",
-        label: "Docker Management",
+        label: "Docker 管理",
         emoji: "📦",
       }),
-    ).toBe("📦 Docker Management");
+    ).toBe("📦 Docker 管理");
   });
 
   it("uses a default glyph when label exists without emoji", () => {
-    expect(skillComposerToken({ slug: "pdf", label: "PDF Process" })).toBe(
-      "✦ PDF Process",
+    expect(skillComposerToken({ slug: "pdf", label: "PDF 处理" })).toBe(
+      "✦ PDF 处理",
     );
   });
 
@@ -39,10 +39,10 @@ describe("insertSkillSlash", () => {
     expect(
       insertSkillSlash("", {
         slug: "docker-management",
-        label: "Docker Management",
+        label: "Docker 管理",
         emoji: "📦",
       }),
-    ).toBe("📦 Docker Management ");
+    ).toBe("📦 Docker 管理 ");
   });
 
   it("appends after existing text without replacing a prior skill", () => {
@@ -63,12 +63,12 @@ describe("insertSkillSlash", () => {
       "/web-search look",
     );
     expect(
-      insertSkillSlash("📦 Docker Management Take a look", {
+      insertSkillSlash("📦 Docker 管理 看下", {
         slug: "docker-management",
-        label: "Docker Management",
+        label: "Docker 管理",
         emoji: "📦",
       }),
-    ).toBe("📦 Docker Management Take a look");
+    ).toBe("📦 Docker 管理 看下");
   });
 
   it("does not treat paths as a skill token when appending", () => {
@@ -80,8 +80,8 @@ describe("insertSkillSlash", () => {
 
 describe("parseSkillSlugsInText", () => {
   const skills = [
-    { slug: "docker-management", label: "Docker Management", emoji: "📦" },
-    { slug: "pdf", label: "PDF Process", emoji: "📄" },
+    { slug: "docker-management", label: "Docker 管理", emoji: "📦" },
+    { slug: "pdf", label: "PDF 处理", emoji: "📄" },
   ];
 
   it("collects unique slash tokens", () => {
@@ -93,11 +93,11 @@ describe("parseSkillSlugsInText", () => {
   });
 
   it("collects emoji + label tokens via skill refs", () => {
-    expect(parseSkillSlugsInText("📦 Docker Management Check container", skills)).toEqual([
+    expect(parseSkillSlugsInText("📦 Docker 管理 检查容器", skills)).toEqual([
       "docker-management",
     ]);
     expect(
-      parseSkillSlugsInText("📦 Docker Management And 📄 PDF Process", skills),
+      parseSkillSlugsInText("📦 Docker 管理 和 📄 PDF 处理", skills),
     ).toEqual(["docker-management", "pdf"]);
   });
 
@@ -111,18 +111,18 @@ describe("parseSkillSlugsInText", () => {
 describe("materializeSkillSlashes", () => {
   it("rewrites emoji + label to /slug", () => {
     expect(
-      materializeSkillSlashes("📦 Docker Management Check container", [
-        { slug: "docker-management", label: "Docker Management", emoji: "📦" },
+      materializeSkillSlashes("📦 Docker 管理 检查容器", [
+        { slug: "docker-management", label: "Docker 管理", emoji: "📦" },
       ]),
-    ).toBe("/docker-management Check container");
+    ).toBe("/docker-management 检查容器");
   });
 
   it("leaves existing /slug tokens alone", () => {
     expect(
-      materializeSkillSlashes("/pdf Read this", [
-        { slug: "pdf", label: "PDF Process", emoji: "📄" },
+      materializeSkillSlashes("/pdf 读这个", [
+        { slug: "pdf", label: "PDF 处理", emoji: "📄" },
       ]),
-    ).toBe("/pdf Read this");
+    ).toBe("/pdf 读这个");
   });
 });
 
@@ -136,10 +136,10 @@ describe("deleteSkillTokenAtCursor", () => {
   });
 
   it("deletes emoji + label as one unit", () => {
-    const text = "please 📦 Docker Management ";
+    const text = "please 📦 Docker 管理 ";
     expect(
       deleteSkillTokenAtCursor(text, text.length, [
-        { slug: "docker-management", label: "Docker Management", emoji: "📦" },
+        { slug: "docker-management", label: "Docker 管理", emoji: "📦" },
       ]),
     ).toEqual({
       text: "please ",

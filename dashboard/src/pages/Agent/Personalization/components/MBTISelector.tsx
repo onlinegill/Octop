@@ -74,8 +74,8 @@ function TypeDetail({
   applying: boolean;
 }) {
   const { t } = useTranslation();
-  const summary = type.summary_en;
-  const descriptors = type.descriptors_en;
+  const summary = lang === "zh" ? type.summary_zh : type.summary_en;
+  const descriptors = lang === "zh" ? type.descriptors_zh : type.descriptors_en;
 
   const dims =
     lang === "zh"
@@ -83,29 +83,29 @@ function TypeDetail({
           {
             left: "E",
             right: "I",
-            leftLabel: "Outgoing E",
-            rightLabel: "I Introversion",
+            leftLabel: "外向 E",
+            rightLabel: "I 内向",
             data: type.dimensions.ei,
           },
           {
             left: "S",
             right: "N",
-            leftLabel: "Perception S",
-            rightLabel: "N Intuition",
+            leftLabel: "感知 S",
+            rightLabel: "N 直觉",
             data: type.dimensions.sn,
           },
           {
             left: "T",
             right: "F",
-            leftLabel: "Thinking T",
-            rightLabel: "F Emotion",
+            leftLabel: "思维 T",
+            rightLabel: "F 情感",
             data: type.dimensions.tf,
           },
           {
             left: "J",
             right: "P",
-            leftLabel: "Judge J",
-            rightLabel: "P Perception",
+            leftLabel: "判断 J",
+            rightLabel: "P 感知",
             data: type.dimensions.jp,
           },
         ]
@@ -151,12 +151,12 @@ function TypeDetail({
   const behaviorLabels: Record<string, string> =
     lang === "zh"
       ? {
-          answer_style: "💬 Answer style",
-          casual_chat: "☕ Chat style",
-          conflict: "⚡ Conflict response",
-          creativity: "💡 Creativity",
-          emotion: "🫶 Emotional response",
-          planning: "📋 Planning method",
+          answer_style: "💬 回答风格",
+          casual_chat: "☕ 闲聊画风",
+          conflict: "⚡ 冲突应对",
+          creativity: "💡 创造力",
+          emotion: "🫶 情感回应",
+          planning: "📋 规划方式",
         }
       : {
           answer_style: "Answer style",
@@ -174,7 +174,7 @@ function TypeDetail({
         {/* Summary */}
         <p className={styles.detailSummary}>{summary}</p>
         <div className={styles.detailTags}>
-          {descriptors.split(/,/).map((d) => (
+          {descriptors.split(/[、,]/).map((d) => (
             <span
               key={d.trim()}
               className={styles.detailTag}
@@ -209,7 +209,11 @@ function TypeDetail({
           </h4>
           <div className={styles.behaviorGrid}>
             {behaviorKeys.map((key) => {
-              const value = type.behavior[key];
+              const zhKey = `${key}_zh` as keyof typeof type.behavior;
+              const value =
+                lang === "zh" && type.behavior[zhKey]
+                  ? type.behavior[zhKey]
+                  : type.behavior[key];
               return (
                 <div key={key} className={styles.behaviorItem}>
                   <span className={styles.behaviorLabel}>
@@ -318,10 +322,10 @@ export default function MBTISelector({
         onApplied();
       } else {
         const name =
-          selectedType.name_en;
+          lang === "zh" ? selectedType.name_zh : selectedType.name_en;
         const pendingMsg =
           lang === "zh"
-            ? `I just took your MBTI The personality is set to ${selectedType.code}(${name}), come and say hello to me with your new personality!`
+            ? `我刚刚把你的 MBTI 人格设定为了 ${selectedType.code}（${name}），快用你的新性格跟我打个招呼吧！`
             : `I just set your MBTI personality to ${selectedType.code} (${name}). Say hi with your new character!`;
         localStorage.setItem("octop.pendingChatMessage", pendingMsg);
         navigate("/chat");
@@ -373,7 +377,7 @@ export default function MBTISelector({
   const currentType = currentCode ? typeMap.get(currentCode) : undefined;
   const currentLabel = currentType
     ? `${currentType.code} ${
-        currentType.name_en
+        lang === "zh" ? currentType.name_zh : currentType.name_en
       }`
     : // Fall back to the bare code so a selection never renders as empty quotes (#973).
       currentCode;
@@ -407,11 +411,11 @@ export default function MBTISelector({
                 total: types.length,
                 selected: currentLabel,
                 defaultValue:
-                  "{{total}} personalities available, selected “{{selected}}”",
+                  "当前有（{{total}}）个人格，已选中「{{selected}}」",
               })
             : t("personalization.mbti.listSummaryUnset", {
                 total: types.length,
-                defaultValue: "{{total}} personalities available, none selected",
+                defaultValue: "当前有（{{total}}）个人格，尚未选择人格",
               })}
         </span>
         {!showHeader && showTestAction && (
@@ -436,32 +440,32 @@ export default function MBTISelector({
               {group.codes.map((code) => {
                 const type = typeMap.get(code);
                 if (!type) return null;
-                const name = type.name_en;
+                const name = lang === "zh" ? type.name_zh : type.name_en;
                 const summary =
-                  type.summary_en;
+                  lang === "zh" ? type.summary_zh : type.summary_en;
                 const isSelected = selectedType?.code === code;
                 const isCurrent = currentCode === code;
                 const dimAxes =
                   lang === "zh"
                     ? [
                         {
-                          leftLabel: "Outgoing E",
-                          rightLabel: "I Introversion",
+                          leftLabel: "外向 E",
+                          rightLabel: "I 内向",
                           data: type.dimensions.ei,
                         },
                         {
-                          leftLabel: "Perception S",
-                          rightLabel: "N Intuition",
+                          leftLabel: "感知 S",
+                          rightLabel: "N 直觉",
                           data: type.dimensions.sn,
                         },
                         {
-                          leftLabel: "Thinking T",
-                          rightLabel: "F Emotion",
+                          leftLabel: "思维 T",
+                          rightLabel: "F 情感",
                           data: type.dimensions.tf,
                         },
                         {
-                          leftLabel: "Judge J",
-                          rightLabel: "P Perception",
+                          leftLabel: "判断 J",
+                          rightLabel: "P 感知",
                           data: type.dimensions.jp,
                         },
                       ]
@@ -533,10 +537,15 @@ export default function MBTISelector({
                                 }
                               >
                                 <Check size={11} />{" "}
-                                {lang === "zh" ? "Current" : "Active"}
+                                {lang === "zh" ? "当前" : "Active"}
                               </span>
                             )}
                           </div>
+                          {lang === "zh" && type.nickname_zh && (
+                            <div className={styles.typeNickname}>
+                              {type.nickname_zh}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className={styles.typeDesc}>{summary}</div>
@@ -591,7 +600,14 @@ export default function MBTISelector({
                 <div>
                   <div className={styles.modalCode}>{selectedType.code}</div>
                   <div className={styles.modalName}>
-                    {selectedType.name_en}
+                    {lang === "zh"
+                      ? selectedType.name_zh
+                      : selectedType.name_en}
+                    {lang === "zh" && selectedType.nickname_zh && (
+                      <span style={{ opacity: 0.75, marginLeft: 6 }}>
+                        「{selectedType.nickname_zh}」
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

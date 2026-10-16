@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   groupExpertsByConnection,
-  expertDeleteConfirm,
   isBridgeAgentId,
-  isRemoteShadowAgent,
   rewritePeerSpeakerId,
   toBridgeShadowAgentId,
   isRemotePeerOnly,
@@ -16,44 +14,6 @@ describe("isBridgeAgentId", () => {
     expect(isBridgeAgentId("bridge:abc:aid")).toBe(true);
     expect(isBridgeAgentId("01LOCAL")).toBe(false);
     expect(isBridgeAgentId(null)).toBe(false);
-  });
-});
-
-describe("isRemoteShadowAgent", () => {
-  it("treats bridge rows and shadow ids as remote", () => {
-    expect(isRemoteShadowAgent({ agent_id: "01LOCAL", bridge: true })).toBe(
-      true,
-    );
-    expect(isRemoteShadowAgent({ agent_id: "bridge:cid:aid" })).toBe(true);
-    expect(isRemoteShadowAgent({ agent_id: "01LOCAL" })).toBe(false);
-  });
-});
-
-describe("expertDeleteConfirm", () => {
-  const t = (key: string, options?: Record<string, string>) =>
-    `${key}:${options?.name ?? ""}:${options?.connection ?? ""}`;
-
-  it("uses the local copy for a local expert", () => {
-    expect(
-      expertDeleteConfirm({ name: "本地", agent_id: "01LOCAL" }, t),
-    ).toEqual({
-      title: "experts.confirmDelete:本地:",
-      description: "experts.confirmDeleteHint::",
-    });
-  });
-
-  it("names the peer connection when deleting a shadow", () => {
-    const copy = expertDeleteConfirm(
-      {
-        name: "云端",
-        agent_id: "bridge:cid:aid",
-        bridge_connection_name: "公司云端",
-      },
-      t,
-    );
-    expect(copy.title).toBe("experts.confirmDeleteRemote:云端:");
-    expect(copy.description).toContain("experts.confirmDeleteRemoteWhere:");
-    expect(copy.description).toContain("公司云端");
   });
 });
 
@@ -110,10 +70,10 @@ describe("groupExpertsByConnection", () => {
           bridge_disconnected: true,
         },
       ],
-      "Local machine",
+      "本机",
     );
     expect(groups.map((g) => g.key)).toEqual(["local", "c1", "c2"]);
-    expect(groups[0]?.label).toBe("Local machine");
+    expect(groups[0]?.label).toBe("本机");
     expect(groups[1]?.agents.map((a) => a.agent_id)).toEqual([
       "bridge:c1:a1",
       "bridge:c1:a2",

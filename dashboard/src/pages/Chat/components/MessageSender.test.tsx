@@ -21,14 +21,14 @@ describe("MessageSender", () => {
     render(
       <ChatAgentProfileProvider canOpen onOpen={onOpen}>
         <ExpertMessageAvatar
-          name="Data analyst"
+          name="数据分析师"
           color="#6366f1"
           iconName="sparkles"
         />
       </ChatAgentProfileProvider>,
     );
 
-    const btn = screen.getByRole("button", { name: "Data analyst" });
+    const btn = screen.getByRole("button", { name: "数据分析师" });
     fireEvent.click(btn);
     expect(onOpen).toHaveBeenCalledTimes(1);
     expect(onOpen).toHaveBeenCalledWith(undefined);
@@ -39,15 +39,15 @@ describe("MessageSender", () => {
     render(
       <ChatAgentProfileProvider canOpen onOpen={onOpen} isTeam>
         <ExpertMessageAvatar
-          name="Clinical assistant"
-          tooltip="[Heart team] Moderator"
+          name="临床助手"
+          tooltip="[心脏团队] 主持人"
           profileAgentId="doctor"
           iconName="sparkles"
         />
       </ChatAgentProfileProvider>,
     );
 
-    const btn = screen.getByRole("button", { name: "[Heart team] Moderator" });
+    const btn = screen.getByRole("button", { name: "[心脏团队] 主持人" });
     fireEvent.click(btn);
     expect(onOpen).toHaveBeenCalledWith("doctor");
   });

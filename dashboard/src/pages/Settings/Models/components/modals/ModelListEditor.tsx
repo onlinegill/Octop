@@ -4,8 +4,8 @@
  * Mutations stay local until the parent modal saves (PATCH full models array).
  * Connectivity tests still hit the live provider endpoint.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
-import { App, Button, Form, Input, Radio, Select, Switch, Tooltip } from "antd";
+import { useMemo, useState } from "react";
+import { App, Button, Form, Input, Select, Switch, Tooltip } from "antd";
 
 import {
   Check,
@@ -37,8 +37,6 @@ const CONTEXT_WINDOW_PRESETS = [
 const MAX_TOKENS_PRESETS = [
   4_000, 8_000, 16_000, 32_000, 64_000, 128_000,
 ] as const;
-
-const DEFAULT_CONTEXT_WINDOW = 128_000;
 
 export interface LocalModelDownloadControl {
   /** Model ids already present on disk / in the local runtime. */
@@ -96,17 +94,15 @@ export function ModelListEditor({
   const [searchQuery, setSearchQuery] = useState("");
   const [editingModelId, setEditingModelId] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showReasoningProtocol, setShowReasoningProtocol] = useState(false);
   const [testingIds, setTestingIds] = useState<Set<string>>(new Set());
   const [testResults, setTestResults] = useState<
     Map<string, "success" | "failure">
   >(new Map());
   const [testingForm, setTestingForm] = useState(false);
   const [form] = Form.useForm();
-  const formAnchorRef = useRef<HTMLDivElement>(null);
   const isOnnx = isOnnxProviderRow(provider);
-  const purposeValue = Form.useWatch("purpose", form);
-  const embeddingOn = isOnnx || purposeValue === "embedding";
+  const embeddingValue = Form.useWatch("embedding", form);
+  const embeddingOn = isOnnx || embeddingValue === true;
 
   const handleToggleEnabled = (
     modelId: string,
@@ -242,7 +238,7 @@ export function ModelListEditor({
     const id = (values.id as string).trim();
     const name = (values.name as string | undefined)?.trim() || id;
     const isOnnx = isOnnxProviderRow(provider);
-    const embedding = isOnnx || values.purpose === "embedding";
+    const embedding = isOnnx || values.embedding === true;
     const entry: ProviderModel = {
       id,
       name,
@@ -284,6 +280,7 @@ export function ModelListEditor({
             | "openai_reasoning_effort"
             | "anthropic_adaptive"
             | "anthropic_budget"
+            | "dashscope"
             | "openrouter") || "thinking",
       };
     }
@@ -344,21 +341,13 @@ export function ModelListEditor({
       reasoning_effort_type: model.reasoning_config?.effort_type ?? "enum",
       reasoning_adapter: model.reasoning_config?.adapter ?? "thinking",
       input: model.input ?? ["text"],
-      purpose: Boolean(model.embedding || model.task === "embedding")
-        ? "embedding"
-        : "chat",
+      embedding: Boolean(model.embedding || model.task === "embedding"),
     });
-    const hasAdvanced = (model as Record<string, unknown>).reasoning != null;
+    const hasAdvanced =
+      (model as Record<string, unknown>).context_window != null ||
+      (model as Record<string, unknown>).max_tokens != null ||
+      (model as Record<string, unknown>).reasoning != null;
     setShowAdvanced(hasAdvanced);
-    const cfg = model.reasoning_config;
-    setShowReasoningProtocol(
-      Boolean(
-        (cfg?.efforts?.length ?? 0) > 0 ||
-          cfg?.default_effort ||
-          (cfg?.adapter && cfg.adapter !== "thinking") ||
-          (cfg?.effort_type && cfg.effort_type !== "enum"),
-      ),
-    );
   };
 
   const startAdding = () => {
@@ -366,35 +355,18 @@ export function ModelListEditor({
     form.resetFields();
     setAdding(true);
     setShowAdvanced(false);
-    setShowReasoningProtocol(false);
-    form.setFieldsValue({
-      purpose: "chat",
-      context_window: DEFAULT_CONTEXT_WINDOW,
-      input: ["text"],
-    });
   };
 
   const resetForm = () => {
     setAdding(false);
     setEditingModelId(null);
     setShowAdvanced(false);
-    setShowReasoningProtocol(false);
     form.resetFields();
   };
 
   const isEditing = editingModelId !== null;
   const isFormVisible = adding || isEditing;
   const hasApiKey = canTest ?? !!provider.api_key;
-
-  useEffect(() => {
-    if (!isFormVisible) return;
-    const el = formAnchorRef.current;
-    if (!el) return;
-    const frame = window.requestAnimationFrame(() => {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [isFormVisible, editingModelId, adding]);
 
   const filteredModels = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -532,8 +504,6 @@ export function ModelListEditor({
                     type="text"
                     size="small"
                     icon={<Pencil size={14} />}
-                    title={t("models.editModel")}
-                    aria-label={t("models.editModel")}
                     onClick={() =>
                       startEditing(m as ProviderModel & Record<string, unknown>)
                     }
@@ -554,7 +524,7 @@ export function ModelListEditor({
       </div>
 
       {isFormVisible ? (
-        <div ref={formAnchorRef} className={styles.modelAddForm}>
+        <div className={styles.modelAddForm}>
           <Form form={form} layout="vertical" style={{ marginBottom: 0 }}>
             <Form.Item
               name="id"
@@ -577,18 +547,14 @@ export function ModelListEditor({
 
             {isOnnx ? null : (
               <Form.Item
-                name="purpose"
-                label={t("models.modelPurpose")}
-                extra={t("models.modelPurposeHint")}
-                initialValue="chat"
+                name="embedding"
+                label={t("models.embeddingModel")}
+                extra={t("models.embeddingModelHint")}
+                valuePropName="checked"
+                initialValue={false}
                 style={{ marginBottom: 12 }}
               >
-                <Radio.Group>
-                  <Radio value="chat">{t("models.purposeChat")}</Radio>
-                  <Radio value="embedding">
-                    {t("models.purposeEmbedding")}
-                  </Radio>
-                </Radio.Group>
+                <Switch size="small" />
               </Form.Item>
             )}
 
@@ -610,31 +576,6 @@ export function ModelListEditor({
                     }))}
                   />
                 </Form.Item>
-
-                <div style={{ display: "flex", gap: 12 }}>
-                  <Form.Item
-                    name="context_window"
-                    label={t("models.contextWindow")}
-                    extra={t("models.contextWindowHint")}
-                    initialValue={DEFAULT_CONTEXT_WINDOW}
-                    style={{ flex: 1, marginBottom: 12 }}
-                  >
-                    <TokenCountInput
-                      presets={CONTEXT_WINDOW_PRESETS}
-                      placeholder={t("models.contextWindowPlaceholder")}
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    name="max_tokens"
-                    label={t("models.maxTokens")}
-                    style={{ flex: 1, marginBottom: 12 }}
-                  >
-                    <TokenCountInput
-                      presets={MAX_TOKENS_PRESETS}
-                      placeholder={t("models.maxTokensPlaceholder")}
-                    />
-                  </Form.Item>
-                </div>
 
                 <div
                   style={{
@@ -673,6 +614,28 @@ export function ModelListEditor({
                       marginBottom: 12,
                     }}
                   >
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <Form.Item
+                        name="context_window"
+                        label={t("models.contextWindow")}
+                        style={{ flex: 1, marginBottom: 10 }}
+                      >
+                        <TokenCountInput
+                          presets={CONTEXT_WINDOW_PRESETS}
+                          placeholder={t("models.contextWindowPlaceholder")}
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        name="max_tokens"
+                        label={t("models.maxTokens")}
+                        style={{ flex: 1, marginBottom: 10 }}
+                      >
+                        <TokenCountInput
+                          presets={MAX_TOKENS_PRESETS}
+                          placeholder={t("models.maxTokensPlaceholder")}
+                        />
+                      </Form.Item>
+                    </div>
                     <Form.Item
                       name="reasoning"
                       label={t("models.reasoning")}
@@ -715,7 +678,7 @@ export function ModelListEditor({
                                       value: "disabled",
                                       label: t(
                                         "chat.reasoningDisabled",
-                                        "Close",
+                                        "关闭",
                                       ),
                                     },
                                   ]}
@@ -726,7 +689,7 @@ export function ModelListEditor({
                               name="reasoning_efforts"
                               label={t(
                                 "models.reasoningEfforts",
-                                "Supported thinking intensity",
+                                "支持的思考强度",
                               )}
                               style={{ marginBottom: 10 }}
                             >
@@ -741,7 +704,7 @@ export function ModelListEditor({
                                 name="reasoning_default_effort"
                                 label={t(
                                   "models.reasoningDefaultEffort",
-                                  "Default intensity",
+                                  "默认强度",
                                 )}
                                 style={{ flex: 1, marginBottom: 10 }}
                               >
@@ -751,7 +714,7 @@ export function ModelListEditor({
                                 name="reasoning_effort_type"
                                 label={t(
                                   "models.reasoningEffortType",
-                                  "Intensity type",
+                                  "强度类型",
                                 )}
                                 initialValue="enum"
                                 style={{ flex: 1, marginBottom: 10 }}
@@ -762,14 +725,14 @@ export function ModelListEditor({
                                       value: "enum",
                                       label: t(
                                         "models.reasoningEffortEnum",
-                                        "Strength level",
+                                        "强度档位",
                                       ),
                                     },
                                     {
                                       value: "token_budget",
                                       label: t(
                                         "models.reasoningEffortBudget",
-                                        "Token Budget",
+                                        "Token 预算",
                                       ),
                                     },
                                   ]}
@@ -788,7 +751,7 @@ export function ModelListEditor({
                                     value: "status_only",
                                     label: t(
                                       "models.reasoningAdapterStatusOnly",
-                                      "Tags only (always inferred)",
+                                      "仅标记（始终推理）",
                                     ),
                                   },
                                   {
@@ -816,14 +779,21 @@ export function ModelListEditor({
                                     value: "thinking",
                                     label: t(
                                       "models.reasoningAdapterThinking",
-                                      "Reasoning / thinking",
+                                      "DeepSeek / GLM / Kimi",
                                     ),
                                   },
                                   {
                                     value: "thinking_nested_effort",
                                     label: t(
                                       "models.reasoningAdapterNestedEffort",
-                                      "Nested effort",
+                                      "TokenHub 嵌套强度",
+                                    ),
+                                  },
+                                  {
+                                    value: "dashscope",
+                                    label: t(
+                                      "models.reasoningAdapterDashScope",
+                                      "DashScope / 阿里云",
                                     ),
                                   },
                                   {

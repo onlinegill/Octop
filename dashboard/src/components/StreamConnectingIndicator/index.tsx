@@ -4,7 +4,7 @@ import styles from "./StreamConnectingIndicator.module.less";
 const MASCOT_TYPE = `${import.meta.env.BASE_URL}octop-mascot-type.webp`;
 
 interface StreamConnectingIndicatorProps {
-  /** Status line under the animation (e.g. “Connecting”). */
+  /** Status line under the animation (e.g. 「连接中」). */
   label: ReactNode;
   /** Optional secondary hint. */
   hint?: ReactNode;

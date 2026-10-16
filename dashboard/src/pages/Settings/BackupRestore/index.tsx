@@ -40,7 +40,6 @@ import { useServiceRestartContext } from "../../../context/ServiceRestartContext
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import { useServerTimezone } from "../../../hooks/useServerTimezone";
 import { apiErrorMessage } from "../../../utils/apiError";
-import { saveBlobAsFile } from "../../../utils/saveBlobAsFile";
 import { formatServerIsoDateTime } from "../../../utils/formatMessageTime";
 import { TabPanelHeader } from "../AdvancedSettings/TabPanelHeader";
 import styles from "./index.module.less";
@@ -56,7 +55,11 @@ const PRESET_SCHEDULES = new Set([
 ]);
 
 function triggerDownload(blob: Blob, filename: string) {
-  return saveBlobAsFile(blob, filename);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function BackupContentsTags({ row }: { row: BackupFileItem }) {
@@ -338,7 +341,7 @@ export default function BackupRestorePanel() {
     setDownloading(row.name);
     try {
       const blob = await backupApi.downloadBackup(row.name);
-      await triggerDownload(blob, row.name);
+      triggerDownload(blob, row.name);
     } catch (err: unknown) {
       const detail = err instanceof Error ? err.message : String(err);
       message.error(detail || t("backup.exportFailed"));

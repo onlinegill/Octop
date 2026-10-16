@@ -62,6 +62,7 @@ export interface ToolGuardRulesSaveResponse {
 
 export interface HitlToolCatalogItem {
   name: string;
+  label_zh: string;
   label_en: string;
 }
 

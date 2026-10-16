@@ -15,7 +15,6 @@ import {
   nodeKey,
   pathFromKey,
 } from "../../../utils/fileTreeNodes";
-import { saveBlobAsFile } from "../../../utils/saveBlobAsFile";
 import { workspaceEntryPath } from "../../../utils/workspacePath";
 import FileViewer from "../../Agent/Workspace/components/FileViewer";
 import {
@@ -254,7 +253,12 @@ export function StorageBrowseDrawer({
       const blob = await requestBlob(
         storageFileUrl(backend.id, path, "download"),
       );
-      await saveBlobAsFile(blob, filename);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       message.error(storageBrowseError(err, t));
     }

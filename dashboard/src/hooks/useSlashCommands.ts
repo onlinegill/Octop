@@ -4,7 +4,7 @@ import { slashApi, type SlashCommandSpec } from "../api/modules/slash";
 import { buildFallbackSlashCommands } from "../utils/slashFallbackCommands";
 
 export function useSlashCommands(origin = "ui") {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const fallbackCommands = useMemo(() => buildFallbackSlashCommands(t), [t]);
   const [commands, setCommands] =
     useState<SlashCommandSpec[]>(fallbackCommands);
@@ -37,7 +37,10 @@ export function useSlashCommands(origin = "ui") {
     };
   }, [origin, fallbackCommands]);
 
-  const labelFor = (spec: SlashCommandSpec) => spec.label_en;
+  const labelFor = (spec: SlashCommandSpec) =>
+    i18n.language.startsWith("zh")
+      ? spec.label_zh || spec.label_en
+      : spec.label_en || spec.label_zh;
 
   return { commands, loading, labelFor };
 }

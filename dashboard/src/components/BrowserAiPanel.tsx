@@ -54,10 +54,10 @@ interface BrowserAiPanelProps {
 }
 
 // Keywords that trigger "stop recording and generate skill"
-const END_KEYWORDS = ["End", "end", "stop recording", "End recording"];
+const END_KEYWORDS = ["结束", "end", "stop recording", "结束录制"];
 
 // Keywords that trigger "confirm and apply skill"
-const CONFIRM_KEYWORDS = ["Confirm", "confirm", "ok", "Confirm application", "apply"];
+const CONFIRM_KEYWORDS = ["确认", "confirm", "ok", "确认应用", "apply"];
 
 type RecordingPhase =
   | "idle"
@@ -193,10 +193,13 @@ export default function BrowserAiPanel({
       if (onSkillNameSet) onSkillNameSet(objective);
       setRecordingPhase("awaitDescription");
       chatStore.appendPushMessage(
-        t("remoteBrowser.ai.objectiveSet", { objective }),
+        `✅ 任务目标已设定：**${objective}**\n\n` +
+          "接下来请描述你想让AI助手在浏览器中执行的具体操作。\n\n" +
+          `例如："打开B站、小红书和百度，搜索今天天气"。\n\n` +
+          '描述完成后AI会自动执行操作；操作结束后输入"结束"即可停止录制。',
       );
     },
-    [onSkillNameSet, t],
+    [onSkillNameSet],
   );
 
   const handleDescriptionInput = useCallback(
@@ -236,25 +239,25 @@ export default function BrowserAiPanel({
         const previewText = previewLines.join("\n");
         const truncationNotice =
           data.skillContent.split("\n").length > 20
-            ? `\n\n... (Total ${
+            ? `\n\n... (共 ${
                 data.skillContent.split("\n").length
-              } lines total — the full content is saved after confirmation)`
+              } 行，完整内容将在确认后保存)`
             : "";
         chatStore.appendPushMessage(
-          `✅ Recording is complete! Generated ${data.steps ?? 0} Playback steps.\n\n` +
-            `📝 **Skill "${effectiveSkillName}" script preview:**\n\n${previewText}${truncationNotice}\n\n` +
-            'Reply "Confirm" to apply this skill.\n\n' +
-            `Once applied, just type **"${effectiveSkillName}"** to replay the same operation in one click.`,
+          `✅ 录制完成！已生成 ${data.steps ?? 0} 个回放步骤。\n\n` +
+            `📝 **技能「${effectiveSkillName}」脚本预览：**\n\n${previewText}${truncationNotice}\n\n` +
+            '回复"确认"即可应用此技能。\n\n' +
+            `应用后，只需输入 **"${effectiveSkillName}"** 即可一键触发回放相同操作流程。`,
         );
       } else {
         chatStore.appendPushMessage(
-          `✅ Recording is complete! Generated ${data.steps ?? 0} Playback steps.\n\n` +
-            `⚠️ Skill script generation failed, please try again later.`,
+          `✅ 录制完成！已生成 ${data.steps ?? 0} 个回放步骤。\n\n` +
+            `⚠️ 技能脚本生成失败，请稍后重试。`,
         );
       }
-      antMessage.success(`Recording completed, generated ${data.steps ?? 0} Playback steps`);
+      antMessage.success(`录制完成，已生成 ${data.steps ?? 0} 个回放步骤`);
     } catch (err) {
-      antMessage.error(err instanceof Error ? err.message : "Failed to stop recording");
+      antMessage.error(err instanceof Error ? err.message : "停止录制失败");
     } finally {
       workflowBusyRef.current = false;
     }
@@ -265,7 +268,6 @@ export default function BrowserAiPanel({
     setBrowserRecording,
     setBrowserRecordingId,
     setBrowserLastRecordingId,
-    t,
   ]);
 
   const handleConfirmSkill = useCallback(async () => {
@@ -297,16 +299,16 @@ export default function BrowserAiPanel({
         prev.includes(finalName) ? prev : [...prev, finalName],
       );
       chatStore.appendPushMessage(
-        `🎉 Skill **"${finalName}"** applied successfully!\n\n` +
-          `Then just type **"${finalName}"** to replay the same browser operation in one click.`,
+        `🎉 技能 **「${finalName}」** 已成功应用！\n\n` +
+          `之后只需输入 **"${finalName}"** 即可一键触发回放相同的浏览器操作流程。`,
       );
-      antMessage.success(`Skills "${finalName}" Successfully applied`);
+      antMessage.success(`技能 "${finalName}" 已成功应用`);
     } catch (err) {
-      antMessage.error(err instanceof Error ? err.message : "Apply skill failed");
+      antMessage.error(err instanceof Error ? err.message : "应用技能失败");
     } finally {
       workflowBusyRef.current = false;
     }
-  }, [pendingSkillContent, pendingSkillName, agentId, t]);
+  }, [pendingSkillContent, pendingSkillName, agentId]);
 
   const handleSkillReplay = useCallback(
     async (skillKeyword: string) => {
@@ -324,9 +326,9 @@ export default function BrowserAiPanel({
         const recordingId = recordingIdMatch?.[1] ?? browserLastRecordingId;
         if (!recordingId) {
           chatStore.appendPushMessage(
-            `⚠️ Unable to find skill “${skillKeyword}” recording, playback failed.`,
+            `⚠️ 无法找到技能「${skillKeyword}」的录制记录，回放失败。`,
           );
-          antMessage.error("Recording not found");
+          antMessage.error("找不到录制记录");
           return;
         }
         const data = await browserApi.replayRecording({
@@ -338,26 +340,26 @@ export default function BrowserAiPanel({
             t("browser.recordReplay.replayPassed", "Replay finished"),
           );
           chatStore.appendPushMessage(
-            t("remoteBrowser.ai.replayDone", { name: skillKeyword }),
+            `🎬 Browser-Skill「${skillKeyword}」回放完成！`,
           );
         } else {
           const globalError = data.error || "";
           const failedSteps = (data.steps || [])
             .filter((s) => s.status === "failed")
-            .map((s) => `Steps ${s.id} (${s.kind}): ${s.error || "Execution failed"}`);
+            .map((s) => `步骤 ${s.id} (${s.kind}): ${s.error || "执行失败"}`);
           const detailMsg =
             globalError ||
             (failedSteps.length > 0 ? failedSteps.join("\n") : "") ||
             t("browser.recordReplay.replayFailed", "Replay failed");
           antMessage.error(detailMsg);
           chatStore.appendPushMessage(
-            `⚠️ Skill "${skillKeyword}" playback failed:\n${detailMsg}`,
+            `⚠️ 技能「${skillKeyword}」回放失败：\n${detailMsg}`,
           );
         }
       } catch (err) {
-        antMessage.error(err instanceof Error ? err.message : "Playback failed");
+        antMessage.error(err instanceof Error ? err.message : "回放失败");
         chatStore.appendPushMessage(
-          `⚠️ Skill playback error:${err instanceof Error ? err.message : "Unknown error"}`,
+          `⚠️ 技能回放出错：${err instanceof Error ? err.message : "未知错误"}`,
         );
       } finally {
         workflowBusyRef.current = false;
@@ -378,17 +380,17 @@ export default function BrowserAiPanel({
       });
       if (data.status === "passed") {
         antMessage.success(t("browser.recordReplay.replayPassed", "Replay finished"));
-        chatStore.appendPushMessage("🔄 Skill playback completed! All steps have been executed successfully.");
+        chatStore.appendPushMessage("🔄 技能回放完成！所有步骤已成功执行。");
       } else {
         antMessage.error(
           data.error || t("browser.recordReplay.replayFailed", "Replay failed"),
         );
         chatStore.appendPushMessage(
-          `⚠️ Skill playback failed:${data.error || "Unknown error"}`,
+          `⚠️ 技能回放失败：${data.error || "未知错误"}`,
         );
       }
     } catch (err) {
-      antMessage.error(err instanceof Error ? err.message : "Playback failed");
+      antMessage.error(err instanceof Error ? err.message : "回放失败");
     } finally {
       setBrowserReplayBusy(false);
     }
@@ -424,9 +426,7 @@ export default function BrowserAiPanel({
       return;
     }
     if (isSkillTriggerCommand(text)) {
-      chatStore.appendPushMessage(
-        t("remoteBrowser.ai.replayingSkill", { text }),
-      );
+      chatStore.appendPushMessage(`🔄 正在使用技能「${text}」进行回放...`);
       void handleSkillReplay(text);
       return;
     }
@@ -445,7 +445,6 @@ export default function BrowserAiPanel({
     handleEndRecording,
     handleConfirmSkill,
     handleSkillReplay,
-    t,
   ]);
 
   const handleKeyDown = useCallback(
@@ -486,9 +485,11 @@ export default function BrowserAiPanel({
       messages.length > 0 &&
       !workflowBusyRef.current
     ) {
-      chatStore.appendPushMessage(t("remoteBrowser.ai.recordingHint"));
+      chatStore.appendPushMessage(
+        '💡 录制还在进行中。如果操作已完成，输入"结束"即可停止录制并生成技能脚本。',
+      );
     }
-  }, [isStreaming, browserRecording, recordingPhase, messages.length, t]);
+  }, [isStreaming, browserRecording, recordingPhase, messages.length]);
 
   const inputDisabled =
     isStreaming || booting || !threadId || browserReplayBusy;
@@ -498,36 +499,36 @@ export default function BrowserAiPanel({
     if (recordingPhase === "awaitObjective") {
       return t(
         "remoteBrowser.ai.objectivePlaceholder",
-        "Please enter the task goal (will be used as skill name and trigger keyword)",
+        "请输入任务目标（将作为技能名称和触发关键词）",
       );
     }
     if (recordingPhase === "awaitDescription") {
       return t(
         "remoteBrowser.ai.descriptionPlaceholder",
-        "Please describe what you wantAIActions performed in the browser...",
+        "请描述你想让AI在浏览器中执行的操作...",
       );
     }
     if (browserRecording) {
       return t(
         "remoteBrowser.ai.recordingPlaceholder",
-        'Recording in progress...Input"End"Stop recording',
+        '录制进行中...输入"结束"停止录制',
       );
     }
     if (pendingSkillContent) {
       return t(
         "remoteBrowser.ai.confirmPlaceholder",
-        'Input"Confirm"Apply the skill, or continue the conversation',
+        '输入"确认"应用技能，或继续对话',
       );
     }
     if (savedSkillNames.length > 0) {
       return t(
         "remoteBrowser.ai.placeholderWithSkills",
-        `Enter the skill name to trigger replay, or continue the conversation`,
+        `输入技能名触发回放，或继续对话`,
       );
     }
     return t(
       "remoteBrowser.ai.inputPlaceholder",
-      "Ask about the current page or let AI Continue using the browser...",
+      "问问当前网页或让 AI 继续操作浏览器...",
     );
   }, [
     recordingPhase,
@@ -563,7 +564,7 @@ export default function BrowserAiPanel({
           <div className={styles.emptyDesc}>
             {t(
               "remoteBrowser.ai.noAgentDesc",
-              "The assistant on the right side of the browser will reuse the current Agent Conversational ability.",
+              "浏览器右侧助手会复用当前 Agent 的对话能力。",
             )}
           </div>
           <div className={styles.emptyAgentPicker}>

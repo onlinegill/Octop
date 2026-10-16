@@ -11,7 +11,9 @@ export interface SlashCommandSpec {
   command: string;
   aliases: string[];
   label_en: string;
+  label_zh: string;
   description_en: string;
+  description_zh: string;
   usage: string;
   icon: string;
   tone: string;

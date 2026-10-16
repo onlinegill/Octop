@@ -8,33 +8,33 @@ describe("resolveSkillDisplayName", () => {
         {
           slug: "tcapi",
           name: "tcapi",
-          label: { zh: "Example Cloud API", en: "Example Cloud API" },
+          label: { zh: "腾讯云 API", en: "Tencent Cloud API" },
         },
         "zh",
       ),
-    ).toBe("Example Cloud API");
+    ).toBe("腾讯云 API");
     expect(
       resolveSkillDisplayName(
         {
           slug: "tcapi",
           name: "tcapi",
-          label: { zh: "Example Cloud API", en: "Example Cloud API" },
+          label: { zh: "腾讯云 API", en: "Tencent Cloud API" },
         },
         "en",
       ),
-    ).toBe("Example Cloud API");
+    ).toBe("Tencent Cloud API");
   });
 
   it("falls back to display_name then presentation name", () => {
     expect(
       resolveSkillDisplayName(
-        { slug: "tcapi", name: "tcapi", display_name: "Example Cloud API Assistant" },
+        { slug: "tcapi", name: "tcapi", display_name: "腾讯云 API 助手" },
         "zh",
       ),
-    ).toBe("Example Cloud API Assistant");
+    ).toBe("腾讯云 API 助手");
     expect(
-      resolveSkillDisplayName({ slug: "pdf", name: "PDF Read and edit" }, "zh"),
-    ).toBe("PDF Read and edit");
+      resolveSkillDisplayName({ slug: "pdf", name: "PDF 阅读与编辑" }, "zh"),
+    ).toBe("PDF 阅读与编辑");
   });
 
   it("uses the slug when only the identity name is present", () => {

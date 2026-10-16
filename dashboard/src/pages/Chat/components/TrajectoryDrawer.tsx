@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { message } from "@/utils/antdMessage";
 import { trajectoryApi } from "../../../api/modules/trajectory";
-import { saveBlobAsFile } from "../../../utils/saveBlobAsFile";
 import { useIsMobile } from "../../../hooks/useIsMobile";
 import { useTrajectorySession } from "../hooks/useTrajectorySession";
 import {
@@ -169,7 +168,12 @@ export default function TrajectoryDrawer({
     void (async () => {
       try {
         const blob = await trajectoryApi.export(agentId, threadId);
-        await saveBlobAsFile(blob, `trajectory-${threadId}.jsonl`);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `trajectory-${threadId}.jsonl`;
+        link.click();
+        URL.revokeObjectURL(url);
       } catch {
         message.error(
           t("chat.trajectoryExportFailed", "Failed to export trajectory"),

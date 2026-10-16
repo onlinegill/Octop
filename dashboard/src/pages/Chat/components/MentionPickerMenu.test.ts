@@ -10,14 +10,14 @@ describe("buildMentionItems", () => {
       [
         {
           slug: "researcher",
-          name: "Researcher",
+          name: "研究员",
           path: "agents/researcher.md",
           emoji: "🔎",
         },
       ],
     );
     expect(items).toEqual([
-      { kind: "subagent", slug: "researcher", label: "Researcher" },
+      { kind: "subagent", slug: "researcher", label: "研究员" },
     ]);
   });
 

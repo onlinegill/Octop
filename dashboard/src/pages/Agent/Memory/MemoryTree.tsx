@@ -235,12 +235,12 @@ export default function MemoryTree({ agentId, initialExpandEntityId }: Props) {
             {t("memory.tree.title", "Browse by topic")}
           </span>
           <Tag>
-            {t("memory.tree.entityCount", "{{n}} Topics", {
+            {t("memory.tree.entityCount", "{{n}} 个主题", {
               n: entities.length,
             })}
           </Tag>
           <Tag color="blue">
-            {t("memory.tree.atomCount", "{{n}} Memory", { n: totalAtoms })}
+            {t("memory.tree.atomCount", "{{n}} 条记忆", { n: totalAtoms })}
           </Tag>
         </Space>
         <Space size={12}>
@@ -266,7 +266,7 @@ export default function MemoryTree({ agentId, initialExpandEntityId }: Props) {
       <div style={{ fontSize: 12, color: "#8c8c8c", marginBottom: 8 }}>
         {t(
           "memory.tree.hint",
-          "Click on a topic to expand the memories below it; click on a specific memory to view details.",
+          "点击主题展开它下面的记忆；再点击具体记忆查看详情。",
         )}
       </div>
 
@@ -394,7 +394,7 @@ function RootRow({
       <ChevronDown size={10} style={{ marginRight: 6, color: "#8c8c8c" }} />
       <span style={{ marginRight: 6 }}>🧠</span>
       <span>{agentId}</span>
-      <Tag style={{ marginLeft: 8 }}>{entityCount} Topics</Tag>
+      <Tag style={{ marginLeft: 8 }}>{entityCount} 个主题</Tag>
     </div>
   );
 }
@@ -452,7 +452,7 @@ function EntityRow({
         {entityTypeLabel(entity.entity_type)}
       </Tag>
       <Tag color="blue" style={{ fontSize: 11 }}>
-        {entity.atom_count} Memory
+        {entity.atom_count} 条记忆
       </Tag>
       {entity.aliases.length > 0 ? (
         <span
@@ -466,14 +466,14 @@ function EntityRow({
             maxWidth: 220,
           }}
         >
-          (Also called {entity.aliases.join(", ")})
+          (也叫 {entity.aliases.join(", ")})
         </span>
       ) : null}
       {/* Push the summary affordance to the right edge. */}
       <span style={{ marginLeft: "auto" }} />
       {entity.page_dirty ? (
         <Tag color="orange" style={{ fontSize: 11, margin: 0 }}>
-          To be refreshed
+          待刷新
         </Tag>
       ) : null}
       <Tooltip title={t("memory.create.addToTopicTip", "Add a memory under this topic")}>
@@ -535,7 +535,7 @@ function AtomChildren({
           fontSize: 12,
         }}
       >
-        <Spin size="small" /> <span style={{ marginLeft: 6 }}>Loading...</span>
+        <Spin size="small" /> <span style={{ marginLeft: 6 }}>加载中...</span>
       </div>
     );
   }
@@ -551,7 +551,7 @@ function AtomChildren({
           fontStyle: "italic",
         }}
       >
-        (No memory for this topic yet)
+        （该主题下暂无记忆）
       </div>
     );
   }
@@ -700,10 +700,10 @@ function ConfidenceDot({ value }: { value: Confidence }) {
     value === "high" ? "#52c41a" : value === "medium" ? "#faad14" : "#f5222d";
   const tip =
     value === "high"
-      ? "Very confident"
+      ? "很有把握"
       : value === "medium"
-      ? "General grasp"
-      : "Not sure";
+      ? "一般把握"
+      : "不太确定";
   return (
     <span
       title={tip}
@@ -768,18 +768,18 @@ function AtomDetailDrawer({
         <div>
           <Space size={4} wrap style={{ marginBottom: 12 }}>
             {atom.kind ? <Tag>{kindLabel(atom.kind)}</Tag> : null}
-            <Tag>Importance:{importanceLabel(atom.importance)}</Tag>
-            <Tag>Credibility:{confidenceLabel(atom.confidence)}</Tag>
+            <Tag>重要程度：{importanceLabel(atom.importance)}</Tag>
+            <Tag>可信度：{confidenceLabel(atom.confidence)}</Tag>
             <Tag color={isAtomDeprecated(atom) ? "red" : "green"}>
-              {isAtomDeprecated(atom) ? "Forgot" : "In use"}
+              {isAtomDeprecated(atom) ? "已忘记" : "在用"}
             </Tag>
           </Space>
           <LineageStrip agentId={agentId} atom={atom} />
-          <Typography.Title level={5}>Memory content</Typography.Title>
+          <Typography.Title level={5}>记忆内容</Typography.Title>
           <Typography.Paragraph>{atom.assertion}</Typography.Paragraph>
           {(atom.search_terms ?? []).length > 0 ? (
             <>
-              <Typography.Title level={5}>Related keywords</Typography.Title>
+              <Typography.Title level={5}>关联关键词</Typography.Title>
               <Space size={4} wrap>
                 {(atom.search_terms ?? []).map((s) => (
                   <Tag key={s}>{s}</Tag>
@@ -791,9 +791,9 @@ function AtomDetailDrawer({
             type="secondary"
             style={{ fontSize: 12, marginTop: 16 }}
           >
-            First recorded in {formatRelativeTime(atom.created_at)}
+            首次记录于 {formatRelativeTime(atom.created_at)}
             {atom.occurred_at
-              ? ` · Occurs in ${formatRelativeTime(atom.occurred_at)}`
+              ? ` · 发生于 ${formatRelativeTime(atom.occurred_at)}`
               : ""}
           </Typography.Paragraph>
 
@@ -893,12 +893,12 @@ function EntitySummaryDrawer({
               {entity.canonical_name}
             </span>
             <Tag>{entityTypeLabel(entity.entity_type)}</Tag>
-            <Tag color="blue">{entity.atom_count} Memory</Tag>
-            {page?.dirty ? <Tag color="orange">To be refreshed</Tag> : null}
+            <Tag color="blue">{entity.atom_count} 条记忆</Tag>
+            {page?.dirty ? <Tag color="orange">待刷新</Tag> : null}
           </Space>
           {entity.aliases.length > 0 ? (
             <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
-              Also called {entity.aliases.join(",")}
+              也叫 {entity.aliases.join("、")}
             </Typography.Paragraph>
           ) : null}
 
@@ -922,7 +922,7 @@ function EntitySummaryBody({
   if (failed) {
     return (
       <Typography.Paragraph type="danger">
-        Summary loading failed, please try again later.
+        摘要加载失败，请稍后重试。
       </Typography.Paragraph>
     );
   }
@@ -930,10 +930,10 @@ function EntitySummaryBody({
     return (
       <div style={{ marginTop: 12 }}>
         <Typography.Paragraph type="secondary">
-          An abstract for this topic has not been generated yet.
+          这个主题的摘要还没有生成。
         </Typography.Paragraph>
         <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
-          After a new topic is created or a new memory is changed, the system will automatically compile a long summary in the background, which can be viewed later.
+          新建主题或有新记忆改动后，系统会在后台自动整理出一份长文摘要，稍后回来即可查看。
         </Typography.Paragraph>
       </div>
     );
@@ -960,9 +960,9 @@ function EntitySummaryBody({
         type="secondary"
         style={{ fontSize: 12, marginTop: 16 }}
       >
-        Version v{page.summary_version} · Updated on{" "}
+        版本 v{page.summary_version} · 更新于{" "}
         {formatRelativeTime(page.updated_at)}
-        {page.dirty ? " · If there are new memory changes, the summary will be automatically refreshed in the background later." : ""}
+        {page.dirty ? " · 有新记忆改动，后台稍后会自动刷新这份摘要" : ""}
       </Typography.Paragraph>
     </>
   );
@@ -975,15 +975,15 @@ function EntitySummaryBody({
 function kindLabel(k: string): string {
   switch (k) {
     case "Fact":
-      return "Facts";
+      return "事实";
     case "Decision":
-      return "Decide";
+      return "决定";
     case "Task":
-      return "Task";
+      return "任务";
     case "Preference":
-      return "Preference";
+      return "偏好";
     case "ConflictCandidate":
-      return "May be contradictory";
+      return "可能矛盾";
     default:
       return k;
   }
@@ -992,30 +992,30 @@ function kindLabel(k: string): string {
 function entityTypeLabel(t: string): string {
   switch ((t || "").toLowerCase()) {
     case "person":
-      return "Characters";
+      return "人物";
     case "place":
-      return "Location";
+      return "地点";
     case "project":
-      return "Project";
+      return "项目";
     case "tool":
-      return "Tools";
+      return "工具";
     case "concept":
-      return "Concept";
+      return "概念";
     case "organization":
-      return "Organization";
+      return "组织";
     case "event":
-      return "Event";
+      return "事件";
     default:
-      return t || "Others";
+      return t || "其它";
   }
 }
 
 function importanceLabel(v: string): string {
-  return v === "high" ? "Very important" : v === "medium" ? "Important" : "Average";
+  return v === "high" ? "非常重要" : v === "medium" ? "重要" : "一般";
 }
 
 function confidenceLabel(v: string): string {
-  return v === "high" ? "Very confident" : v === "medium" ? "General grasp" : "Not sure";
+  return v === "high" ? "很有把握" : v === "medium" ? "一般把握" : "不太确定";
 }
 
 function formatRelativeTime(iso: string): string {
@@ -1023,16 +1023,16 @@ function formatRelativeTime(iso: string): string {
     const then = new Date(iso).getTime();
     const now = Date.now();
     const diffSec = Math.max(0, Math.floor((now - then) / 1000));
-    if (diffSec < 60) return "Just now";
+    if (diffSec < 60) return "刚刚";
     const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return `${diffMin} Minutes ago`;
+    if (diffMin < 60) return `${diffMin} 分钟前`;
     const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr} Hours ago`;
+    if (diffHr < 24) return `${diffHr} 小时前`;
     const diffDay = Math.floor(diffHr / 24);
-    if (diffDay < 30) return `${diffDay} Days ago`;
+    if (diffDay < 30) return `${diffDay} 天前`;
     const diffMonth = Math.floor(diffDay / 30);
-    if (diffMonth < 12) return `${diffMonth} Months ago`;
-    return `${Math.floor(diffMonth / 12)} Years ago`;
+    if (diffMonth < 12) return `${diffMonth} 个月前`;
+    return `${Math.floor(diffMonth / 12)} 年前`;
   } catch {
     return iso;
   }

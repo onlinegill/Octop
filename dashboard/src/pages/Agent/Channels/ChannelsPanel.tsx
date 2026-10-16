@@ -16,9 +16,12 @@ import {
   useChannels,
   CHANNEL_KEYS,
   DEFAULT_CHANNEL_DISPLAY_CONFIG,
+  applyQqChannelSaveConfig,
   CHANNEL_DISPLAY_CONFIG_KEYS,
   CHANNEL_FIELDS,
+  DEFAULT_QQ_GROUP_CONTEXT_CONFIG,
   normalizeChannelFieldValue,
+  normalizeQqGroupContextConfig,
   partitionChannelKeys,
   type ChannelKey,
 } from "./components";
@@ -76,6 +79,7 @@ function configFromFormValues(
     show_tool_hints:
       show_tool_hints ?? DEFAULT_CHANNEL_DISPLAY_CONFIG.show_tool_hints,
   };
+  applyQqChannelSaveConfig(config, values.kind);
   return config;
 }
 
@@ -160,6 +164,9 @@ export default function ChannelsPanel({ agentId }: ChannelsPanelProps) {
         enabled: true,
         ...DEFAULT_CHANNEL_DISPLAY_CONFIG,
         ...(kind === "discord" ? { allow_all_channels: true } : {}),
+        ...(kind === "qq"
+          ? { group_context: { ...DEFAULT_QQ_GROUP_CONTEXT_CONFIG } }
+          : {}),
       };
       setDrawerInitialValues(defaults);
       form.resetFields();
@@ -188,6 +195,7 @@ export default function ChannelsPanel({ agentId }: ChannelsPanelProps) {
         const formCfg: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(cfg)) {
           if (v === undefined || v === null) continue;
+          if (row.kind === "qq" && k === "show_progress") continue;
           if (
             CHANNEL_DISPLAY_CONFIG_KEYS.includes(
               k as (typeof CHANNEL_DISPLAY_CONFIG_KEYS)[number],
@@ -196,15 +204,27 @@ export default function ChannelsPanel({ agentId }: ChannelsPanelProps) {
             continue;
           }
           if (
-            (row.kind === "discord" || row.kind === "telegram") &&
+            row.kind === "discord" &&
             (k === "allowed_channel_ids" || k === "allowed_user_ids") &&
             Array.isArray(v)
           ) {
             formCfg[k] = v.join("\n");
+          } else if (row.kind === "qq" && k === "group_context") {
+            formCfg[k] = normalizeQqGroupContextConfig(v);
           } else if (typeof v === "string") formCfg[k] = v;
           else if (typeof v === "number" || typeof v === "boolean")
             formCfg[k] = String(v);
           else formCfg[k] = JSON.stringify(v);
+        }
+        if (
+          row.kind === "qq" &&
+          typeof formCfg.client_secret === "string" &&
+          !formCfg.secret
+        ) {
+          formCfg.secret = formCfg.client_secret;
+        }
+        if (row.kind === "qq" && !formCfg.group_context) {
+          formCfg.group_context = { ...DEFAULT_QQ_GROUP_CONTEXT_CONFIG };
         }
         const next: ChannelFormValues = {
           kind: row.kind as ChannelKey,
@@ -250,6 +270,14 @@ export default function ChannelsPanel({ agentId }: ChannelsPanelProps) {
     setDrawerInitialValues(undefined);
   }, []);
 
+  const handleProvisioned = useCallback(() => {
+    message.success(t("channels.dingtalkBindSuccess"));
+    setDrawerOpen(false);
+    setEditing(null);
+    setDrawerInitialValues(undefined);
+    void fetchChannels();
+  }, [fetchChannels, t]);
+
   const handleSubmit = useCallback(
     async (
       kind: ChannelKey,
@@ -292,6 +320,14 @@ export default function ChannelsPanel({ agentId }: ChannelsPanelProps) {
           // Prefer bind-success copy when the channel was just QR-auto-enabled.
           const toastKey = !enabled
             ? "channels.configSaved"
+            : kind === "wecom"
+            ? "channels.qrBindSuccess"
+            : kind === "weixin"
+            ? "channels.weixinQrBindSuccess"
+            : kind === "feishu"
+            ? "channels.feishuBindSuccess"
+            : kind === "yuanbao"
+            ? "channels.yuanbaoBindSuccess"
             : "channels.channelEnabled";
           message.success(t(toastKey));
           setDrawerOpen(false);
@@ -451,6 +487,7 @@ export default function ChannelsPanel({ agentId }: ChannelsPanelProps) {
         onDelete={editing ? handleDeleteFromDrawer : undefined}
         onClose={handleDrawerClose}
         onSubmit={handleSubmit}
+        onProvisioned={handleProvisioned}
         onTest={handleTestFromDrawer}
         testing={
           testState.loadingKey !== null &&

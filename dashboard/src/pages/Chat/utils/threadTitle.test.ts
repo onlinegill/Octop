@@ -12,7 +12,7 @@ describe("clipThreadTitle", () => {
   });
 
   it("keeps short titles and collapses whitespace", () => {
-    expect(clipThreadTitle("Hello")).toBe("Hello");
+    expect(clipThreadTitle("你好")).toBe("你好");
     expect(clipThreadTitle("a  \n  b")).toBe("a b");
   });
 
@@ -38,15 +38,13 @@ describe("formatThreadTitle", () => {
   });
 
   it("keeps short titles", () => {
-    expect(formatThreadTitle("Hello")).toBe("Hello");
+    expect(formatThreadTitle("你好")).toBe("你好");
   });
 
   it("does not append ellipsis to exact-max titles", () => {
     // Legitimate full-length titles (and legacy hard-cuts repaired by migration).
-    const exact = "Search the web for news".padEnd(
-      THREAD_TITLE_MAX,
-      "!",
-    );
+    const exact =
+      "搜索当前热点新闻（微博热搜、知乎热榜、36氪等），整理成简洁的摘要推送给用户。格";
     expect(exact.length).toBe(THREAD_TITLE_MAX);
     expect(formatThreadTitle(exact)).toBe(exact);
   });

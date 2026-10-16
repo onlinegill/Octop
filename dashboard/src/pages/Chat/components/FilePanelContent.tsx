@@ -21,7 +21,6 @@ import {
 import { useTranslation } from "react-i18next";
 import { probeAuthResource, request, requestBlob } from "../../../api/request";
 import { isNotFoundApiError } from "../../../utils/apiError";
-import { saveBlobAsFile } from "../../../utils/saveBlobAsFile";
 import FileViewer from "../../Agent/Workspace/components/FileViewer";
 import { getDocKind } from "../../Agent/Workspace/utils/docKind";
 import { isProbablyText } from "../../Agent/Workspace/utils/fileKind";
@@ -189,14 +188,18 @@ export default function FilePanelContent({
           apiFilePath,
         )}`,
       );
-      await saveBlobAsFile(blob, dockFileBasename(resolvedPath) || "download");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = dockFileBasename(resolvedPath) || "download";
+      a.click();
+      URL.revokeObjectURL(a.href);
     } catch (err: unknown) {
       if (isNotFoundApiError(err)) {
         setFileMissing(true);
         message.warning(
           t(
             "chat.dockFileMaybeDeleted",
-            "This file may be a temporary file during processing and has been deleted.",
+            "该文件可能为处理过程中的临时文件，当前已经被删除。",
           ),
         );
         return;
@@ -347,7 +350,7 @@ export default function FilePanelContent({
             <p className={styles.fileMissingTitle}>
               {t(
                 "chat.dockFileMaybeDeleted",
-                "This file may be a temporary file during processing and has been deleted.",
+                "该文件可能为处理过程中的临时文件，当前已经被删除。",
               )}
             </p>
           </div>

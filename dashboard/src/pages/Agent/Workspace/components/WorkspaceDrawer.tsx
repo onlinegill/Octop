@@ -47,13 +47,10 @@ import { workspaceApi } from "../../../../api/modules/workspace";
 import { useAgent } from "../../../../context/AgentContext";
 import { useIsMobile } from "../../../../hooks/useIsMobile";
 import { useHorizontalResize } from "../../../../hooks/useHorizontalResize";
-import { useListPanelCollapsed } from "../../../../hooks/useListPanelCollapsed";
 import { useServerTimezone } from "../../../../hooks/useServerTimezone";
 import { formatServerIsoDateTime } from "../../../../utils/formatMessageTime";
 import { isAgentChatReady } from "../../../../utils/agentError";
 import { apiErrorMessage } from "../../../../utils/apiError";
-import { saveBlobAsFile } from "../../../../utils/saveBlobAsFile";
-import { isImeComposing } from "../../../../utils/ime";
 import AgentNotReadyScreen from "../../../Chat/components/AgentNotReadyScreen";
 import { fileTreeIcon } from "../../../../utils/fileTreeIcon";
 import { dedupeFileTreeInfos } from "../../../../utils/fileTreeNodes";
@@ -292,13 +289,27 @@ export default function WorkspaceDrawer({
   const [expandedKeys, setExpandedKeys] = useState<string[]>([
     workspaceRootKey(),
   ]);
-  const { collapsed: treeCollapsed, toggle: toggleTreeCollapsed } =
-    useListPanelCollapsed(TREE_COLLAPSED_KEY, {
-      // Chat dock (embedded) starts with the folder tree hidden.
-      defaultCollapsed: embedded,
-    });
+  const [treeCollapsed, setTreeCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(TREE_COLLAPSED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
 
   const rootLabel = t("workspace.root", "Workspace");
+
+  const toggleTreeCollapsed = useCallback(() => {
+    setTreeCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(TREE_COLLAPSED_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
 
   const { size: treeWidth, onResizeStart } = useHorizontalResize({
     min: 180,
@@ -954,7 +965,11 @@ export default function WorkspaceDrawer({
           )}`,
         ),
       );
-      await saveBlobAsFile(blob, path.split("/").pop() || "download");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = path.split("/").pop() || "download";
+      a.click();
+      URL.revokeObjectURL(a.href);
     } catch (err: unknown) {
       message.error(
         (err instanceof Error ? err.message : String(err)) ||
@@ -983,7 +998,7 @@ export default function WorkspaceDrawer({
       message.success(
         t("workspace.uploaded", {
           name: file.name,
-          defaultValue: `Uploaded ${file.name}`,
+          defaultValue: `已上传 ${file.name}`,
         }),
       );
       await reloadBranch(uploadDir);
@@ -1002,7 +1017,11 @@ export default function WorkspaceDrawer({
     setArchiveExporting(true);
     try {
       const blob = await workspaceApi.downloadWorkspaceArchive(agentId);
-      await saveBlobAsFile(blob, `workspace-${agentId}.zip`);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `workspace-${agentId}.zip`;
+      a.click();
+      URL.revokeObjectURL(a.href);
       message.success(t("workspace.archiveExportSuccess"));
     } catch (err: unknown) {
       message.error(
@@ -1065,7 +1084,7 @@ export default function WorkspaceDrawer({
               ? t("common.refresh")
               : t(
                   "workspace.refreshHint",
-                  "Only the root directory is refreshed; subdirectories are loaded on demand when expanded",
+                  "只刷新根目录；子目录在展开时按需加载",
                 )
           }
         >
@@ -1173,9 +1192,7 @@ export default function WorkspaceDrawer({
         <Input
           value={createName}
           onChange={(e) => setCreateName(e.target.value)}
-          onPressEnter={(e) => {
-            if (!isImeComposing(e)) void confirmCreate();
-          }}
+          onPressEnter={() => void confirmCreate()}
           placeholder={
             createKind === "folder"
               ? t("workspace.newFolderName")
@@ -1199,9 +1216,7 @@ export default function WorkspaceDrawer({
         <Input
           value={renameValue}
           onChange={(e) => setRenameValue(e.target.value)}
-          onPressEnter={(e) => {
-            if (!isImeComposing(e)) void confirmRename();
-          }}
+          onPressEnter={() => void confirmRename()}
           autoFocus
         />
       </Modal>
@@ -1264,7 +1279,7 @@ export default function WorkspaceDrawer({
                   <Empty
                     description={t(
                       "workspace.pickEntry",
-                      "Select a workspace or file to view the contents",
+                      "选择工作区或文件以查看内容",
                     )}
                   />
                 </div>

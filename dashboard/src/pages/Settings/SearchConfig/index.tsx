@@ -53,6 +53,14 @@ const SEARCH_PROVIDERS: SearchProvider[] = [
     required_keys: ["GOOGLE_API_KEY", "GOOGLE_CSE_ID"],
     configured: false,
   },
+  {
+    id: "kimi",
+    name: "Kimi (Moonshot)",
+    descriptionKey: "setupWizard.search.providers.kimi.desc",
+    docs_url: "https://platform.moonshot.cn/",
+    required_keys: ["MOONSHOT_API_KEY"],
+    configured: false,
+  },
 ];
 
 function searchProviderLogo(providerId: string): string {
@@ -338,23 +346,23 @@ export default function SearchConfigPage() {
             {activeSource
               ? t(
                   "advancedSettings.search.sourceConfiguredTitle",
-                  "Current search source:{{name}}",
+                  "当前搜索源：{{name}}",
                   { name: activeSource.name },
                 )
               : t(
                   "advancedSettings.search.sourceBuiltinTitle",
-                  "Current search source: built-in search",
+                  "当前搜索源：内置搜索",
                 )}
           </p>
           <p className={styles.statusDesc}>
             {activeSource
               ? t(
                   "advancedSettings.search.sourceConfiguredDesc",
-                  "A third-party search service has been configured, and the built-in search is no longer loaded by default to prevent multiple search tools from being exposed to the model at the same time.",
+                  "已配置第三方搜索服务，内置搜索默认不再加载，避免多个搜索工具同时暴露给模型。",
                 )
               : t(
                   "advancedSettings.search.sourceBuiltinDesc",
-                  "When the third-party search service is not configured, you can still use the product’s built-in search service; this service does not require API Key, but stability and availability are not guaranteed. It will automatically switch after configuring the third-party service.",
+                  "未配置第三方搜索服务时，仍可使用产品内置搜索服务；该服务无需 API Key，但不保证稳定性和可用性。配置第三方服务后会自动切换。",
                 )}
           </p>
         </div>

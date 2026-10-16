@@ -8,7 +8,6 @@ import {
   Check,
   RotateCcw,
   Pencil,
-  Undo2,
   Volume2,
   Settings,
   GitFork,
@@ -30,7 +29,6 @@ import {
   isDataUrl,
   workspacePathFromAccessUrl,
 } from "../../../utils/toolMediaBlocks";
-import { isImeComposing } from "../../../utils/ime";
 import { formatMessageTime } from "../../../utils/formatMessageTime";
 import { copyText } from "../../../utils/copyText";
 import { useServerTimezone } from "../../../hooks/useServerTimezone";
@@ -83,10 +81,7 @@ interface MessageBubbleProps {
   agentId?: string | null;
   composerLookups?: ComposerTagLookups;
   onRegenerate?: (messageId: string) => void;
-  /** Turn off streamed token usage then retry (invalid_request / MindIE). */
-  onDisableStreamUsage?: () => Promise<boolean>;
   onEditUserMessage?: (messageId: string, newText: string) => void;
-  onWithdrawSteer?: (messageId: string) => void;
   onForkAssistantMessage?: (messageId: string) => void;
   forkDisabled?: boolean;
   forkDisabledHint?: string;
@@ -538,9 +533,7 @@ function MessageBubble({
   agentId = null,
   composerLookups,
   onRegenerate,
-  onDisableStreamUsage,
   onEditUserMessage,
-  onWithdrawSteer,
   onForkAssistantMessage,
   forkDisabled,
   forkDisabledHint,
@@ -663,10 +656,6 @@ function MessageBubble({
             actions={actions}
             status={hitlStatus}
             resolution={message.hitlData.resolution}
-            pendingId={message.hitlData.pending_id}
-            speakerName={
-              isTeamRoom && !isTeamHostSpeaker ? expert?.name : undefined
-            }
             onDecision={onHitlDecision}
           />
         </div>
@@ -680,13 +669,10 @@ function MessageBubble({
   const isStreaming = message.status === "streaming";
   const hasToolData = !!message.toolData;
   const isError = message.status === "error";
-  const errorSource = isError
-    ? message.errorInfo?.message?.trim() || textContent
-    : textContent;
   const errorBodyText = isError
-    ? formatChatStreamError(errorSource, t)
+    ? formatChatStreamError(textContent, t)
     : textContent;
-  const errorAction = isError ? chatStreamErrorAction(errorSource) : null;
+  const errorAction = isError ? chatStreamErrorAction(textContent) : null;
   const attachments = message.attachments || [];
   const imageAttachments = attachments.filter(
     (attachment) =>
@@ -726,18 +712,11 @@ function MessageBubble({
   const isLastInGroup = groupPosition === "last" || groupPosition === "only";
 
   // For skip-render checks: answer bubble only shows text and attachments.
-  // An error still renders its box when the body is only a title.
-  if (!isUser && !isError && !textContent && !hasAttachments) {
+  if (!isUser && !textContent && !hasAttachments) {
     return null;
   }
 
-  if (
-    !isUser &&
-    !isError &&
-    !hasAttachments &&
-    textContent &&
-    !textContent.trim()
-  ) {
+  if (!isUser && !hasAttachments && textContent && !textContent.trim()) {
     return null;
   }
 
@@ -810,7 +789,6 @@ function MessageBubble({
                     autoFocus
                     rows={4}
                     onKeyDown={(e) => {
-                      if (isImeComposing(e)) return;
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         handleEditSubmit();
@@ -905,21 +883,7 @@ function MessageBubble({
                 )}
                 {(errorAction || onRegenerate) && (
                   <div className={styles.errorActionRow}>
-                    {errorAction?.fix === "disable_stream_usage" &&
-                    onDisableStreamUsage ? (
-                      <button
-                        className={styles.errorRetryBtn}
-                        onClick={() => {
-                          void onDisableStreamUsage().then((ok) => {
-                            if (ok) onRegenerate?.(message.id);
-                          });
-                        }}
-                        type="button"
-                      >
-                        <RotateCcw size={13} />
-                        {t(errorAction.labelKey)}
-                      </button>
-                    ) : errorAction ? (
+                    {errorAction && (
                       <button
                         className={styles.errorConfigBtn}
                         onClick={() => navigate(errorAction.path)}
@@ -928,7 +892,7 @@ function MessageBubble({
                         <Settings size={13} />
                         {t(errorAction.labelKey)}
                       </button>
-                    ) : null}
+                    )}
                     {onRegenerate && (
                       <button
                         className={styles.errorRetryBtn}
@@ -1003,9 +967,7 @@ function MessageBubble({
             usageParts.length > 0 ||
             (isUser &&
               !isEditing &&
-              Boolean(
-                message.content || onEditUserMessage || message.steerPending,
-              ))) && (
+              Boolean(message.content || onEditUserMessage))) && (
             <div
               className={`${styles.msgMetaRow} ${
                 isUser ? styles.msgMetaRowRight : ""
@@ -1013,23 +975,10 @@ function MessageBubble({
             >
               {isUser &&
                 !isEditing &&
-                (message.content ||
-                  onEditUserMessage ||
-                  message.steerPending) && (
+                (message.content || onEditUserMessage) && (
                   <div className={styles.userMsgActions} role="group">
                     {message.content ? (
                       <CopyButton text={message.content} />
-                    ) : null}
-                    {onWithdrawSteer && message.steerPending ? (
-                      <button
-                        className={styles.msgActionBtn}
-                        onClick={() => onWithdrawSteer(message.id)}
-                        title={t("chat.steer.withdraw")}
-                        type="button"
-                        aria-label={t("chat.steer.withdraw")}
-                      >
-                        <Undo2 size={14} />
-                      </button>
                     ) : null}
                     {onEditUserMessage ? (
                       <button

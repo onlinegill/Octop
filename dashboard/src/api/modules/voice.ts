@@ -26,8 +26,6 @@ export interface VoiceProviderRow {
 export interface ActiveVoice {
   stt: string;
   tts: string;
-  /** True when the active STT provider streams results over WebSocket. */
-  stt_realtime?: boolean;
 }
 
 export interface VoiceProviderInput {
@@ -59,7 +57,7 @@ export const voiceApi = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
-  transcribe: (audio: Blob, language = "en-US", provider?: string) => {
+  transcribe: (audio: Blob, language = "zh-CN", provider?: string) => {
     const form = new FormData();
     form.append("audio", audio, recordingFilename(audio.type));
     form.append("language", language);
@@ -80,8 +78,8 @@ export const voiceApi = {
     }),
   /**
    * Streamed variant for low-latency playback. The server flushes chunks as
-   * they arrive for streamed-WAV providers; others stream MP3, in which case
-   * the buffered `synthesize` path is used instead.
+   * they arrive (MiMo streams live WAV); other providers stream MP3, in
+   * which case the buffered `synthesize` path is used instead.
    */
   synthesizeStream: (
     text: string,
