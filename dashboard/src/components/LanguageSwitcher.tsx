@@ -5,7 +5,10 @@ import { message } from "@/utils/antdMessage";
 import { preferencesApi } from "../api/modules/preferences";
 import { applyUserLocale } from "../utils/locale";
 
-const LANGUAGES = [{ key: "en", label: "EN" }];
+const LANGUAGES = [
+  { key: "zh", label: "中" },
+  { key: "en", label: "EN" },
+];
 
 export default function LanguageSwitcher() {
   const { i18n, t } = useTranslation();
@@ -38,7 +41,7 @@ export default function LanguageSwitcher() {
         return (
           <Tooltip
             key={key}
-            title="English"
+            title={key === "zh" ? "简体中文" : "English"}
             mouseEnterDelay={0.4}
           >
             <button

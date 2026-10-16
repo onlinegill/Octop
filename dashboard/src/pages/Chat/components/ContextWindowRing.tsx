@@ -31,8 +31,6 @@ function formatTokenK(n: number): string {
 
 interface ContextWindowRingProps {
   usedTokens: number | null;
-  /** No provider usage_metadata — ring/breakdown are local estimates. */
-  usageEstimated?: boolean;
   maxTokens: number;
   agentId?: string | null;
   threadId?: string | null;
@@ -42,7 +40,6 @@ interface ContextWindowRingProps {
 
 export default function ContextWindowRing({
   usedTokens,
-  usageEstimated = false,
   maxTokens,
   agentId,
   threadId,
@@ -203,9 +200,7 @@ export default function ContextWindowRing({
         {t("chat.contextWindow.breakdownPercent", { percent: displayPct })}
       </div>
       <div className={styles.contextUsageHint}>
-        {usageEstimated
-          ? t("chat.contextWindow.estimateHint")
-          : t("chat.contextWindow.breakdownHint")}
+        {t("chat.contextWindow.breakdownHint")}
       </div>
       {loading ? (
         <div className={styles.contextUsageLoading}>

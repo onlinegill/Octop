@@ -135,39 +135,36 @@ export function buildNavSections(
   user: OctopUser | null,
   opts?: { mobileEnabled?: boolean },
 ): NavSection[] {
-  const topItems: NavItem[] = [
+  const sections: NavSection[] = [
     {
-      key: "chat",
-      path: "/chat",
-      icon: <MessageSquareText size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.chat",
+      items: [
+        {
+          key: "chat",
+          path: "/chat",
+          icon: <MessageSquareText size={iconSize} strokeWidth={iconStroke} />,
+          labelKey: "nav.chat",
+        },
+        {
+          key: "experts",
+          path: "/experts",
+          icon: <GraduationCap size={iconSize} strokeWidth={iconStroke} />,
+          labelKey: "nav.experts",
+        },
+        {
+          key: "tasks",
+          path: "/tasks",
+          icon: <Timer size={iconSize} strokeWidth={iconStroke} />,
+          labelKey: "nav.tasks",
+        },
+        {
+          key: "token-usage",
+          path: "/token-usage",
+          icon: <Activity size={iconSize} strokeWidth={iconStroke} />,
+          labelKey: "nav.tokenUsage",
+        },
+      ],
     },
   ];
-  if (navAllowed(user, "experts")) {
-    topItems.push({
-      key: "experts",
-      path: "/experts",
-      icon: <GraduationCap size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.experts",
-    });
-  }
-  if (navAllowed(user, "tasks")) {
-    topItems.push({
-      key: "tasks",
-      path: "/tasks",
-      icon: <Timer size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.tasks",
-    });
-  }
-  if (navAllowed(user, "token-usage")) {
-    topItems.push({
-      key: "token-usage",
-      path: "/token-usage",
-      icon: <Activity size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.tokenUsage",
-    });
-  }
-  const sections: NavSection[] = [{ items: topItems }];
 
   const settingsItems: NavItem[] = [
     {

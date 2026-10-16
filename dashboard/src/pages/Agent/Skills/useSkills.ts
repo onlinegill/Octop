@@ -30,7 +30,7 @@ export interface SkillSpec {
   /** Source of the skill. */
   kind: "workspace" | "builtin" | "package";
   emoji?: string;
-  /** Persisted marketplace icon URL. */
+  /** Persisted SkillHub marketplace icon. */
   iconUrl?: string;
   /** ``metadata.octop.label`` when the API keeps the localized map. */
   label?:

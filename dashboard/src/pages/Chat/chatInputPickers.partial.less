@@ -9,13 +9,13 @@
 .modelMenuColumn {
   display: flex;
   flex-direction: column;
-  min-width: 280px;
-  max-width: min(440px, calc(100vw - 32px));
+  min-width: 240px;
+  max-width: 320px;
 }
 
 .modelMenu {
-  min-width: 280px;
-  max-width: min(440px, calc(100vw - 32px));
+  min-width: 240px;
+  max-width: 320px;
   max-height: 280px;
   overflow-y: auto;
   display: flex;
@@ -170,15 +170,11 @@
 }
 
 .modelMenuLabel {
-  min-width: 0;
-  flex: 1;
   font-size: 13px;
   font-weight: 500;
   color: var(--fn-text-primary);
   line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-all;
 }
 
 .modelMenuItemActive .modelMenuLabel {
@@ -918,9 +914,7 @@
 
 .plusFlyout {
   position: relative;
-  width: max-content;
-  min-width: 260px;
-  max-width: min(440px, calc(100vw - 32px));
+  width: 220px;
 }
 
 .plusFlyoutMenu,
@@ -933,9 +927,7 @@
 }
 
 .plusFlyoutMenu {
-  width: max-content;
-  min-width: 260px;
-  max-width: min(320px, calc(100vw - 32px));
+  width: 220px;
   height: fit-content;
 }
 
@@ -955,8 +947,8 @@
   .modelPickerPanel {
     display: flex;
     flex-direction: column;
-    min-width: 280px;
-    max-width: min(440px, calc(100vw - 48px));
+    min-width: 240px;
+    max-width: 280px;
     padding: 6px;
     box-sizing: border-box;
   }
@@ -985,7 +977,6 @@
     white-space: nowrap;
   }
 
-  .skillPickerSearch,
   .modelMenuDivider,
   .modelMenuFooter {
     flex-shrink: 0;
@@ -1023,11 +1014,6 @@
   top: 0;
   left: calc(100% + 16px);
   max-width: calc(100vw - 48px);
-}
-
-.plusFlyoutPanelAlignBottom {
-  top: auto;
-  bottom: 0;
 }
 
 .plusFlyoutPanelInPlace {
@@ -1108,10 +1094,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  flex: 0 0 auto;
+  min-width: 0;
+  flex: 1;
   font-size: 13px;
   font-weight: 500;
-  white-space: nowrap;
 
   svg {
     flex-shrink: 0;
@@ -1136,36 +1122,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.mobileOverflowItemCount {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 5px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 16px;
-  color: #fff;
-  background: #2563eb;
-  position: relative;
-  top: 1px;
-}
-
-.mobileOverflowItemCountExpert {
-  background: #d97706;
-}
-
-.mobileOverflowItemCountSubagent {
-  background: #0d9488;
-}
-
-.mobileOverflowItemCountText {
-  text-box: trim-both cap alphabetic;
 }
 
 .connectorMenuIcon {

@@ -121,7 +121,7 @@ const LEGACY_SESSION_STORAGE_KEY = "octop:remote-browser:session-id";
 /** Whether the user left the remote-browser stream open last time. */
 const STREAM_ACTIVE_KEY = "octop:remote-browser:stream-active";
 const DEFAULT_REFRESH_INTERVAL = 500;
-const DEFAULT_START_URL = "https://example.com";
+const DEFAULT_START_URL = "https://cloud.tencent.com";
 const BROWSER_AI_PANEL_KEY = "octop:remote-browser:ai-panel-open";
 const BROWSER_AI_PANEL_WIDTH_KEY = "octop:remote-browser:ai-panel-width";
 const BROWSER_AI_PANEL_HEIGHT_KEY = "octop:remote-browser:ai-panel-height";
@@ -581,7 +581,7 @@ export default function RemoteBrowserPage({
     antMessage.info(
       t(
         "remoteBrowser.installCancelHint",
-        "The installation request has been cancelled. The server may still be installing. Please refresh the status later.",
+        "已取消安装请求，服务端可能仍在继续安装，请稍后刷新状态。",
       ),
     );
   }, [t]);
@@ -608,7 +608,7 @@ export default function RemoteBrowserPage({
       title: t("remoteBrowser.uninstallTitle", "Uninstall built-in browser"),
       content: t(
         "remoteBrowser.uninstallConfirm",
-        "The current browser window will be closed and uninstalled Octop Automatically installed browser. Already on your computer Chrome Wait for the browser to be unaffected.",
+        "将关闭当前浏览器窗口，并卸载 Octop 自动安装的浏览器。你电脑上已有的 Chrome 等浏览器不受影响。",
       ),
       okText: t("remoteBrowser.uninstall", "Uninstall"),
       okButtonProps: { danger: true },
@@ -735,7 +735,7 @@ export default function RemoteBrowserPage({
       title: t("remoteBrowser.shutdownTitle", "Close browser"),
       content: t(
         "remoteBrowser.shutdownConfirm",
-        "The current browser window will be closed. The logged in website will still be valid the next time you open it.",
+        "将关闭当前浏览器窗口。已登录的网站下次打开时仍然有效。",
       ),
       okText: t("remoteBrowser.stop", "Close browser"),
       okButtonProps: { danger: true },
@@ -962,7 +962,7 @@ export default function RemoteBrowserPage({
 
         // Push a prompt asking the user to input their task objective
         chatStore.appendPushMessage(
-          '🎬 Recording has started!\n\nPlease enter your **Mission objectives**(This will become the skill name and trigger keyword) For example:"LoginOASystem","Check the weather"Wait.',
+          '🎬 录制已开始！\n\n请输入你的 **任务目标**（这将成为技能名称和触发关键词），例如："登录OA系统"、"查询天气"等。',
         );
       } else {
         antMessage.error(
@@ -1063,7 +1063,7 @@ export default function RemoteBrowserPage({
           title={t("remoteBrowser.installSuccess", "Browser installed successfully")}
           subTitle={t(
             "remoteBrowser.installSuccessHint",
-            "The browser is ready to start a session",
+            "浏览器已就绪，可启动会话",
           )}
           style={{ padding: "8px 0" }}
         />
@@ -1078,7 +1078,7 @@ export default function RemoteBrowserPage({
             title={t("remoteBrowser.installFailed", "Installation failed")}
             subTitle={t(
               "remoteBrowser.installFailedHint",
-              "Automatic installation failed, please try again.",
+              "自动安装失败，请重试。",
             )}
             style={{ padding: "8px 0" }}
           />
@@ -1113,7 +1113,7 @@ export default function RemoteBrowserPage({
             >
               {t(
                 "common.askOctopHint",
-                "If the installation fails, you can copy the error message below and send it to Octop Check.",
+                "若安装失败，可复制下方错误信息发给 Octop 排查。",
               )}
             </div>
           </div>
@@ -1130,7 +1130,7 @@ export default function RemoteBrowserPage({
           title={t("remoteBrowser.browserAlreadyInstalled", "Browser is ready")}
           subTitle={t(
             "remoteBrowser.envReady",
-            "It can help you open web pages, fill out forms and take screenshots.",
+            "可以帮你打开网页、填写表单和截图了",
           )}
           style={{ padding: "8px 0" }}
         />
@@ -1147,11 +1147,11 @@ export default function RemoteBrowserPage({
             showIcon
             message={t(
               "remoteBrowser.playwrightOptional",
-              "playwright Package not installed (optional)",
+              "playwright 包未安装（可选）",
             )}
             description={t(
               "remoteBrowser.playwrightOptionalDesc",
-              "octop-browser (CDP) Ready, browser functionality is available. If required Playwright Alternate mode, installable octop[browser] extras.",
+              "octop-browser (CDP) 已就绪，浏览器功能可用。如需 Playwright 备用模式，可安装 octop[browser] extras。",
             )}
           />
         );
@@ -1172,7 +1172,7 @@ export default function RemoteBrowserPage({
         title={t("remoteBrowser.notInstalled", "No browser detected")}
         subTitle={t(
           "remoteBrowser.notInstalledHint",
-          "Octop You need a browser to automatically open web pages, fill out forms and take screenshots for you. Click the button below to install automatically without manual configuration.",
+          "Octop 需要浏览器才能帮你自动打开网页、填写表单和截图。点击下方按钮即可自动安装，无需手动配置。",
         )}
         style={{ padding: "8px 0" }}
       />
@@ -1311,19 +1311,11 @@ export default function RemoteBrowserPage({
       </>
     ),
     onClick: openEnvModal,
-    icon:
-      envReady && !envLoading ? (
-        <CheckCircle2
-          size={14}
-          style={{ color: "var(--fn-color-success,#52c41a)" }}
-        />
-      ) : (
-        <Globe size={14} />
-      ),
-    type: envReady ? ("default" as const) : ("primary" as const),
+    icon: <Globe size={14} />,
+    type: "default" as const,
     title: t(
       "remoteBrowser.checkInstallTip",
-      "Check whether the browser is ready on this machine. If it is not installed, you can install it with one click.",
+      "检查本机是否已准备好浏览器，未安装时可一键安装",
     ),
   };
 
@@ -1427,7 +1419,7 @@ export default function RemoteBrowserPage({
                       <Tooltip
                         title={t(
                           "skillRecordGuide.buttonTip",
-                          "Record browser operations and generate reusable skill scripts",
+                          "录制浏览器操作，生成可复用的技能脚本",
                         )}
                       >
                         <Button
@@ -1436,7 +1428,7 @@ export default function RemoteBrowserPage({
                           onClick={openSkillGuide}
                           aria-label={t(
                             "skillRecordGuide.buttonLabel",
-                            "Skill recording",
+                            "技能录制",
                           )}
                         >
                           {isMobile
@@ -1466,7 +1458,7 @@ export default function RemoteBrowserPage({
                       fullscreenLabel={t("remoteBrowser.fullscreen", "Toggle Fullscreen")}
                       controlsLabel={t(
                         "remoteBrowser.openControls",
-                        "Controls and quick operations",
+                        "控制与快捷操作",
                       )}
                       streamingLabel={
                         isStreaming
@@ -1500,11 +1492,11 @@ export default function RemoteBrowserPage({
                       envReady
                         ? t(
                             "remoteBrowser.startBrowserDesc",
-                            "The environment is ready, follow the steps below to start remote browsing and control",
+                            "环境已就绪，按以下步骤开始远程浏览与操控",
                           )
                         : t(
                             "remoteBrowser.setupDesc",
-                            "Install the browser first to start remote browsing and automatically operate web pages",
+                            "先安装浏览器，即可开始远程浏览和自动操作网页",
                           )
                     }
                     steps={
@@ -1513,13 +1505,13 @@ export default function RemoteBrowserPage({
                             {
                               label: t(
                                 "remoteBrowser.startBrowserIdleStep1",
-                                "Click “Launch Browser” below to create a session",
+                                "点击下方「启动浏览器」建立会话",
                               ),
                             },
                             {
                               label: t(
                                 "remoteBrowser.startBrowserIdleStep2",
-                                "Enter the URL in the address bar and access it, or use favorites and AI Assistant",
+                                "在地址栏输入网址并访问，也可使用收藏夹与 AI 助手",
                               ),
                             },
                           ]
@@ -1527,19 +1519,19 @@ export default function RemoteBrowserPage({
                             {
                               label: t(
                                 "remoteBrowser.setupStep1",
-                                "Click “Check” to confirm whether there is an available browser on this machine",
+                                "点击「检查」，确认本机是否已有可用浏览器",
                               ),
                             },
                             {
                               label: t(
                                 "remoteBrowser.setupStep2",
-                                "If the component is missing, install the browser environment with one click in the pop-up window.",
+                                "若组件缺失，在弹窗中一键安装浏览器环境",
                               ),
                             },
                             {
                               label: t(
                                 "remoteBrowser.setupStep3",
-                                "After the installation is complete, click “Launch Browser” to start the session",
+                                "安装完成后，点击「启动浏览器」开始会话",
                               ),
                             },
                           ]
@@ -1550,7 +1542,7 @@ export default function RemoteBrowserPage({
                             label: creating
                               ? t(
                                   "remoteBrowser.ai.startingBrowser",
-                                  "Starting...",
+                                  "正在启动...",
                                 )
                               : t("remoteBrowser.startBrowser", "Launch Browser"),
                             onClick: () => void createSession(),
@@ -1616,7 +1608,7 @@ export default function RemoteBrowserPage({
       title={t("pageShell.browser.title", "Browser AI+")}
       subtitle={t(
         "pageShell.browser.subtitle",
-        "Based on Chromium Headless browser session",
+        "基于 Chromium 的无头浏览器会话",
       )}
       fill
     >

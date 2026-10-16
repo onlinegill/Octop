@@ -34,6 +34,13 @@ export interface HubSkillSpec {
   source_url: string;
 }
 
+export interface SkillHubSkill {
+  slug: string;
+  name: string;
+  description: string;
+  version: string;
+}
+
 // Legacy Skill interface for backward compatibility
 export interface Skill {
   id: string;

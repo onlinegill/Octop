@@ -7,27 +7,27 @@ import {
 
 describe("resolveLiveSpeakerNames", () => {
   const agents = [
-    { agent_id: "host", name: "Host" },
-    { agent_id: "doctor", name: "Clinical assistant" },
-    { agent_id: "nurse", name: "Nursing assistant" },
+    { agent_id: "host", name: "主持" },
+    { agent_id: "doctor", name: "临床助手" },
+    { agent_id: "nurse", name: "护理助手" },
   ];
 
   it("maps member ids to display names", () => {
     expect(
       resolveLiveSpeakerNames(["doctor", "nurse"], agents, {
         hostId: "host",
-        hostName: "Host",
+        hostName: "主持",
       }),
-    ).toEqual(["Clinical assistant", "Nursing assistant"]);
+    ).toEqual(["临床助手", "护理助手"]);
   });
 
   it("treats empty and host id as the host", () => {
     expect(
       resolveLiveSpeakerNames(["", "host"], agents, {
         hostId: "host",
-        hostName: "Team hosting",
+        hostName: "团队主持",
       }),
-    ).toEqual(["Team hosting"]);
+    ).toEqual(["团队主持"]);
   });
 
   it("falls back to the raw id when the agent is unknown", () => {
@@ -39,7 +39,7 @@ describe("resolveLiveSpeakerNames", () => {
       resolveLiveSpeakerNames(["doctor", "nurse", "mystery"], agents, {
         limit: 2,
       }),
-    ).toEqual(["Clinical assistant", "Nursing assistant"]);
+    ).toEqual(["临床助手", "护理助手"]);
   });
 });
 

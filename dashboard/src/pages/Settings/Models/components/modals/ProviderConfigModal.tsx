@@ -33,11 +33,9 @@ import {
   setOnnxDownloadProgressHandler,
   watchOnnxDownload,
 } from "../../../../../api/modules/onnxDownloadWatcher";
-import { looksLikeOllamaProvider, isOnnxProviderRow } from "../../presetUtils";
+import { isOllamaProviderRow, isOnnxProviderRow } from "../../presetUtils";
 import { expandOllamaDownloadedIds } from "../../ollamaNames";
 import { ModelListEditor } from "./ModelListEditor";
-import { StreamUsageAdvanced } from "../StreamUsageAdvanced";
-import { TestStreamHint } from "../TestStreamHint";
 import styles from "../../index.module.less";
 
 const POLL_INTERVAL_MS = 3000;
@@ -63,7 +61,6 @@ interface ProviderConfigForm {
   model?: string;
   note?: string;
   kind: string;
-  stream_usage?: boolean;
 }
 
 interface ProviderConfigModalProps {
@@ -99,7 +96,7 @@ export function ProviderConfigModal({
   const [draftModels, setDraftModels] = useState<ProviderModel[]>([]);
 
   const hasApiKey = !!provider.api_key && provider.api_key.length > 0;
-  const isOllama = looksLikeOllamaProvider(provider);
+  const isOllama = isOllamaProviderRow(provider);
   const isOnnx = isOnnxProviderRow(provider);
   const [downloadedIds, setDownloadedIds] = useState<string[]>([]);
   const [downloadingIds, setDownloadingIds] = useState<string[]>([]);
@@ -666,7 +663,6 @@ export function ProviderConfigModal({
       api_key: undefined,
       model: currentDefaultModel,
       note: provider.note ?? "",
-      stream_usage: provider.stream_usage !== false,
     });
     setDraftModels(
       (provider.models ?? []).map((m) => ({
@@ -695,13 +691,6 @@ export function ProviderConfigModal({
         payload.api_key = values.api_key.trim();
       if ((values.note ?? "") !== (provider.note ?? ""))
         payload.note = values.note?.trim() || null;
-      if (
-        !isOnnx &&
-        provider.kind === "openai" &&
-        Boolean(values.stream_usage) !== (provider.stream_usage !== false)
-      ) {
-        payload.stream_usage = Boolean(values.stream_usage);
-      }
       // default model
       const existingDefault = provider.models?.length
         ? provider.models[0].id
@@ -1047,7 +1036,7 @@ export function ProviderConfigModal({
               ? t("models.defaultModelDownloadedOnly")
               : t(
                   "models.defaultModelExtra",
-                  "Use this model when testing connections; leave blank to use the first enabled model",
+                  "测试连接时使用此模型；留空则使用第一个已启用的模型",
                 )
           }
         >
@@ -1081,8 +1070,6 @@ export function ProviderConfigModal({
         <Form.Item name="note" label={t("models.noteLabel")}>
           <Input.TextArea rows={2} placeholder={t("models.notePlaceholder")} />
         </Form.Item>
-
-        {!isOnnx && provider.kind === "openai" ? <StreamUsageAdvanced /> : null}
       </Form>
 
       <div style={{ marginBottom: 16 }}>
@@ -1103,7 +1090,6 @@ export function ProviderConfigModal({
         >
           {t("models.fetchModels")}
         </Button>
-        {!isOnnx && provider.kind === "openai" ? <TestStreamHint /> : null}
       </div>
 
       {/* ===== Models section ===== */}

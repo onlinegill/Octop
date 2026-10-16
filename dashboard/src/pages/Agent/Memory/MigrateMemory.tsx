@@ -172,7 +172,7 @@ export default function MigrateMemory({ agentId }: Props) {
       setAdoptResult(result);
       if (!actualDryRun) {
         message.success(
-          t("memory.migrate.importSuccess", "The import is completed and a total of written {{n}} Article", {
+          t("memory.migrate.importSuccess", "导入完成，共写入 {{n}} 条", {
             n: result.applied,
           }),
         );
@@ -259,7 +259,7 @@ export default function MigrateMemory({ agentId }: Props) {
         <Paragraph>
           {t(
             "memory.migrate.exportDesc",
-            "Change current Octop All memories of are packaged as .hmpkg File and download it locally. You can do this on other hosts (openclaw / hermes) and continue using it.",
+            "将当前 Octop 的全部记忆打包为 .hmpkg 文件并下载到本地。你可以在其他宿主（openclaw / hermes）上导入此文件继续使用。",
           )}
         </Paragraph>
         {error ? <Alert type="error" message={error} showIcon /> : null}
@@ -350,7 +350,7 @@ export default function MigrateMemory({ agentId }: Props) {
                   options={[
                     { value: "openclaw", label: "openclaw" },
                     { value: "hermes", label: "hermes" },
-                    { value: "agent", label: "octop(native)" },
+                    { value: "agent", label: "octop（本机）" },
                   ]}
                 />
               </Form.Item>
@@ -366,7 +366,7 @@ export default function MigrateMemory({ agentId }: Props) {
                   <Radio value="replace">
                     {t(
                       "memory.migrate.conflictReplace",
-                      "Overwrite (replace with new data)",
+                      "覆盖（用新数据替换）",
                     )}
                   </Radio>
                 </Radio.Group>
@@ -400,12 +400,12 @@ export default function MigrateMemory({ agentId }: Props) {
                 description={
                   <div>
                     <div>
-                      {t("memory.migrate.willApply", "Expected to write:{{n}} Article", {
+                      {t("memory.migrate.willApply", "预计写入：{{n}} 条", {
                         n: adoptResult.applied,
                       })}
                     </div>
                     <div>
-                      {t("memory.migrate.targetNs", "Target namespace:{{ns}}", {
+                      {t("memory.migrate.targetNs", "目标 namespace：{{ns}}", {
                         ns: adoptResult.target_namespace,
                       })}
                     </div>
@@ -415,7 +415,7 @@ export default function MigrateMemory({ agentId }: Props) {
               <Paragraph style={{ marginTop: 12 }}>
                 {t(
                   "memory.migrate.confirmDesc",
-                  "After confirming that it is correct, click “Confirm Execute” to officially import.",
+                  "确认无误后点击「确认执行」正式导入。",
                 )}
               </Paragraph>
             </div>
@@ -435,14 +435,14 @@ export default function MigrateMemory({ agentId }: Props) {
                 adoptResult.already_adopted
                   ? t(
                       "memory.migrate.alreadyAdoptedAt",
-                      "This package has been {{at}} Imported",
+                      "此包已于 {{at}} 导入过",
                       {
                         at: adoptResult.already_adopted_at ?? "",
                       },
                     )
                   : t(
                       "memory.migrate.importStats",
-                      "Write {{n}} Bar, skip {{s}} Article",
+                      "写入 {{n}} 条，跳过 {{s}} 条",
                       {
                         n: adoptResult.applied,
                         s: adoptResult.skipped,
@@ -503,14 +503,14 @@ export default function MigrateMemory({ agentId }: Props) {
               <Paragraph>
                 {t(
                   "memory.migrate.doctorDesc",
-                  "To the current Octop The memory bank performs health checks, verification schema, index, foreign key integrity, etc.",
+                  "对当前 Octop 的记忆库执行健康检查，验证 schema、索引、外键完整性等。",
                 )}
               </Paragraph>
               <Form layout="vertical">
                 <Form.Item
                   label={t(
                     "memory.migrate.comparePkgLabel",
-                    "Optional: Upload .hmpkg File line number comparison",
+                    "可选：上传 .hmpkg 文件进行行数比对",
                   )}
                 >
                   <Upload
@@ -538,7 +538,7 @@ export default function MigrateMemory({ agentId }: Props) {
                     showIcon
                     message={t(
                       "memory.migrate.doctorAllPassed",
-                      "All checks passed ✓",
+                      "全部检查通过 ✓",
                     )}
                   />
                 ) : (
@@ -547,7 +547,7 @@ export default function MigrateMemory({ agentId }: Props) {
                     showIcon
                     message={t(
                       "memory.migrate.doctorFailed",
-                      "Some checks failed, please check details",
+                      "部分检查未通过，请查看详情",
                     )}
                   />
                 )}

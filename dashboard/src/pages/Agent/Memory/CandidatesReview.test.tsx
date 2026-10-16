@@ -45,9 +45,9 @@ describe("<CandidatesReview />", () => {
       listCandidatesResp([
         makeCandidate({
           id: "cand-1",
-          title: "Coffee preference",
-          verbatim_quote: "I have to drink Americano every day",
-          subject_name: "User",
+          title: "咖啡偏好",
+          verbatim_quote: "我每天必须喝美式",
+          subject_name: "用户",
         }),
       ]),
     );
@@ -55,7 +55,7 @@ describe("<CandidatesReview />", () => {
     render(<CandidatesReview agentId="ZYWZTD" />);
 
     await waitFor(() => {
-      expect(screen.getByText("Coffee preference")).toBeInTheDocument();
+      expect(screen.getByText("咖啡偏好")).toBeInTheDocument();
     });
 
     expect(api.listCandidates).toHaveBeenCalledWith("ZYWZTD", {
@@ -63,14 +63,12 @@ describe("<CandidatesReview />", () => {
       limit: 20,
     });
     // verbatim quote and subject_name render in the meta line
-    expect(
-      screen.getByText(/I have to drink Americano every day/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/每天必须喝美式/)).toBeInTheDocument();
   });
 
   it("promotes a candidate via Popconfirm and re-loads", async () => {
     api.listCandidates.mockResolvedValue(
-      listCandidatesResp([makeCandidate({ id: "cand-1", title: "Coffee preference" })]),
+      listCandidatesResp([makeCandidate({ id: "cand-1", title: "咖啡偏好" })]),
     );
     api.promoteCandidate.mockResolvedValue(promoteResp());
 
@@ -78,14 +76,17 @@ describe("<CandidatesReview />", () => {
     render(<CandidatesReview agentId="ZYWZTD" />);
 
     await waitFor(() =>
-      expect(screen.getByText("Coffee preference")).toBeInTheDocument(),
+      expect(screen.getByText("咖啡偏好")).toBeInTheDocument(),
     );
 
-    const promoteBtn = screen.getByRole("button", { name: /Adopt/ });
+    const promoteBtn = screen.getByRole("button", { name: /采\s*纳/ });
     await user.click(promoteBtn);
 
-    // Popconfirm okText renders as the shared "Confirm" label.
-    const confirmBtn = await screen.findByRole("button", { name: /^Confirm$/ });
+    // Popconfirm okText and inline action text are both the same label; antd may add spacing, so match loosely.
+    const allRecord = await screen.findAllByRole("button", {
+      name: /采\s*纳/,
+    });
+    const confirmBtn = allRecord[allRecord.length - 1];
     await user.click(confirmBtn);
 
     await waitFor(() => {
@@ -99,7 +100,7 @@ describe("<CandidatesReview />", () => {
 
   it("rejects a candidate with a typed reason via Modal", async () => {
     api.listCandidates.mockResolvedValue(
-      listCandidatesResp([makeCandidate({ id: "cand-1", title: "Questionable facts" })]),
+      listCandidatesResp([makeCandidate({ id: "cand-1", title: "可疑事实" })]),
     );
     api.rejectCandidate.mockResolvedValue(rejectResp());
 
@@ -107,25 +108,25 @@ describe("<CandidatesReview />", () => {
     render(<CandidatesReview agentId="ZYWZTD" />);
 
     await waitFor(() =>
-      expect(screen.getByText("Questionable facts")).toBeInTheDocument(),
+      expect(screen.getByText("可疑事实")).toBeInTheDocument(),
     );
 
-    const rejectBtn = screen.getByRole("button", { name: /Discard/ });
+    const rejectBtn = screen.getByRole("button", { name: /忽\s*略/ });
     await user.click(rejectBtn);
 
     await waitFor(() => {
-      expect(screen.getByText("Discard this draft")).toBeInTheDocument();
+      expect(screen.getByText("忽略这条草稿")).toBeInTheDocument();
     });
 
-    const textarea = screen.getByPlaceholderText(/reason is optional/);
-    await user.type(textarea, "Duplicate information");
+    const textarea = screen.getByPlaceholderText(/原因可选/);
+    await user.type(textarea, "重复信息");
 
-    const okBtn = screen.getByRole("button", { name: /Confirm discard/ });
+    const okBtn = screen.getByRole("button", { name: /确认忽略/ });
     await user.click(okBtn);
 
     await waitFor(() => {
       expect(api.rejectCandidate).toHaveBeenCalledWith("ZYWZTD", "cand-1", {
-        reason: "Duplicate information",
+        reason: "重复信息",
       });
     });
     await waitFor(() => {
@@ -137,7 +138,7 @@ describe("<CandidatesReview />", () => {
     api.listCandidates.mockResolvedValue(listCandidatesResp([]));
     render(<CandidatesReview agentId="ZYWZTD" />);
     await waitFor(() => expect(api.listCandidates).toHaveBeenCalled());
-    expect(screen.getByText("No memory content yet")).toBeInTheDocument();
+    expect(screen.getByText("暂无记忆内容")).toBeInTheDocument();
   });
 
   it("disables promote/reject buttons for already-decided candidates", async () => {
@@ -145,7 +146,7 @@ describe("<CandidatesReview />", () => {
       listCandidatesResp([
         makeCandidate({
           id: "cand-1",
-          title: "Candidates for promotion",
+          title: "已升级的候选",
           status: "promoted",
           decided_at: "2026-06-29T10:00:00Z",
           decided_by: "user",
@@ -155,11 +156,11 @@ describe("<CandidatesReview />", () => {
 
     render(<CandidatesReview agentId="ZYWZTD" />);
     await waitFor(() =>
-      expect(screen.getByText("Candidates for promotion")).toBeInTheDocument(),
+      expect(screen.getByText("已升级的候选")).toBeInTheDocument(),
     );
 
-    const promoteBtn = screen.getByRole("button", { name: /Adopt/ });
-    const rejectBtn = screen.getByRole("button", { name: /Discard/ });
+    const promoteBtn = screen.getByRole("button", { name: /采\s*纳/ });
+    const rejectBtn = screen.getByRole("button", { name: /忽\s*略/ });
     expect(promoteBtn).toBeDisabled();
     expect(rejectBtn).toBeDisabled();
   });

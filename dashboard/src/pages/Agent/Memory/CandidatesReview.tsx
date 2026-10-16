@@ -53,21 +53,21 @@ import styles from "./CandidatesReview.module.less";
 const PAGE_SIZE = 20;
 
 const STATUS_OPTIONS: { value: CandidateStatus | ""; label: string }[] = [
-  { value: "pending", label: "Pending" },
-  { value: "needs_review", label: "To be reviewed" },
-  { value: "conflict", label: "Possible conflict" },
-  { value: "promoted", label: "Adopted" },
-  { value: "rejected", label: "Ignored" },
-  { value: "", label: "All" },
+  { value: "pending", label: "待处理" },
+  { value: "needs_review", label: "待复核" },
+  { value: "conflict", label: "可能冲突" },
+  { value: "promoted", label: "已采纳" },
+  { value: "rejected", label: "已忽略" },
+  { value: "", label: "全部" },
 ];
 
 const KIND_OPTIONS: { value: AtomKind | ""; label: string }[] = [
-  { value: "", label: "All types" },
-  { value: "Fact", label: "Facts" },
-  { value: "Decision", label: "Decide" },
-  { value: "Task", label: "Task" },
-  { value: "Preference", label: "Preference" },
-  { value: "ConflictCandidate", label: "Possible conflict" },
+  { value: "", label: "全部类型" },
+  { value: "Fact", label: "事实" },
+  { value: "Decision", label: "决定" },
+  { value: "Task", label: "任务" },
+  { value: "Preference", label: "偏好" },
+  { value: "ConflictCandidate", label: "可能冲突" },
 ];
 
 interface Props {
@@ -126,16 +126,16 @@ export default function CandidatesReview({ agentId }: Props) {
       const r = await memoryDashboardApi.promoteCandidate(agentId, c.id);
       const detail =
         r.merged > 0
-          ? `Merge with existing memory ${r.merged} Article`
+          ? `与现有记忆合并 ${r.merged} 条`
           : r.needs_review > 0
-          ? `Need to review ${r.needs_review} Article`
-          : `Add new adoption ${r.promoted} Article`;
+          ? `需复核 ${r.needs_review} 条`
+          : `新增采纳 ${r.promoted} 条`;
       message.success(
         t("memory.candidates.promoteOk", "Adopted") + ` · ${detail}`,
       );
       void load();
     } catch (e) {
-      message.error((e as Error).message ?? "Operation failed");
+      message.error((e as Error).message ?? "操作失败");
     } finally {
       setBusyId(null);
     }
@@ -153,7 +153,7 @@ export default function CandidatesReview({ agentId }: Props) {
       setRejectReason("");
       void load();
     } catch (e) {
-      message.error((e as Error).message ?? "Operation failed");
+      message.error((e as Error).message ?? "操作失败");
     } finally {
       setRejecting(false);
     }
@@ -230,7 +230,7 @@ export default function CandidatesReview({ agentId }: Props) {
                   <Popconfirm
                     title={t(
                       "memory.candidates.confirmPromote",
-                      "Adopt this memory?",
+                      "采纳这条记忆？",
                     )}
                     okText={t("common.confirm", "Confirm")}
                     cancelText={t("common.cancel", "Cancel")}
@@ -292,20 +292,20 @@ export default function CandidatesReview({ agentId }: Props) {
               </Tag>
               <ImportanceStars importance={selected.importance} />
             </Space>
-            <Typography.Title level={5}>Draft content</Typography.Title>
+            <Typography.Title level={5}>草稿内容</Typography.Title>
             <Typography.Paragraph>{selected.assertion}</Typography.Paragraph>
-            <Typography.Title level={5}>Original story based on</Typography.Title>
+            <Typography.Title level={5}>原话依据</Typography.Title>
             <Typography.Paragraph type="secondary">
               “{selected.verbatim_quote}”
             </Typography.Paragraph>
-            <Typography.Title level={5}>Octop Suggestions</Typography.Title>
+            <Typography.Title level={5}>Octop 的建议</Typography.Title>
             <Typography.Paragraph>
               {selected.recommended_action}
               {selected.promotion_reason
                 ? ` — ${selected.promotion_reason}`
                 : ""}
             </Typography.Paragraph>
-            <Typography.Title level={5}>About whom / What</Typography.Title>
+            <Typography.Title level={5}>关于谁 / 什么</Typography.Title>
             <Typography.Paragraph>{selected.subject_name}</Typography.Paragraph>
           </div>
         ) : null}
@@ -328,7 +328,7 @@ export default function CandidatesReview({ agentId }: Props) {
         <Typography.Paragraph>
           {t(
             "memory.candidates.rejectHint",
-            "If ignored, this memory will not enter long-term memory. You can choose to fill in the reason for easy review in the future.",
+            "忽略后这条记忆不会进入长期记忆。可选择填写原因，便于日后回顾。",
           )}
         </Typography.Paragraph>
         <Input.TextArea
@@ -337,7 +337,7 @@ export default function CandidatesReview({ agentId }: Props) {
           onChange={(e) => setRejectReason(e.target.value)}
           placeholder={t(
             "memory.candidates.rejectReasonPlaceholder",
-            "The reason is optional, for example: Expired / Wrong record / Not important",
+            "原因可选，例如：已过期 / 记录有误 / 不重要",
           )}
         />
       </Modal>
@@ -356,16 +356,16 @@ function GuidanceBanner({ status }: { status: CandidateStatus | "" }) {
         type="info"
         showIcon
         style={{ marginBottom: 14 }}
-        message="About “pending” drafts"
+        message="关于「待处理」草稿"
         description={
           <ul style={{ margin: "4px 0 0", paddingLeft: 18, lineHeight: "1.8" }}>
-            <li>These drafts are produced by Octop Automatically extracted from the conversation and waiting for system rule judgment.</li>
+            <li>这些草稿由 Octop 从对话中自动提取，正在等待系统规则判断。</li>
             <li>
-              The system will automatically decide: adopt it directly, merge it into existing memory, mark it for review or discard it.——
-              <strong>No manual intervention required</strong>.
+              系统会自动决定：直接采纳、合并到已有记忆、标记为待复核或丢弃——
+              <strong>无需手动干预</strong>。
             </li>
             <li>
-              If you need to deal with it in advance, you can switch to the “Pending Review” or “Possible Conflict” status to view the drafts that require your decision-making.
+              如需提前处理，可切换到「待复核」或「可能冲突」状态查看需要你决策的草稿。
             </li>
           </ul>
         }
@@ -379,19 +379,19 @@ function GuidanceBanner({ status }: { status: CandidateStatus | "" }) {
         type="warning"
         showIcon
         style={{ marginBottom: 14 }}
-        message="About the draft “To be reviewed”"
+        message="关于「待复核」草稿"
         description={
           <ul style={{ margin: "4px 0 0", paddingLeft: 18, lineHeight: "1.8" }}>
             <li>
-              <strong>Adopt</strong> → Enter long-term memory immediately and use it first in the next conversation.
+              <strong>采纳</strong> → 立即进入长期记忆，下次对话优先使用。
             </li>
             <li>
-              <strong>Ignore</strong> →
-              It will not be entered into long-term memory, but reasons can be attached (saved in the operation log for easy review in the future).
+              <strong>忽略</strong> →
+              不会进入长期记忆，可附上原因（保存在操作日志中，便于日后回顾）。
             </li>
             <li>
-              <strong>⏰ If 7 Not processed within days</strong>
-              , the system will automatically add it to the long-term memory, but the confidence level is low and the order is lower, so it will not affect the main dialogue.
+              <strong>⏰ 若 7 天内未处理</strong>
+              ，系统会自动将其加入长期记忆，但置信度较低，排序靠后，不影响主要对话。
             </li>
           </ul>
         }
@@ -405,21 +405,21 @@ function GuidanceBanner({ status }: { status: CandidateStatus | "" }) {
         type="error"
         showIcon
         style={{ marginBottom: 14 }}
-        message="About the “Possible Conflict” draft"
+        message="关于「可能冲突」草稿"
         description={
           <ul style={{ margin: "4px 0 0", paddingLeft: 18, lineHeight: "1.8" }}>
             <li>
-              These drafts are inconsistent with existing long-term memory, and the system cannot automatically determine which one is accurate. It is up to you to decide.
+              这些草稿与已有长期记忆存在矛盾，系统无法自动裁决，需要你来决定哪个是准确的。
             </li>
             <li>
-              <strong>Adopt</strong> → Use this draft as the guideline for long-term memory.
+              <strong>采纳</strong> → 以这条草稿为准，进入长期记忆。
             </li>
             <li>
-              <strong>Ignore</strong> → Keep the original memory unchanged.
+              <strong>忽略</strong> → 保留原有记忆不变。
             </li>
             <li>
-              <strong>⚠️ Conflict drafts have no automatic timeout</strong>
-              , it will stay in this queue if not processed.
+              <strong>⚠️ 冲突草稿没有自动超时</strong>
+              ，不处理会一直停留在此队列。
             </li>
           </ul>
         }
@@ -454,15 +454,15 @@ function kindColor(k: string): string {
 function kindLabel(k: string): string {
   switch (k) {
     case "Fact":
-      return "Facts";
+      return "事实";
     case "Decision":
-      return "Decide";
+      return "决定";
     case "Task":
-      return "Task";
+      return "任务";
     case "Preference":
-      return "Preference";
+      return "偏好";
     case "ConflictCandidate":
-      return "Possible conflict";
+      return "可能冲突";
     default:
       return k;
   }
@@ -488,15 +488,15 @@ function statusColor(s: string): string {
 function statusLabel(s: string): string {
   switch (s) {
     case "pending":
-      return "Pending";
+      return "待处理";
     case "needs_review":
-      return "To be reviewed";
+      return "待复核";
     case "conflict":
-      return "Possible conflict";
+      return "可能冲突";
     case "promoted":
-      return "Adopted";
+      return "已采纳";
     case "rejected":
-      return "Ignored";
+      return "已忽略";
     default:
       return s;
   }
@@ -505,12 +505,12 @@ function ImportanceStars({ importance }: { importance: string }) {
   const n = importance === "high" ? 3 : importance === "medium" ? 2 : 1;
   return (
     <span
-      title={`Importance:${
+      title={`重要程度：${
         importance === "high"
-          ? "Very important"
+          ? "非常重要"
           : importance === "medium"
-          ? "Important"
-          : "Average"
+          ? "重要"
+          : "一般"
       }`}
       style={{ color: "#faad14", fontSize: 13, letterSpacing: 1 }}
     >

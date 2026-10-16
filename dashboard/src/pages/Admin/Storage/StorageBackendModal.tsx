@@ -69,12 +69,12 @@ export function StorageBackendDrawer({
   const isEdit = editing !== undefined;
   const draftScope = editing
     ? `storage:${editing.id}`
-    : `storage:new:${presetKind ?? "s3"}`;
+    : `storage:new:${presetKind ?? "cos"}`;
   const restoringDraftRef = useRef(false);
 
   // Determine the active kind for showing type-specific field hints
   const [activeKind, setActiveKind] = useState<string>(
-    editing?.kind ?? presetKind ?? "s3",
+    editing?.kind ?? presetKind ?? "cos",
   );
   const typeDef = STORAGE_TYPE_DEFS.find((d) => d.kind === activeKind);
   const sandboxScope = Form.useWatch("sandbox_scope", form) ?? "agent";
@@ -112,7 +112,7 @@ export function StorageBackendDrawer({
           username: typeof cfg.username === "string" ? cfg.username : "",
         });
       } else {
-        const kind = presetKind ?? "s3";
+        const kind = presetKind ?? "cos";
         setActiveKind(kind);
         form.resetFields();
         form.setFieldValue("kind", kind);

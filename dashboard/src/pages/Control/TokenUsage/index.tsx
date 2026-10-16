@@ -45,7 +45,6 @@ import { useAgent } from "../../../context/AgentContext";
 import { useTheme } from "../../../context/ThemeContext";
 import { brandPrimary } from "../../../styles/themePalettes";
 import { message } from "../../../utils/antdMessage";
-import { saveBlobAsFile } from "../../../utils/saveBlobAsFile";
 import styles from "./index.module.less";
 
 interface UsageUserOption {
@@ -1003,10 +1002,15 @@ export default function TokenUsagePage() {
       const blob = await requestBlob(
         usageExportPath(windowKey, agentFilter, adminUserFilter),
       );
-      await saveBlobAsFile(
-        blob,
-        usageExportFilename(t("tokenUsage.exportFilenamePrefix"), windowKey),
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = usageExportFilename(
+        t("tokenUsage.exportFilenamePrefix"),
+        windowKey,
       );
+      link.click();
+      URL.revokeObjectURL(url);
     } catch {
       message.error(t("tokenUsage.exportFailed"));
     } finally {

@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { message } from "@/utils/antdMessage";
 import { requestBlob } from "../../../api/request";
 import { isNotFoundApiError } from "../../../utils/apiError";
-import { saveBlobAsFile } from "../../../utils/saveBlobAsFile";
 import { fileTreeIcon } from "../../../utils/fileTreeIcon";
 import {
   buildDockPathTree,
@@ -258,13 +257,17 @@ export default function ChatDockFileList({
             toDockWorkspaceApiPath(path, owner),
           )}`,
         );
-        await saveBlobAsFile(blob, dockFileBasename(path) || "download");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = dockFileBasename(path) || "download";
+        a.click();
+        URL.revokeObjectURL(a.href);
       } catch (err: unknown) {
         if (isNotFoundApiError(err)) {
           message.warning(
             t(
               "chat.dockFileMaybeDeleted",
-              "This file may be a temporary file during processing and has been deleted.",
+              "该文件可能为处理过程中的临时文件，当前已经被删除。",
             ),
           );
           return;
@@ -291,7 +294,7 @@ export default function ChatDockFileList({
       <p>
         {t(
           "chat.dockFileListHint",
-          "Currently, only the files generated during the execution process are listed, which does not mean that they will be eventually stored and may be deleted by the large model after the processing is completed.",
+          "当前仅列出执行过程中生成的文件，不代表最终一定存储，可能在处理结束后被大模型删除。",
         )}
       </p>
     </div>
@@ -306,7 +309,7 @@ export default function ChatDockFileList({
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description={t(
               "chat.dockFileListEmpty",
-              "There are no files generated or sent by the tool.",
+              "暂无工具生成或发送的文件",
             )}
           />
         </div>
@@ -323,7 +326,7 @@ export default function ChatDockFileList({
         <div className={styles.dockFileTreeSummary}>
           {t("chat.dockFileListCount", {
             count: refs.length,
-            defaultValue: "{{count}} Files",
+            defaultValue: "{{count}} 个文件",
           })}
         </div>
         <div className={styles.dockFileTree}>

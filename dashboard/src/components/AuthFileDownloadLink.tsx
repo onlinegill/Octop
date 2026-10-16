@@ -12,7 +12,6 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { requestBlob } from "../api/request";
-import { saveBlobAsFile } from "../utils/saveBlobAsFile";
 import { isDataUrl, needsAuthBlobFetch } from "../utils/toolMediaBlocks";
 
 import { message as antMessage } from "@/utils/antdMessage";
@@ -73,10 +72,14 @@ export async function downloadAuthFile(
     blob = await requestBlob(apiPathForBlobFetch(url));
   }
 
-  await saveBlobAsFile(
-    blob,
-    options?.filename || filenameFromUrl(url) || "download",
-  );
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objUrl;
+  a.download = options?.filename || filenameFromUrl(url) || "download";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(objUrl), 100);
 }
 
 const defaultLinkStyle: CSSProperties = {

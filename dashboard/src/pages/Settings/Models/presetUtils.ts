@@ -6,8 +6,17 @@ export interface PresetGroup {
   presets: ProviderPreset[];
 }
 
-/** Preset brand card order (OpenCode grouped ahead of pure alphabetical). */
-const PRESET_GROUP_ORDER = ["opencode"] as const;
+/** Preset brand card order (swap Tencent Cloud / Aliyun vs pure alphabetical). */
+const PRESET_GROUP_ORDER = [
+  "tencent",
+  "kimi",
+  "minimax",
+  "opencode",
+  "siliconflow",
+  "aliyun",
+  "volcengine",
+  "zhipu",
+] as const;
 
 function comparePresetGroups(a: PresetGroup, b: PresetGroup): number {
   const ai = PRESET_GROUP_ORDER.indexOf(
@@ -23,13 +32,20 @@ function comparePresetGroups(a: PresetGroup, b: PresetGroup): number {
 }
 
 const VARIANT_LABELS: Record<string, string> = {
+  dashscope: "DashScope",
+  dashscope_intl: "Singapore",
+  dashscope_us: "US",
   open_platform: "Open Platform",
+  open_platform_cn: "China",
   open_platform_intl: "International",
   coding_plan: "Coding Plan",
+  coding_plan_cn: "Coding (CN)",
   coding_plan_intl: "Coding (Intl)",
   token_plan: "Token Plan",
+  token_plan_enterprise_cn: "Token Enterprise (CN)",
   token_plan_intl: "Token (Intl)",
   hy_token_plan: "Hy Token Plan",
+  hai: "HAI",
   china: "China",
   international: "International",
   zen_compatible: "Zen · Compatible",
@@ -109,7 +125,7 @@ export function isLocalPreset(preset: ProviderPreset): boolean {
   return LOCAL_PRESET_IDS.has(preset.id);
 }
 
-/** Presets / groups hidden behind "More model providers" on admin Models (and setup). */
+/** Presets / groups hidden behind "更多模型提供商" on admin Models (and setup). */
 const OVERSEAS_PRESET_IDS = new Set([
   "openai",
   "openai-codex",
@@ -134,8 +150,9 @@ export function isOverseasPreset(preset: ProviderPreset): boolean {
 }
 
 /**
- * Split cloud presets into default-visible (already configured) and
- * collapsed presets shown only after "More model providers" (OpenCode).
+ * Split cloud presets into default-visible (domestic / already configured)
+ * and collapsed presets shown only after "更多模型提供商"
+ * (overseas clouds + OpenCode).
  */
 export function partitionCloudPresets(
   cloudPresets: ProviderPreset[],
@@ -175,31 +192,13 @@ function localPresetApiKey(provider: { api_key?: string | null }): string {
   return (provider.api_key ?? "").trim().toLowerCase();
 }
 
-function providerNameKey(name: string | null | undefined): string {
-  return (name ?? "").trim().toLowerCase();
-}
-
 export function isOnnxProviderRow(provider: {
   name: string;
   api_key?: string | null;
 }): boolean {
   if (localPresetApiKey(provider) === "onnx") return true;
-  const n = providerNameKey(provider.name);
+  const n = provider.name.toLowerCase();
   return n === "onnx" || n === "onnx (local)";
-}
-
-/** URL hint for Ollama management UI — not used for delete protection. */
-export function isOllamaRuntimeUrl(baseUrl?: string | null): boolean {
-  const raw = (baseUrl ?? "").trim().toLowerCase();
-  if (!raw) return false;
-  try {
-    const href = raw.includes("://") ? raw : `http://${raw}`;
-    const parsed = new URL(href);
-    if (parsed.hostname === "ollama") return true;
-    return parsed.port === "11434";
-  } catch {
-    return raw === "ollama";
-  }
 }
 
 export function isOllamaProviderRow(provider: {
@@ -209,16 +208,13 @@ export function isOllamaProviderRow(provider: {
 }): boolean {
   if (isOnnxProviderRow(provider)) return false;
   if (localPresetApiKey(provider) === "ollama") return true;
-  const n = providerNameKey(provider.name);
-  return n === "ollama" || n === "ollama (local)";
-}
-
-export function looksLikeOllamaProvider(provider: {
-  name: string;
-  base_url?: string | null;
-  api_key?: string | null;
-}): boolean {
-  return isOllamaProviderRow(provider) || isOllamaRuntimeUrl(provider.base_url);
+  const n = provider.name.toLowerCase();
+  return (
+    n === "ollama" ||
+    n === "ollama (local)" ||
+    (provider.base_url?.includes("11434") ?? false) ||
+    (provider.base_url?.includes("ollama") ?? false)
+  );
 }
 
 export function isLocalProviderRow(provider: {

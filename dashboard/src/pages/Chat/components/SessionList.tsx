@@ -18,20 +18,13 @@ import {
 import type { Session } from "../hooks/useSessions";
 import type { OctopAgent } from "../../../context/AgentContext";
 import { isAgentChatReady } from "../../../utils/agentError";
-import { confirmDeleteConversation } from "../utils/deleteConversation";
-import { isImeComposing } from "../../../utils/ime";
+import { showConfirmModal } from "../../../utils/confirmModal";
 import { ExpertIcon } from "../../Experts/components/iconForName";
 import { useHiddenSharedExperts } from "../hooks/useHiddenSharedExperts";
 import SessionChannelIcon from "./SessionChannelIcon";
-import SessionWorkStatusIcon from "./SessionWorkStatusIcon";
 import SharedExpertHint from "./SharedExpertHint";
 import RemoteExpertHint from "./RemoteExpertHint";
 import TeamChatBadge from "./TeamChatBadge";
-import { useSessionWorkIds } from "../hooks/useSessionWorkIds";
-import {
-  resolveSessionWorkStatus,
-  type SessionWorkStatus,
-} from "../utils/sessionWorkStatus";
 import styles from "../index.module.less";
 
 function AgentUnreadBadge({ count }: { count: number }) {
@@ -50,9 +43,8 @@ function AgentUnreadBadge({ count }: { count: number }) {
 interface SessionItemProps {
   session: Session;
   isActive: boolean;
-  workStatus?: SessionWorkStatus;
   onSelect: (id: string) => void;
-  onDelete: (id: string, compact: boolean) => void | Promise<boolean | void>;
+  onDelete: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onPin: (id: string, pinned: boolean) => void;
   onFork: (id: string) => void;
@@ -63,7 +55,6 @@ interface SessionItemProps {
 const SessionItem = memo(function SessionItem({
   session,
   isActive,
-  workStatus = "idle",
   onSelect,
   onDelete,
   onRename,
@@ -142,8 +133,14 @@ const SessionItem = memo(function SessionItem({
       danger: true,
       onClick: ({ domEvent }) => {
         domEvent.stopPropagation();
-        confirmDeleteConversation(t, (compact) => {
-          void onDelete(session.id, compact);
+        showConfirmModal({
+          title: t("chat.deleteSessionConfirm"),
+          okText: t("common.delete"),
+          cancelText: t("common.cancel"),
+          okButtonProps: { danger: true },
+          onOk: () => {
+            onDelete(session.id);
+          },
         });
       },
     },
@@ -163,17 +160,11 @@ const SessionItem = memo(function SessionItem({
         if (e.key === "Enter" && !isEditing) onSelect(session.id);
       }}
     >
-      <span className={styles.sessionRowLead}>
-        {workStatus !== "idle" ? (
-          <SessionWorkStatusIcon status={workStatus} />
-        ) : (
-          <SessionChannelIcon
-            channelType={session.channelType}
-            size={12}
-            className={styles.sessionRowIcon}
-          />
-        )}
-      </span>
+      <SessionChannelIcon
+        channelType={session.channelType}
+        size={12}
+        className={styles.sessionRowIcon}
+      />
       {isEditing ? (
         <input
           ref={inputRef}
@@ -182,7 +173,6 @@ const SessionItem = memo(function SessionItem({
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={commitEdit}
           onKeyDown={(e) => {
-            if (isImeComposing(e)) return;
             if (e.key === "Enter") commitEdit();
             if (e.key === "Escape") {
               setEditValue(session.name);
@@ -233,14 +223,13 @@ interface AgentCardProps {
   onFetchAllSessions: () => void;
   onSelect: (sessionId: string, agentId: string) => void;
   onNewChat: (agentId: string) => void;
-  onDelete: (id: string, compact: boolean) => void | Promise<boolean | void>;
+  onDelete: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onPin: (id: string, pinned: boolean) => void;
   onFork: (id: string) => void;
   activeForkDisabled?: boolean;
   activeForkDisabledHint?: string;
   onHide?: () => void;
-  liveWorkingIds: ReadonlySet<string>;
 }
 
 function ActiveAgentCard({
@@ -261,7 +250,6 @@ function ActiveAgentCard({
   activeForkDisabled,
   activeForkDisabledHint,
   onHide,
-  liveWorkingIds,
 }: AgentCardProps) {
   const { t } = useTranslation();
   const accent = agent.color || "#6366f1";
@@ -376,7 +364,6 @@ function ActiveAgentCard({
                 key={s.id}
                 session={s}
                 isActive={activeId === s.id}
-                workStatus={resolveSessionWorkStatus(s, liveWorkingIds)}
                 onSelect={(id) => onSelect(id, agent.agent_id)}
                 onDelete={onDelete}
                 onRename={onRename}
@@ -516,7 +503,7 @@ interface SessionListProps {
   onSelect: (sessionId: string, agentId: string) => void;
   onAgentSelect: (agentId: string) => void;
   onNewChat: (agentId: string) => void;
-  onDelete: (id: string, compact: boolean) => void | Promise<boolean | void>;
+  onDelete: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onPin: (id: string, pinned: boolean) => void;
   onFork: (id: string) => void;
@@ -545,7 +532,6 @@ export default function SessionList({
 }: SessionListProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const liveWorkingIds = useSessionWorkIds();
   const [searchQuery, setSearchQuery] = useState("");
   const [showingHidden, setShowingHidden] = useState(false);
   const { filterVisible, pickHidden, hide, unhide, canHide } =
@@ -651,7 +637,6 @@ export default function SessionList({
                       onHide={
                         canHide(agent) ? () => hide(agent.agent_id) : undefined
                       }
-                      liveWorkingIds={liveWorkingIds}
                     />
                   );
                 }

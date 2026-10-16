@@ -15,7 +15,7 @@ describe("classifyChatStreamError", () => {
   it("classifies StreamChunkTimeoutError retry text as stream_stall", () => {
     const msg =
       "Model call failed after 3 attempts with StreamChunkTimeoutError: " +
-      "No streaming chunk received for 120.0s (model=example-model-v1, chunks_received=122).";
+      "No streaming chunk received for 120.0s (model=MiniMax-M2.7, chunks_received=122).";
     expect(classifyChatStreamError(msg)).toBe("stream_errors.stream_stall");
     expect(isChatStreamError(msg)).toBe(true);
   });
@@ -47,18 +47,6 @@ describe("classifyChatStreamError", () => {
     });
   });
 
-  it("classifies MindIE 422 parameter rejection as invalid_request", () => {
-    const msg =
-      "Error code: 422 - {error:'Check open ai req parameter error'," +
-      "'error_type': 'Input Validation Error'}";
-    expect(classifyChatStreamError(msg)).toBe("stream_errors.invalid_request");
-    expect(chatStreamErrorAction(msg)).toEqual({
-      path: "/admin/models",
-      labelKey: "chat.disableStreamUsageAndRetry",
-      fix: "disable_stream_usage",
-    });
-  });
-
   it("classifies HTTP 5xx as provider_unavailable", () => {
     expect(classifyChatStreamError("HTTP 503: service overloaded")).toBe(
       "stream_errors.provider_unavailable",
@@ -83,7 +71,7 @@ describe("classifyChatStreamError", () => {
 
   it("classifies leftover Windows outside-root paths", () => {
     const msg =
-      String.raw`ValueError: Path:D:\octop-data\data\Article deposit\x.md ` +
+      String.raw`ValueError: Path:D:\octop-data\data\文章存稿\x.md ` +
       String.raw`outside root directory: C:\Users\Administrator`;
     expect(classifyChatStreamError(msg)).toBe(
       "stream_errors.path_outside_root",
@@ -92,18 +80,6 @@ describe("classifyChatStreamError", () => {
       path: "/agent-config",
       labelKey: "chat.goToAgentConfig",
     });
-  });
-
-  it("classifies a length-limit dump without showing CompletionUsage", () => {
-    const msg =
-      "LLM call failed: chat model 'x' failed for tier='default': " +
-      "LengthFinishReasonError('Could not parse response content as the " +
-      "length limit was reached - CompletionUsage(prompt_tokens=1, completion_tokens=2)')";
-    expect(classifyChatStreamError(msg)).toBe("stream_errors.context_length");
-    expect(formatChatStreamError(msg, t)).toBe(
-      "translated:stream_errors.context_length",
-    );
-    expect(formatChatStreamError(msg, t)).not.toContain("CompletionUsage");
   });
 
   it("leaves unknown messages alone", () => {

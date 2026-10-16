@@ -38,10 +38,10 @@ describe("<MemoryPipelineEmpty />", () => {
     render(<MemoryPipelineEmpty agentId="A1" />);
 
     await waitFor(() => {
-      expect(screen.getByText("Memories are still being distilled")).toBeInTheDocument();
+      expect(screen.getByText("记忆还在提炼中")).toBeInTheDocument();
     });
-    expect(screen.getByText(/Captured 42 Dialogue memory/)).toBeInTheDocument();
-    expect(screen.queryByText(/Candidate memory to be confirmed/)).not.toBeInTheDocument();
+    expect(screen.getByText(/已捕获 42 条对话记忆/)).toBeInTheDocument();
+    expect(screen.queryByText(/候选记忆待确认/)).not.toBeInTheDocument();
     expect(api.statsCounts).toHaveBeenCalledWith("A1");
   });
 
@@ -53,9 +53,7 @@ describe("<MemoryPipelineEmpty />", () => {
     render(<MemoryPipelineEmpty agentId="A1" />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/Also 3 Candidate memories are yet to be confirmed/),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/另有 3 条候选记忆待确认/)).toBeInTheDocument();
     });
   });
 
@@ -67,9 +65,7 @@ describe("<MemoryPipelineEmpty />", () => {
     render(<MemoryPipelineEmpty agentId="A1" />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/No memory yet. Once you start a conversation/),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/还没有记忆。开始对话后/)).toBeInTheDocument();
     });
   });
 
@@ -79,9 +75,7 @@ describe("<MemoryPipelineEmpty />", () => {
     render(<MemoryPipelineEmpty agentId="A1" />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/No memory yet. Once you start a conversation/),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/还没有记忆。开始对话后/)).toBeInTheDocument();
     });
   });
 });

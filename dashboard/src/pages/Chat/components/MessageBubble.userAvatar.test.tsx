@@ -42,7 +42,7 @@ vi.mock("../../../context/VoiceOutputContext", () => ({
 
 vi.mock("../../../context/AgentContext", () => ({
   useAgent: () => ({
-    activeAgent: { agent_id: "host", name: "Assistant", icon_name: "bot" },
+    activeAgent: { agent_id: "host", name: "助手", icon_name: "bot" },
     agents: [],
   }),
 }));
@@ -60,24 +60,13 @@ function userMessage(extra: Partial<ChatMessage> = {}): ChatMessage {
 
 describe("MessageBubble user avatar", () => {
   it("shows the account preset icon instead of name initials", () => {
-    currentUser.avatar_icon = "doctor";
-    currentUser.avatar_url = null;
-    render(<MessageBubble message={userMessage()} showAvatar />);
-
-    const sender = screen.getByLabelText("Ada");
-    expect(sender.querySelector("img")).toBeTruthy();
-    expect(sender.querySelector("svg")).toBeNull();
-    expect(sender).not.toHaveTextContent("A");
-  });
-
-  it("keeps the Lucide default when no account icon is chosen", () => {
-    currentUser.avatar_icon = null;
+    currentUser.avatar_icon = "business";
     currentUser.avatar_url = null;
     render(<MessageBubble message={userMessage()} showAvatar />);
 
     const sender = screen.getByLabelText("Ada");
     expect(sender.querySelector("svg")).toBeTruthy();
-    expect(sender.querySelector("img")).toBeNull();
+    expect(sender).not.toHaveTextContent("A");
   });
 
   it("shows the uploaded account photo when present", () => {

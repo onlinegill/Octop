@@ -107,7 +107,7 @@ export default function MobileAiPanel({
           <div className={styles.emptyDesc}>
             {t(
               "remoteAndroid.ai.noAgentDesc",
-              "The assistant on the right side of the remote phone will reuse the current Agent Conversational ability. After connecting to the mobile phone,Agent The device is now ready to operate.",
+              "远程手机右侧助手会复用当前 Agent 的对话能力。连接手机后，Agent 即可操作该设备。",
             )}
           </div>
           <div className={styles.emptyAgentPicker}>
@@ -203,7 +203,7 @@ export default function MobileAiPanel({
             onKeyDown={handleKeyDown}
             placeholder={t(
               "remoteAndroid.ai.inputPlaceholder",
-              "Let Agent Work on your phone, or ask about the current screen…",
+              "让 Agent 在手机上操作，或询问当前屏幕…",
             )}
             rows={1}
             disabled={isStreaming || booting}

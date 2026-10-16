@@ -6,8 +6,6 @@ export type MemoryMaintenancePhase =
   | "queued"
   | "waiting"
   | "backing_up"
-  | "inspecting"
-  | "cleaning"
   | "deduplicating"
   | "pruning"
   | "compacting"
@@ -17,8 +15,6 @@ export type MemoryMaintenancePhase =
 export interface MemoryMaintenanceStatus {
   phase: MemoryMaintenancePhase | string;
   kind?: string;
-  backend?: string;
-  scope?: string;
   percent?: number;
   detail?: string | null;
   file_bytes?: number | null;
@@ -33,26 +29,12 @@ const VISIBLE = new Set([
   "queued",
   "waiting",
   "backing_up",
-  "draining",
-  "validating",
-  "backing_up_current",
-  "restoring",
-  "restarting",
-  "inspecting",
-  "cleaning",
   "deduplicating",
   "pruning",
   "compacting",
 ]);
 const BLOCKING = new Set([
   "backing_up",
-  "draining",
-  "validating",
-  "backing_up_current",
-  "restoring",
-  "restarting",
-  "inspecting",
-  "cleaning",
   "deduplicating",
   "pruning",
   "compacting",

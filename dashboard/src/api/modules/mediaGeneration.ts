@@ -1,13 +1,6 @@
 import { request } from "../request";
 
-/**
- * Media-generation provider identifiers.
- *
- * This English-only fork ships no media-generation providers, so the union is
- * empty (``never``). The settings UI renders a clear "not configured" empty
- * state instead of offering unavailable providers.
- */
-export type MediaProviderName = never;
+export type MediaProviderName = "volcengine" | "dashscope" | "minimax";
 
 export interface MediaProviderPreset {
   provider: MediaProviderName;

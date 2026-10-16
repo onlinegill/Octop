@@ -82,6 +82,7 @@ import {
 import FileEditModal from "./FileEditModal";
 import SkillSourcePickerModal, {
   type PickedAgentSkill,
+  type PickedHubSkill,
 } from "./SkillSourcePickerModal";
 import SubagentSourcePickerModal, {
   type PickedCatalogSubagent,
@@ -163,9 +164,16 @@ function sourceDefaults(
 }
 
 function warnComposerPartial(
-  body: { copy_skill_errors?: string[] },
+  body: { hub_skill_errors?: string[]; copy_skill_errors?: string[] },
   t: (key: string, opts?: Record<string, string>) => string,
 ) {
+  if (body.hub_skill_errors?.length) {
+    message.warning(
+      t("experts.hubSkillsPartial", {
+        names: body.hub_skill_errors.join(", "),
+      }),
+    );
+  }
   if (body.copy_skill_errors?.length) {
     message.warning(
       t("experts.copySkillsPartial", {
@@ -238,6 +246,9 @@ export default function CreateFromExpertDrawer({
   const [originalFileContents, setOriginalFileContents] = useState<
     FileContent[]
   >([]);
+  const [pendingHubSkills, setPendingHubSkills] = useState<PickedHubSkill[]>(
+    [],
+  );
   const [pendingCopySkills, setPendingCopySkills] = useState<
     { agent_id: string; slug: string }[]
   >([]);
@@ -312,6 +323,7 @@ export default function CreateFromExpertDrawer({
       enable_trajectory: true,
     });
 
+    setPendingHubSkills([]);
     setPendingCopySkills([]);
     setLocalEditPath(null);
     setSubagentPickerOpen(false);
@@ -455,6 +467,7 @@ export default function CreateFromExpertDrawer({
         ...(composerPatch.omit_files.length
           ? { omit_files: composerPatch.omit_files }
           : {}),
+        ...(pendingHubSkills.length ? { hub_skills: pendingHubSkills } : {}),
         ...(pendingCopySkills.length ? { copy_skills: pendingCopySkills } : {}),
         ...(pageConfigPrompts !== undefined
           ? { quick_prompts: pageConfigPrompts }
@@ -464,6 +477,7 @@ export default function CreateFromExpertDrawer({
       let body: {
         agent_id: string;
         name: string;
+        hub_skill_errors?: string[];
         copy_skill_errors?: string[];
       };
       if (source.kind === "builtin") {
@@ -484,6 +498,7 @@ export default function CreateFromExpertDrawer({
         body = {
           agent_id: created.agent_id,
           name: created.name,
+          hub_skill_errors: created.hub_skill_errors,
           copy_skill_errors: created.copy_skill_errors,
         };
         const enrichment = created.market?.welcome_enrichment;
@@ -548,13 +563,22 @@ export default function CreateFromExpertDrawer({
   const showFilePreview = true;
   const selectedSkillSlugs = useMemo(() => {
     const slugs = new Set(skillGroups.map((group) => group.name));
+    for (const skill of pendingHubSkills) slugs.add(skill.skill_name);
     for (const skill of pendingCopySkills) slugs.add(skill.slug);
     return slugs;
-  }, [pendingCopySkills, skillGroups]);
+  }, [pendingCopySkills, pendingHubSkills, skillGroups]);
 
   const localEditFile = localEditPath
     ? fileContents.find((file) => file.name === localEditPath) ?? null
     : null;
+
+  const handlePickHubSkill = (skill: PickedHubSkill) => {
+    setPendingHubSkills((prev) =>
+      prev.some((item) => item.skill_name === skill.skill_name)
+        ? prev
+        : [...prev, skill],
+    );
+  };
 
   const handlePickAgentSkill = (skill: PickedAgentSkill) => {
     setPendingCopySkills((prev) =>
@@ -933,7 +957,7 @@ export default function CreateFromExpertDrawer({
                   >
                     <span>
                       {t("experts.skillFilesTitle", {
-                        count: skillGroups.length,
+                        count: skillGroups.length + pendingHubSkills.length,
                       })}
                     </span>
                     <Button
@@ -960,7 +984,8 @@ export default function CreateFromExpertDrawer({
                     >
                       {t("experts.skillFilesEditHint")}
                     </p>
-                    {skillGroups.length === 0 ? (
+                    {skillGroups.length === 0 &&
+                    pendingHubSkills.length === 0 ? (
                       <div
                         style={{
                           fontSize: 13,
@@ -1103,6 +1128,42 @@ export default function CreateFromExpertDrawer({
                         }))}
                       />
                     )}
+                    {pendingHubSkills.length > 0 ? (
+                      <div className={styles.fileList} style={{ marginTop: 8 }}>
+                        {pendingHubSkills.map((skill) => (
+                          <div
+                            key={skill.skill_name}
+                            className={styles.fileItem}
+                          >
+                            <div className={styles.fileItemMain}>
+                              <div className={styles.fileMeta}>
+                                <div className={styles.fileLabel}>
+                                  {skill.display_name || skill.skill_name}
+                                </div>
+                                <div className={styles.filePath}>
+                                  {t("experts.hubSkillPending")}
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              type="link"
+                              size="small"
+                              danger
+                              onClick={() =>
+                                setPendingHubSkills((prev) =>
+                                  prev.filter(
+                                    (item) =>
+                                      item.skill_name !== skill.skill_name,
+                                  ),
+                                )
+                              }
+                            >
+                              {t("common.delete")}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </>
                 ),
               },
@@ -1253,6 +1314,7 @@ export default function CreateFromExpertDrawer({
         open={skillPickerOpen}
         excludeSlugs={selectedSkillSlugs}
         onClose={() => setSkillPickerOpen(false)}
+        onPickHub={handlePickHubSkill}
         onPickAgentSkill={handlePickAgentSkill}
       />
       <SubagentSourcePickerModal

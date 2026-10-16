@@ -6,8 +6,6 @@ import {
   Square,
   MessageSquarePlus,
   Paperclip,
-  FileUp,
-  FolderUp,
   Zap,
   Link2,
   Sparkles,
@@ -27,7 +25,6 @@ import {
   ChevronRight,
   Route,
   Info,
-  Search,
 } from "lucide-react";
 import { Tooltip, Popover } from "antd";
 import { message } from "@/utils/antdMessage";
@@ -93,32 +90,6 @@ function resolveModelLogo(model: {
 
 // These browser APIs never change at runtime — compute once.
 const _sttAvailable = isSttAvailable();
-const PICKER_PANEL_TARGET_HEIGHT = 400;
-const PICKER_PANEL_VIEWPORT_GUTTER = 16;
-
-function capPickerPanelHeight(menuHeight: number): number {
-  const available = window.innerHeight - PICKER_PANEL_VIEWPORT_GUTTER;
-  return Math.max(menuHeight, Math.min(PICKER_PANEL_TARGET_HEIGHT, available));
-}
-
-function PlusMenuCount({
-  count,
-  className,
-}: {
-  count: number;
-  className?: string;
-}) {
-  if (count <= 0) return null;
-  return (
-    <span
-      className={`${styles.mobileOverflowItemCount}${
-        className ? ` ${className}` : ""
-      }`}
-    >
-      <span className={styles.mobileOverflowItemCountText}>{count}</span>
-    </span>
-  );
-}
 
 interface ChatInputActionsRowProps {
   isMobile: boolean;
@@ -132,10 +103,6 @@ interface ChatInputActionsRowProps {
   uploading: boolean;
   recording: boolean;
   transcribing: boolean;
-  /** Realtime STT streams while held down, so the mic is press-and-hold. */
-  voiceHoldToTalk?: boolean;
-  onVoiceStart?: () => void;
-  onVoiceStop?: () => void;
   browserRecording?: boolean;
   browserReplayBusy?: boolean;
   browserLastRecordingId?: string | null;
@@ -180,7 +147,6 @@ interface ChatInputActionsRowProps {
   slashMenuItems: SlashMenuItem[];
   onSlashShortcutSelect: (command: string) => void;
   onFileSelect: () => void;
-  onFolderSelect: () => void;
   onNewChat: () => void;
   onPolish: () => void;
   onToggleVoice: () => void;
@@ -199,9 +165,6 @@ export default function ChatInputActionsRow({
   uploading,
   recording,
   transcribing,
-  voiceHoldToTalk = false,
-  onVoiceStart,
-  onVoiceStop,
   browserRecording = false,
   browserReplayBusy = false,
   browserLastRecordingId = null,
@@ -238,7 +201,6 @@ export default function ChatInputActionsRow({
   slashMenuItems,
   onSlashShortcutSelect,
   onFileSelect,
-  onFolderSelect,
   onNewChat,
   onPolish,
   onToggleVoice,
@@ -250,34 +212,13 @@ export default function ChatInputActionsRow({
   const remoteManaged = Boolean(agentId?.startsWith("bridge:"));
   const skillDisplayName = useSkillDisplayName();
   const actionsRowRef = useRef<HTMLDivElement | null>(null);
-  const voiceHeldRef = useRef(false);
   const [plusMenuEl, setPlusMenuEl] = useState<HTMLDivElement | null>(null);
-  const [plusPanelEl, setPlusPanelEl] = useState<HTMLDivElement | null>(null);
-  const [plusPanelMaxHeight, setPlusPanelMaxHeight] = useState<number | null>(
-    null,
-  );
-  const [plusPanelAlignBottom, setPlusPanelAlignBottom] = useState(false);
-  const [modelQuery, setModelQuery] = useState("");
+  const [plusMenuHeight, setPlusMenuHeight] = useState<number | null>(null);
   const [isCompact, setIsCompact] = useState(false);
   const [shortcutOpen, setShortcutOpen] = useState(false);
-  const [uploadOpen, setUploadOpen] = useState(false);
   const [reasoningModelRef, setReasoningModelRef] = useState<string | null>(
     null,
   );
-
-  // Press-and-hold dictation: start on pointerdown, finish on release or when
-  // the pointer slides off the button (also covers touch cancel).
-  const handleVoicePressStart = () => {
-    if (voiceHeldRef.current) return;
-    voiceHeldRef.current = true;
-    onVoiceStart?.();
-  };
-
-  const handleVoicePressEnd = () => {
-    if (!voiceHeldRef.current) return;
-    voiceHeldRef.current = false;
-    onVoiceStop?.();
-  };
   /** Plus-button menu (model / skills / …). */
   const [overflowPopoverOpen, setOverflowPopoverOpen] = useState(false);
   /** Picker panel opened from a plus-menu item. */
@@ -289,35 +230,19 @@ export default function ChatInputActionsRow({
 
   useLayoutEffect(() => {
     if (!plusMenuEl || isMobile) {
-      setPlusPanelMaxHeight(null);
-      setPlusPanelAlignBottom(false);
+      setPlusMenuHeight(null);
       return;
     }
     const sync = () => {
-      const menuH = Math.round(plusMenuEl.getBoundingClientRect().height);
-      if (menuH > 0) {
-        const capped = capPickerPanelHeight(menuH);
-        setPlusPanelMaxHeight((prev) => (prev === capped ? prev : capped));
-      }
-      if (!plusPanelEl) {
-        setPlusPanelAlignBottom(false);
-        return;
-      }
-      const panelH = plusPanelEl.getBoundingClientRect().height;
-      if (menuH > 0 && panelH > 0) {
-        setPlusPanelAlignBottom(panelH > menuH);
-      }
+      const next = Math.round(plusMenuEl.getBoundingClientRect().height);
+      if (next <= 0) return;
+      setPlusMenuHeight((prev) => (prev === next ? prev : next));
     };
     sync();
     const observer = new ResizeObserver(sync);
     observer.observe(plusMenuEl);
-    if (plusPanelEl) observer.observe(plusPanelEl);
-    window.addEventListener("resize", sync);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", sync);
-    };
-  }, [plusMenuEl, plusPanelEl, isMobile]);
+    return () => observer.disconnect();
+  }, [plusMenuEl, isMobile]);
 
   useEffect(() => {
     if (isMobile) {
@@ -395,7 +320,6 @@ export default function ChatInputActionsRow({
   const closeCompactPicker = () => {
     setCompactPicker(null);
     setReasoningModelRef(null);
-    setModelQuery("");
   };
 
   const closePlusMenu = () => {
@@ -405,7 +329,6 @@ export default function ChatInputActionsRow({
 
   const openCompactPicker = (key: CompactPickerKey) => {
     setReasoningModelRef(null);
-    if (key !== "model") setModelQuery("");
     setCompactPicker((prev) => (prev === key ? null : key));
   };
 
@@ -450,22 +373,6 @@ export default function ChatInputActionsRow({
       )
     : t("chat.modelAuto", "Auto");
 
-  const modelQueryNormalized = modelQuery.trim().toLowerCase();
-  const filteredModels = (availableModels ?? []).filter((model) => {
-    if (!modelQueryNormalized) return true;
-    return (
-      modelOptionLabel(model).toLowerCase().includes(modelQueryNormalized) ||
-      model.model.toLowerCase().includes(modelQueryNormalized) ||
-      model.provider_name.toLowerCase().includes(modelQueryNormalized)
-    );
-  });
-  const autoLabel = t("chat.modelAuto", "Auto");
-  const autoHint = t("chat.modelAutoHint", "Use agent default");
-  const showAutoModel = !modelQueryNormalized
-    ? true
-    : autoLabel.toLowerCase().includes(modelQueryNormalized) ||
-      autoHint.toLowerCase().includes(modelQueryNormalized);
-
   const reasoningSummary = (model: ResolvedModel, active: boolean) => {
     const capability = model.reasoning_config;
     if (!capability) return null;
@@ -497,12 +404,7 @@ export default function ChatInputActionsRow({
         >
           <ChevronLeft size={16} />
         </button>
-        <Tooltip
-          title={reasoningModel ? modelOptionLabel(reasoningModel) : ""}
-          mouseEnterDelay={0.4}
-        >
-          <span>{reasoningModel ? modelOptionLabel(reasoningModel) : ""}</span>
-        </Tooltip>
+        <span>{reasoningModel ? modelOptionLabel(reasoningModel) : ""}</span>
       </div>
       {reasoningModelCapability.adapter === "status_only" ? (
         <div className={styles.reasoningStatusRow}>
@@ -568,40 +470,28 @@ export default function ChatInputActionsRow({
     <div className={styles.modelPickerPanel}>
       {!reasoningMenu && (
         <div className={styles.modelMenuColumn}>
-          <div className={styles.skillPickerSearch}>
-            <input
-              type="search"
-              className={styles.skillPickerSearchInput}
-              placeholder={t("chat.modelPickerSearch", "Search models")}
-              value={modelQuery}
-              onChange={(event) => setModelQuery(event.target.value)}
-            />
-            <Search
-              size={15}
-              className={styles.skillPickerSearchIcon}
-              aria-hidden
-            />
-          </div>
           <div className={styles.modelMenu}>
-            {showAutoModel ? (
-              <button
-                type="button"
-                className={`${styles.modelMenuItem} ${
-                  !selectedModel ? styles.modelMenuItemActive : ""
-                }`}
-                onClick={() => {
-                  onModelChange?.(null);
-                  closePlusMenu();
-                }}
-              >
-                <span className={styles.modelMenuTitle}>
-                  <Route size={16} aria-hidden />
-                  <span className={styles.modelMenuLabel}>{autoLabel}</span>
+            <button
+              type="button"
+              className={`${styles.modelMenuItem} ${
+                !selectedModel ? styles.modelMenuItemActive : ""
+              }`}
+              onClick={() => {
+                onModelChange?.(null);
+                closePlusMenu();
+              }}
+            >
+              <span className={styles.modelMenuTitle}>
+                <Route size={16} aria-hidden />
+                <span className={styles.modelMenuLabel}>
+                  {t("chat.modelAuto", "Auto")}
                 </span>
-                <span className={styles.modelMenuHint}>{autoHint}</span>
-              </button>
-            ) : null}
-            {filteredModels.map((model) => {
+              </span>
+              <span className={styles.modelMenuHint}>
+                {t("chat.modelAutoHint", "Use agent default")}
+              </span>
+            </button>
+            {availableModels?.map((model) => {
               const value = modelOptionValue(model);
               const active = selectedModel === value;
               const capability = model.reasoning_config;
@@ -626,15 +516,9 @@ export default function ChatInputActionsRow({
                       alt=""
                       className={styles.modelMenuIcon}
                     />
-                    <Tooltip
-                      title={modelOptionLabel(model)}
-                      mouseEnterDelay={0.4}
-                      placement="top"
-                    >
-                      <span className={styles.modelMenuLabel}>
-                        {modelOptionLabel(model)}
-                      </span>
-                    </Tooltip>
+                    <span className={styles.modelMenuLabel}>
+                      {modelOptionLabel(model)}
+                    </span>
                   </button>
                   {capability && onReasoningChange && (
                     <button
@@ -643,7 +527,7 @@ export default function ChatInputActionsRow({
                       onClick={() => openModelReasoning(value)}
                       aria-label={`${modelOptionLabel(model)} ${t(
                         "chat.reasoningMode",
-                        "Thinking model",
+                        "思考模式",
                       )}`}
                     >
                       <Brain size={14} />
@@ -656,11 +540,6 @@ export default function ChatInputActionsRow({
                 </div>
               );
             })}
-            {!showAutoModel && filteredModels.length === 0 ? (
-              <div className={styles.skillPickerEmpty}>
-                {t("chat.modelPickerEmpty", "No matching models")}
-              </div>
-            ) : null}
           </div>
           <div className={styles.modelMenuDivider} />
           <button
@@ -762,11 +641,9 @@ export default function ChatInputActionsRow({
             <span>{t("chat.selectModel", "Model")}</span>
           </span>
           <span className={styles.mobileOverflowItemMeta}>
-            <Tooltip title={selectedModelTriggerLabel} mouseEnterDelay={0.4}>
-              <span className={styles.mobileOverflowItemMetaLabel}>
-                {selectedModelTriggerLabel}
-              </span>
-            </Tooltip>
+            <span className={styles.mobileOverflowItemMetaLabel}>
+              {selectedModelTriggerLabel}
+            </span>
             <ChevronRight size={16} />
           </span>
         </button>
@@ -782,9 +659,13 @@ export default function ChatInputActionsRow({
           <span className={styles.mobileOverflowItemMain}>
             <Link2 size={16} />
             <span>{t("connectors.chatPicker")}</span>
-            <PlusMenuCount count={selectedConnectors.length} />
           </span>
           <span className={styles.mobileOverflowItemMeta}>
+            {selectedConnectors.length > 0 && (
+              <span className={styles.toolbarBadge}>
+                {selectedConnectors.length}
+              </span>
+            )}
             <ChevronRight size={16} />
           </span>
         </button>
@@ -800,9 +681,13 @@ export default function ChatInputActionsRow({
           <span className={styles.mobileOverflowItemMain}>
             <BookOpen size={16} />
             <span>{t("chat.knowledgePicker")}</span>
-            <PlusMenuCount count={selectedKnowledgeBaseIds.length} />
           </span>
           <span className={styles.mobileOverflowItemMeta}>
+            {selectedKnowledgeBaseIds.length > 0 && (
+              <span className={styles.toolbarBadge}>
+                {selectedKnowledgeBaseIds.length}
+              </span>
+            )}
             <ChevronRight size={16} />
           </span>
         </button>
@@ -818,9 +703,13 @@ export default function ChatInputActionsRow({
           <span className={styles.mobileOverflowItemMain}>
             <Sparkles size={16} />
             <span>{t("chat.skillPicker")}</span>
-            <PlusMenuCount count={activeSkillSlugs.length} />
           </span>
           <span className={styles.mobileOverflowItemMeta}>
+            {activeSkillSlugs.length > 0 ? (
+              <span className={styles.toolbarBadge}>
+                {activeSkillSlugs.length}
+              </span>
+            ) : null}
             <ChevronRight size={16} />
           </span>
         </button>
@@ -836,12 +725,15 @@ export default function ChatInputActionsRow({
           <span className={styles.mobileOverflowItemMain}>
             <GraduationCap size={16} />
             <span>{t("chat.expertPicker")}</span>
-            <PlusMenuCount
-              count={mentionedExperts.length}
-              className={styles.mobileOverflowItemCountExpert}
-            />
           </span>
           <span className={styles.mobileOverflowItemMeta}>
+            {mentionedExperts.length > 0 && (
+              <span
+                className={`${styles.toolbarBadge} ${styles.toolbarBadgeExpert}`}
+              >
+                {mentionedExperts.length}
+              </span>
+            )}
             <ChevronRight size={16} />
           </span>
         </button>
@@ -857,12 +749,15 @@ export default function ChatInputActionsRow({
           <span className={styles.mobileOverflowItemMain}>
             <Bot size={16} />
             <span>{t("chat.subagentPicker")}</span>
-            <PlusMenuCount
-              count={mentionedSubagents.length}
-              className={styles.mobileOverflowItemCountSubagent}
-            />
           </span>
           <span className={styles.mobileOverflowItemMeta}>
+            {mentionedSubagents.length > 0 && (
+              <span
+                className={`${styles.toolbarBadge} ${styles.toolbarBadgeSubagent}`}
+              >
+                {mentionedSubagents.length}
+              </span>
+            )}
             <ChevronRight size={16} />
           </span>
         </button>
@@ -976,23 +871,17 @@ export default function ChatInputActionsRow({
                 ) : null}
                 {compactPicker ? (
                   <div
-                    ref={isMobile ? undefined : setPlusPanelEl}
                     className={
                       isMobile
                         ? styles.plusFlyoutPanelInPlace
-                        : `${styles.plusFlyoutPanel}${
-                            plusPanelAlignBottom
-                              ? ` ${styles.plusFlyoutPanelAlignBottom}`
-                              : ""
-                          }`
+                        : styles.plusFlyoutPanel
                     }
                     style={
-                      !isMobile && plusPanelMaxHeight
-                        ? { maxHeight: plusPanelMaxHeight }
+                      !isMobile && plusMenuHeight
+                        ? { maxHeight: plusMenuHeight }
                         : undefined
                     }
                     data-testid="composer-plus-panel"
-                    data-align={plusPanelAlignBottom ? "bottom" : "top"}
                   >
                     {isMobile ? (
                       <button
@@ -1051,79 +940,30 @@ export default function ChatInputActionsRow({
             </button>
           </Tooltip>
         </Popover>
-        <Popover
-          trigger="click"
-          placement="topLeft"
-          open={uploadOpen}
-          onOpenChange={setUploadOpen}
-          overlayClassName={styles.skillPickerPopover}
-          content={
-            <div className={styles.mobileOverflowMenu} role="menu">
-              <button
-                type="button"
-                role="menuitem"
-                className={styles.mobileOverflowItem}
-                onClick={() => {
-                  setUploadOpen(false);
-                  onFileSelect();
-                }}
-              >
-                <span className={styles.mobileOverflowItemMain}>
-                  <FileUp size={16} />
-                  <span>{t("upload.files", "Files")}</span>
-                </span>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                className={styles.mobileOverflowItem}
-                onClick={() => {
-                  setUploadOpen(false);
-                  onFolderSelect();
-                }}
-              >
-                <span className={styles.mobileOverflowItemMain}>
-                  <FolderUp size={16} />
-                  <span>{t("upload.folder", "Folder")}</span>
-                </span>
-              </button>
-            </div>
-          }
+        <Tooltip
+          title={t("upload.fileTooltip", "Upload attachment")}
+          mouseEnterDelay={0.4}
         >
-          <Tooltip title={t("upload.tooltip", "Upload")} mouseEnterDelay={0.4}>
-            <button
-              className={styles.secondaryBtn}
-              type="button"
-              disabled={uploading}
-              aria-label={t("upload.tooltip", "Upload")}
-              aria-haspopup="menu"
-            >
-              <Paperclip size={16} />
-            </button>
-          </Tooltip>
-        </Popover>
+          <button
+            className={styles.secondaryBtn}
+            onClick={onFileSelect}
+            type="button"
+            disabled={uploading}
+            aria-label={t("upload.fileTooltip", "Upload attachment")}
+          >
+            <Paperclip size={16} />
+          </button>
+        </Tooltip>
       </>
     );
   };
 
   return (
-    <div
-      ref={actionsRowRef}
-      className={`${styles.actionsRow}${
-        isMobile ? ` ${styles.actionsRowCompact}` : ""
-      }`}
-    >
+    <div ref={actionsRowRef} className={styles.actionsRow}>
       <div className={styles.secondaryActions}>{renderSecondaryActions()}</div>
-      {conversationMode !== "craft" ? (
-        <p className={styles.modeHint} data-testid="conversation-mode-hint">
-          <ModeIcon size={14} aria-hidden />
-          <span>{t(`chat.conversationMode.${conversationMode}Reminder`)}</span>
-        </p>
-      ) : null}
       <div className={styles.inputActions}>
         <ContextWindowRing
           usedTokens={contextUsedTokens}
-          usageEstimated={contextUsedTokens == null}
           maxTokens={contextMaxTokens}
           agentId={agentId}
           threadId={threadId}
@@ -1190,29 +1030,8 @@ export default function ChatInputActionsRow({
               recording || transcribing ? styles.secondaryBtnActive : ""
             }`}
             type="button"
-            // Dictation only fills the composer, so it stays available while a
-            // reply is still streaming.
-            disabled={disabled || transcribing || !_sttAvailable}
-            onClick={voiceHoldToTalk ? undefined : onToggleVoice}
-            onPointerDown={
-              voiceHoldToTalk
-                ? (event) => {
-                    event.preventDefault();
-                    handleVoicePressStart();
-                  }
-                : undefined
-            }
-            onPointerUp={voiceHoldToTalk ? handleVoicePressEnd : undefined}
-            onPointerLeave={voiceHoldToTalk ? handleVoicePressEnd : undefined}
-            onPointerCancel={voiceHoldToTalk ? handleVoicePressEnd : undefined}
-            onContextMenu={
-              voiceHoldToTalk ? (event) => event.preventDefault() : undefined
-            }
-            style={
-              voiceHoldToTalk
-                ? { touchAction: "none", userSelect: "none" }
-                : undefined
-            }
+            disabled={disabled || isStreaming || transcribing || !_sttAvailable}
+            onClick={onToggleVoice}
           >
             <Mic size={16} />
           </button>
@@ -1253,7 +1072,7 @@ export default function ChatInputActionsRow({
                 ? t("browser.recordReplay.replay", "Replay last browser recording")
                 : t(
                     "browser.recordReplay.noRecording",
-                    "Please complete a browser recording first",
+                    "请先完成一次浏览器录制",
                   )
             }
             mouseEnterDelay={0.4}
@@ -1281,7 +1100,6 @@ export default function ChatInputActionsRow({
         )}
         {isStreaming ? (
           canSend ? (
-            // Queue into the chip bar; ↵ Steer lives on the chip row.
             <Tooltip title={t("chat.queue.action")} mouseEnterDelay={0.4}>
               <button
                 className={styles.sendBtn}
@@ -1299,7 +1117,7 @@ export default function ChatInputActionsRow({
                 isTeam
                   ? t("chat.stopTeamHint", {
                       defaultValue:
-                        "Stops generation for this cycle; member replies that have been started may still be pushed",
+                        "停止本轮生成；已开始的成员回复可能仍会继续推送",
                     })
                   : t("chat.stop", "Stop")
               }
@@ -1312,7 +1130,7 @@ export default function ChatInputActionsRow({
                   isTeam
                     ? t("chat.stopTeamHint", {
                         defaultValue:
-                          "Stops generation for this cycle; member replies that have been started may still be pushed",
+                          "停止本轮生成；已开始的成员回复可能仍会继续推送",
                       })
                     : t("chat.stop", "Stop")
                 }

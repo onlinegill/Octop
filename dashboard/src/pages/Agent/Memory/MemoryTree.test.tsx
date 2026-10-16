@@ -34,7 +34,7 @@ describe("<MemoryTree />", () => {
       listEntitiesResp([
         makeEntity({
           id: "entity-project",
-          canonical_name: "Pindou workbench",
+          canonical_name: "拼豆工作台",
           atom_count: 1,
         }),
       ]),
@@ -45,8 +45,8 @@ describe("<MemoryTree />", () => {
           id: "atom-corrected",
           entity_id: "entity-project",
           candidate_id: "",
-          assertion: "The penguin image has been adjusted.",
-          verbatim_quote: "Unlike Penguin, it needs to be readjusted.",
+          assertion: "企鹅图像已经调整。",
+          verbatim_quote: "企鹅不像，需要重新调整。",
         }),
       ]),
     );
@@ -59,11 +59,11 @@ describe("<MemoryTree />", () => {
           actor: "user",
           target_atom_id: "atom-corrected",
           before: {
-            assertion: "Unlike Penguin, it needs to be readjusted.",
+            assertion: "企鹅不像，需要重新调整。",
             atom_id: "atom-old",
           },
           after: {
-            assertion: "The penguin image has been adjusted.",
+            assertion: "企鹅图像已经调整。",
             atom_id: "atom-corrected",
           },
         },
@@ -75,8 +75,8 @@ describe("<MemoryTree />", () => {
     const user = userEvent.setup();
     render(<MemoryTree agentId="main" />);
 
-    await user.click(await screen.findByText("Pindou workbench"));
-    await user.click(await screen.findByText("The penguin image has been adjusted."));
+    await user.click(await screen.findByText("拼豆工作台"));
+    await user.click(await screen.findByText("企鹅图像已经调整。"));
 
     await waitFor(() => {
       expect(api.listJournal).toHaveBeenCalledWith("main", {
@@ -85,10 +85,10 @@ describe("<MemoryTree />", () => {
         limit: 1,
       });
     });
-    expect(await screen.findByText(/Artificially corrected memory/)).toBeInTheDocument();
+    expect(await screen.findByText(/人工修正的记忆/)).toBeInTheDocument();
     expect(
-      screen.getByText("Before correction: Penguin does not look like it and needs to be readjusted."),
+      screen.getByText("修正前：企鹅不像，需要重新调整。"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Original source context:/)).toBeInTheDocument();
+    expect(screen.getByText(/原始来源上下文：/)).toBeInTheDocument();
   });
 });

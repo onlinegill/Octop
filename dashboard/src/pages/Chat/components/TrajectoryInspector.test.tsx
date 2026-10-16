@@ -69,7 +69,6 @@ describe("TrajectoryInspector", () => {
           is_error: false,
           summary: "thinking…",
           payload: {
-            model: "MiniMax-M2.7",
             llm_duration_ms: 120,
             ttft_ms: 40,
             input_tokens: 10,
@@ -82,32 +81,12 @@ describe("TrajectoryInspector", () => {
 
     expect(screen.getByRole("tab", { name: "Summary" })).toBeInTheDocument();
     expect(screen.getAllByText("ASSISTANT").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Model")).toBeInTheDocument();
-    expect(screen.getByText("MiniMax-M2.7")).toBeInTheDocument();
     expect(screen.getAllByText(/Request #3/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Request Timing")).toBeInTheDocument();
     expect(screen.getAllByText("120ms").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("40ms").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("80ms")).toBeInTheDocument();
     expect(screen.getByText("12.5 tok/s")).toBeInTheDocument();
-  });
-
-  it("does not show Model on non-assistant summaries even if payload has it", () => {
-    render(
-      <TrajectoryInspector
-        agentId="A1"
-        threadId="T1"
-        event={event({
-          event_id: "user-1",
-          kind: "user",
-          summary: "hello",
-          payload: { model: "MiniMax-M2.7", content: "hello" },
-        })}
-      />,
-    );
-
-    expect(screen.queryByText("Model")).not.toBeInTheDocument();
-    expect(screen.queryByText("MiniMax-M2.7")).not.toBeInTheDocument();
   });
 
   it("jumps Source Request # to the parent assistant", () => {
@@ -285,7 +264,7 @@ describe("TrajectoryInspector", () => {
           result: [
             {
               type: "text",
-              text: '{\n  "id": "1",\n  "name": "Work"\n}',
+              text: '{\n  "id": "1",\n  "name": "工作"\n}',
             },
           ],
         },
@@ -306,7 +285,7 @@ describe("TrajectoryInspector", () => {
             result: [
               {
                 type: "text",
-                text: '{\n  "id": "1",\n  "name": "Work"\n}',
+                text: '{\n  "id": "1",\n  "name": "工作"\n}',
               },
             ],
           },
@@ -319,7 +298,7 @@ describe("TrajectoryInspector", () => {
 
     await waitFor(() => {
       const preview = screen.getByTestId("trajectory-preview");
-      expect(preview).toHaveTextContent('"name": "Work"');
+      expect(preview).toHaveTextContent('"name": "工作"');
       expect(preview).not.toHaveTextContent("tool list_projects");
       expect(preview).not.toHaveTextContent('"type": "text"');
     });

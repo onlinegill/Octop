@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import en from "../../../locales/en.json";
+import zh from "../../../locales/zh.json";
 import { summarizeHitlAction, type HitlTranslate } from "./summarizeHitlAction";
 
 function lookup(bundle: unknown, key: string): string | undefined {
@@ -17,7 +17,7 @@ function interpolate(template: string, vars: Record<string, unknown>): string {
   );
 }
 
-/** Mimic i18next: missing keys return the fallback; `{{name}}` is interpolated. */
+/** Mimic i18next: missing keys return the key; `{{name}}` is interpolated. */
 function tFrom(bundle: unknown): HitlTranslate {
   return (key, options) => {
     const vars =
@@ -31,24 +31,22 @@ function tFrom(bundle: unknown): HitlTranslate {
   };
 }
 
-const t = tFrom(en);
+const tZh = tFrom(zh);
 
 describe("summarizeHitlAction", () => {
-  it("explains browser_use dom_tree instead of dumping JSON", () => {
+  it("explains browser_use dom_tree in Chinese instead of dumping JSON", () => {
     const view = summarizeHitlAction(
       "browser_use",
       { action: "dom_tree", level: "interactive" },
-      t,
-      "Use browser",
+      tZh,
+      "使用浏览器",
     );
 
-    expect(view.toolLabel).toBe("Use browser");
-    expect(view.summary).toBe(
-      "Read the interactive structure of the current page",
-    );
+    expect(view.toolLabel).toBe("使用浏览器");
+    expect(view.summary).toBe("获取当前网页的可交互元素结构");
     expect(view.rows).toEqual([
-      { label: "Action", value: "Read the page structure" },
-      { label: "Detail", value: "Interactive elements only" },
+      { label: "操作", value: "获取网页结构" },
+      { label: "范围", value: "仅交互元素" },
     ]);
     const blob = [view.summary, ...view.rows.map((row) => row.value)].join(" ");
     expect(blob).not.toContain('"action"');
@@ -59,14 +57,14 @@ describe("summarizeHitlAction", () => {
     const view = summarizeHitlAction(
       "browser_use",
       { action: "navigate", url: "https://news.example.com" },
-      t,
-      "Use browser",
+      tZh,
+      "使用浏览器",
     );
 
-    expect(view.summary).toBe("Open https://news.example.com");
+    expect(view.summary).toBe("打开网页 https://news.example.com");
     expect(view.rows).toEqual([
-      { label: "Action", value: "Open a page" },
-      { label: "URL", value: "https://news.example.com", mono: true },
+      { label: "操作", value: "打开网页" },
+      { label: "网址", value: "https://news.example.com", mono: true },
     ]);
   });
 
@@ -74,13 +72,13 @@ describe("summarizeHitlAction", () => {
     const view = summarizeHitlAction(
       "execute",
       { command: "ls -la inbound" },
-      t,
-      "Run command",
+      tZh,
+      "执行指令",
     );
 
-    expect(view.summary).toBe("Run command: ls -la inbound");
+    expect(view.summary).toBe("执行命令：ls -la inbound");
     expect(view.rows).toEqual([
-      { label: "Command", value: "ls -la inbound", mono: true },
+      { label: "命令", value: "ls -la inbound", mono: true },
     ]);
   });
 
@@ -88,37 +86,37 @@ describe("summarizeHitlAction", () => {
     const view = summarizeHitlAction(
       "custom_plugin_tool",
       { foo_bar: "secret.txt" },
-      t,
+      tZh,
       "custom_plugin_tool",
-      "Read the key file in the workspace",
+      "读取工作区里的密钥文件",
     );
 
-    expect(view.summary).toBe("Read the key file in the workspace");
+    expect(view.summary).toBe("读取工作区里的密钥文件");
     expect(view.rows).toEqual([{ label: "Foo bar", value: "secret.txt" }]);
   });
 
-  it("ignores the machine HITL template and explains write_file", () => {
+  it("ignores the English HITL template and explains write_file in Chinese", () => {
     const view = summarizeHitlAction(
       "write_file",
       {
         file_path: "/.octop/workspaces/J7Y3TW/test.txt",
         content: "Hello, this is a test file!\nCreated at: 2025-01-25\n",
       },
-      t,
-      "Write file",
+      tZh,
+      "写入文件",
       "Tool execution requires approval Tool: write_file Args: {'file_path': '/.octop/workspaces/J7Y3TW/test.txt', 'content': 'Hello, this is a test file!\\nCreated at: 2025-01-25\\n'}",
     );
 
-    expect(view.summary).toBe("Write file /.octop/workspaces/J7Y3TW/test.txt");
+    expect(view.summary).toBe("写入文件 /.octop/workspaces/J7Y3TW/test.txt");
     expect(view.summary).not.toContain("Tool execution");
     expect(view.rows).toEqual([
       {
-        label: "File path",
+        label: "文件路径",
         value: "/.octop/workspaces/J7Y3TW/test.txt",
         mono: true,
       },
       {
-        label: "Content",
+        label: "内容",
         value: "Hello, this is a test file!\nCreated at: 2025-01-25\n",
       },
     ]);
@@ -128,12 +126,12 @@ describe("summarizeHitlAction", () => {
     const view = summarizeHitlAction(
       "browser_use",
       { action: "screenshot", profile: "user-7" },
-      t,
-      "Use browser",
+      tZh,
+      "使用浏览器",
     );
 
-    expect(view.summary).toBe("Take a screenshot of the current page");
-    expect(view.rows.map((row) => row.label)).toEqual(["Action"]);
+    expect(view.summary).toBe("截取当前网页截图");
+    expect(view.rows.map((row) => row.label)).toEqual(["操作"]);
     expect(view.rows.some((row) => row.value === "user-7")).toBe(false);
   });
 });

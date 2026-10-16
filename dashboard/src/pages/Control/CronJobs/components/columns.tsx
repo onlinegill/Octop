@@ -171,7 +171,9 @@ export const createColumns = (
       width: 160,
       render: (trigger: string) => (
         <code style={{ fontSize: 12 }}>
-          {trigger || "—"}
+          {trigger?.startsWith("agently:")
+            ? handlers.t("cronJobs.form.agentlyNewMail")
+            : trigger || "—"}
         </code>
       ),
     },

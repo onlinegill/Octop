@@ -8,7 +8,7 @@ import {
 
 describe("isValidSkillName", () => {
   it("accepts CJK, letters, digits and . _ -", () => {
-    expect(isValidSkillName("Weather query")).toBe(true);
+    expect(isValidSkillName("天气查询")).toBe(true);
     expect(isValidSkillName("weather-analysis")).toBe(true);
     expect(isValidSkillName("weather_query.v2")).toBe(true);
   });
@@ -41,9 +41,9 @@ describe("SkillDrawer emoji metadata", () => {
     const md = buildSkillMarkdown({
       name: "demo",
       description: "Agent trigger description",
-      labelZh: "Demonstration skills",
+      labelZh: "演示技能",
       labelEn: "Demo Skill",
-      summaryZh: "Complete demo tasks",
+      summaryZh: "完成演示任务",
       summaryEn: "Complete demo tasks",
       emoji: "⚙️",
       metadata: [],
@@ -51,10 +51,10 @@ describe("SkillDrawer emoji metadata", () => {
     });
 
     expect(md).toContain("label:");
-    expect(md).toContain("zh: Demonstration skills");
+    expect(md).toContain("zh: 演示技能");
     expect(md).toContain("en: Demo Skill");
     expect(md).toContain("summary:");
-    expect(md).toContain("zh: Complete demo tasks");
+    expect(md).toContain("zh: 完成演示任务");
     expect(md).toContain("en: Complete demo tasks");
   });
 

@@ -76,7 +76,6 @@
 }
 
 .inputWrapper {
-  position: relative;
   max-width: var(--chat-column-max, 960px);
   min-width: 280px;
   margin: 0 auto;
@@ -109,7 +108,7 @@
 .actionsRow {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   padding-top: 6px;
   border-top: 1px solid var(--fn-border-secondary);
   margin-top: 4px;
@@ -121,69 +120,19 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-  flex: 0 0 auto;
-  order: 1;
+  flex: 1;
   padding-top: 4px;
   padding-right: 2px;
 }
 
-.modeHint {
-  margin: 0 0 0 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex: 0 1 auto;
-  order: 2;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--fn-text-quaternary);
-  font-size: 12px;
-  line-height: 1.3;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  pointer-events: none;
-  user-select: none;
-
-  svg {
-    flex-shrink: 0;
-  }
-
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-
-.actionsRowCompact {
-  flex-wrap: wrap;
-  gap: 4px;
-
-  .modeHint {
-    order: 0;
-    flex: 1 0 100%;
-    margin-left: 0;
-    padding-top: 0;
-    padding-bottom: 2px;
-  }
-}
-
 @media (max-width: 767px) {
   .actionsRow {
-    flex-wrap: wrap;
     gap: 4px;
-  }
-
-  .modeHint {
-    order: 0;
-    flex: 1 0 100%;
-    margin-left: 0;
-    padding-top: 0;
-    padding-bottom: 2px;
   }
 
   .secondaryActions {
     gap: 4px;
-    flex: 1 1 auto;
+    flex: 1;
     min-width: 0;
     overflow-x: auto;
     overflow-y: visible;
@@ -229,8 +178,6 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  order: 3;
-  margin-left: auto;
 }
 
 .secondaryBtn {
@@ -603,21 +550,20 @@
   }
 }
 
-/* ---------- Queued messages: composer header strip ---------- */
+/* ---------- Queued messages (while streaming) ---------- */
 .queuedMessages {
+  max-width: var(--chat-column-max, 960px);
+  width: calc(100% - 2 * var(--chat-column-pad-x, 32px));
+  margin: 0 auto 8px;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  max-height: 120px;
+  gap: 6px;
+  max-height: 132px;
   overflow-y: auto;
   flex-shrink: 0;
-  margin: -8px -10px 8px -16px;
-  border-bottom: 1px solid var(--fn-border-secondary);
-  background: var(--fn-bg-secondary, var(--fn-bg-layout));
-  border-radius: 19px 19px 0 0;
 
   @media (max-width: 767px) {
-    margin: -8px -8px 6px -14px;
+    width: calc(100% - 24px);
   }
 
   &::-webkit-scrollbar {
@@ -634,7 +580,10 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-  padding: 8px 10px 8px 14px;
+  padding: 6px 8px 6px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--fn-border-secondary);
+  background: var(--fn-bg-secondary, var(--fn-bg-primary));
 }
 
 .queuedMessageIndex {
@@ -661,8 +610,13 @@
   border: none;
   background: transparent;
   padding: 0;
+  cursor: pointer;
   text-align: left;
   color: var(--fn-text-primary);
+
+  &:hover .queuedMessageText {
+    color: var(--fn-color-brand);
+  }
 }
 
 .queuedMessageText {
@@ -673,6 +627,7 @@
   white-space: nowrap;
   font-size: 13px;
   line-height: 1.35;
+  transition: color var(--fn-transition-fast);
 }
 
 .queuedMessageAttach {
@@ -684,20 +639,13 @@
   color: var(--fn-text-tertiary);
 }
 
-.queuedMessageActions {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.queuedMessageIconBtn {
+.queuedMessageRemove {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: none;
   border-radius: var(--fn-radius-full);
   background: transparent;
@@ -707,11 +655,6 @@
   &:hover {
     color: var(--fn-text-secondary);
     background: var(--fn-bg-tertiary, rgba(0, 0, 0, 0.04));
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--fn-color-brand);
-    outline-offset: 1px;
   }
 }
 
@@ -880,30 +823,6 @@
   }
 }
 
-.dropOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  border-radius: inherit;
-  border: 1.5px dashed var(--fn-color-brand);
-  background: color-mix(
-    in srgb,
-    var(--fn-bg-primary) 82%,
-    var(--fn-color-brand)
-  );
-  color: var(--fn-color-brand);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.4;
-  text-align: center;
-  pointer-events: none;
-  user-select: none;
-}
-
 /* A right-docked workspace can narrow the chat without narrowing the viewport.
    Respond to the chat column itself so composer controls remain usable. */
 @container chat-main (max-width: 560px) {
@@ -921,20 +840,11 @@
   }
 
   .actionsRow {
-    flex-wrap: wrap;
     gap: 4px;
   }
 
-  .modeHint {
-    order: 0;
-    flex: 1 0 100%;
-    margin-left: 0;
-    padding-top: 0;
-    padding-bottom: 2px;
-  }
-
   .secondaryActions {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     padding-right: 0;
     overflow-x: auto;
     scrollbar-width: none;

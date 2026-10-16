@@ -43,7 +43,6 @@ interface AssistantTurnViewProps {
    */
   liveSpeakers?: ReadonlyArray<string>;
   onRegenerate?: (messageId: string) => void;
-  onDisableStreamUsage?: () => Promise<boolean>;
   onEditUserMessage?: (messageId: string, newText: string) => void;
   onForkAssistantMessage?: (messageId: string) => void;
   forkDisabled?: boolean;
@@ -62,59 +61,6 @@ function hasProcessContent(
   split: ReturnType<typeof splitAssistantTurn>,
 ): boolean {
   return turnHasVisibleProcess(split);
-}
-
-function TurnErrorBubbles({
-  messages,
-  agentId,
-  showAvatar,
-  onRegenerate,
-  onDisableStreamUsage,
-  onEditUserMessage,
-  onForkAssistantMessage,
-  forkDisabled,
-  forkDisabledHint,
-  onRunShellCommand,
-  shellCommandDisabled,
-  shellCommandDisabledTitle,
-}: {
-  messages: ChatMessage[] | undefined;
-  agentId?: string | null;
-  showAvatar: boolean;
-  onRegenerate?: (messageId: string) => void;
-  onDisableStreamUsage?: () => Promise<boolean>;
-  onEditUserMessage?: (messageId: string, newText: string) => void;
-  onForkAssistantMessage?: (messageId: string) => void;
-  forkDisabled?: boolean;
-  forkDisabledHint?: string;
-  onRunShellCommand?: (code: string) => void;
-  shellCommandDisabled?: boolean;
-  shellCommandDisabledTitle?: string;
-}) {
-  if (!messages?.length) return null;
-  return (
-    <>
-      {messages.map((message, index) => (
-        <div key={message.id} className={styles.assistantTurnAnswer}>
-          <MessageBubble
-            message={message}
-            agentId={agentId}
-            showAvatar={showAvatar && index === 0}
-            groupPosition="only"
-            onRegenerate={onRegenerate}
-            onDisableStreamUsage={onDisableStreamUsage}
-            onEditUserMessage={onEditUserMessage}
-            onForkAssistantMessage={onForkAssistantMessage}
-            forkDisabled={forkDisabled}
-            forkDisabledHint={forkDisabledHint}
-            onRunShellCommand={onRunShellCommand}
-            shellCommandDisabled={shellCommandDisabled}
-            shellCommandDisabledTitle={shellCommandDisabledTitle}
-          />
-        </div>
-      ))}
-    </>
-  );
 }
 
 /** True when any message in this turn belongs to a still-live speaker. */
@@ -136,7 +82,6 @@ export default function AssistantTurnView({
   isTurnInProgress = false,
   liveSpeakers = [],
   onRegenerate,
-  onDisableStreamUsage,
   onEditUserMessage,
   onForkAssistantMessage,
   forkDisabled,
@@ -276,39 +221,6 @@ export default function AssistantTurnView({
                 ) : null}
               </>
             ) : null}
-            {split.answerMessage ? (
-              <div className={styles.assistantTurnAnswer}>
-                <MessageBubble
-                  message={toAnswerOnlyMessage(split.answerMessage)}
-                  agentId={agentId}
-                  showAvatar={!showProcess}
-                  groupPosition="only"
-                  onRegenerate={onRegenerate}
-                  onDisableStreamUsage={onDisableStreamUsage}
-                  onEditUserMessage={onEditUserMessage}
-                  onForkAssistantMessage={onForkAssistantMessage}
-                  forkDisabled={forkDisabled}
-                  forkDisabledHint={forkDisabledHint}
-                  onRunShellCommand={onRunShellCommand}
-                  shellCommandDisabled={shellCommandDisabled}
-                  shellCommandDisabledTitle={shellCommandDisabledTitle}
-                />
-              </div>
-            ) : null}
-            <TurnErrorBubbles
-              messages={split.errorMessages}
-              agentId={agentId}
-              showAvatar={!showProcess && !split.answerMessage}
-              onRegenerate={onRegenerate}
-              onDisableStreamUsage={onDisableStreamUsage}
-              onEditUserMessage={onEditUserMessage}
-              onForkAssistantMessage={onForkAssistantMessage}
-              forkDisabled={forkDisabled}
-              forkDisabledHint={forkDisabledHint}
-              onRunShellCommand={onRunShellCommand}
-              shellCommandDisabled={shellCommandDisabled}
-              shellCommandDisabledTitle={shellCommandDisabledTitle}
-            />
             <MessageBubble
               message={hitl}
               agentId={agentId}
@@ -351,7 +263,7 @@ export default function AssistantTurnView({
         >
           {isWrapupTurn ? (
             <span className={styles.teamWrapupBadge}>
-              {t("chat.teamWrapupBadge", { defaultValue: "Host summary" })}
+              {t("chat.teamWrapupBadge", { defaultValue: "主持人总结" })}
             </span>
           ) : null}
           <MessageBubble
@@ -359,7 +271,6 @@ export default function AssistantTurnView({
             agentId={agentId}
             showAvatar={firstSummaryIdx < 0 && !trailingHasSummary}
             onRegenerate={onRegenerate}
-            onDisableStreamUsage={onDisableStreamUsage}
             onEditUserMessage={onEditUserMessage}
             onForkAssistantMessage={onForkAssistantMessage}
             forkDisabled={forkDisabled}
@@ -371,24 +282,6 @@ export default function AssistantTurnView({
           />
         </div>
       ) : null}
-      <TurnErrorBubbles
-        messages={trailingSplit.errorMessages}
-        agentId={agentId}
-        showAvatar={
-          firstSummaryIdx < 0 &&
-          !trailingHasSummary &&
-          !trailingSplit.answerMessage
-        }
-        onRegenerate={onRegenerate}
-        onDisableStreamUsage={onDisableStreamUsage}
-        onEditUserMessage={onEditUserMessage}
-        onForkAssistantMessage={onForkAssistantMessage}
-        forkDisabled={forkDisabled}
-        forkDisabledHint={forkDisabledHint}
-        onRunShellCommand={onRunShellCommand}
-        shellCommandDisabled={shellCommandDisabled}
-        shellCommandDisabledTitle={shellCommandDisabledTitle}
-      />
       {knowledgeCitations.length > 0 ? (
         <div className={styles.turnInset}>
           <KnowledgeCitationsStrip citations={knowledgeCitations} />
@@ -429,7 +322,7 @@ export default function AssistantTurnView({
             onClick={onEditFile}
             aria-label={t("chat.editFileCard", {
               count: Math.max(turnFileCount, 1),
-              defaultValue: "Edited{{count}}Files",
+              defaultValue: "编辑了{{count}}个文件",
             })}
           >
             <FilePen
@@ -441,7 +334,7 @@ export default function AssistantTurnView({
             <span>
               {t("chat.editFileCard", {
                 count: Math.max(turnFileCount, 1),
-                defaultValue: "Edited{{count}}Files",
+                defaultValue: "编辑了{{count}}个文件",
               })}
             </span>
             <ChevronRight

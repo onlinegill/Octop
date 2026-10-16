@@ -7,7 +7,7 @@ import { ChatAgentProfileProvider } from "../ChatAgentProfileContext";
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, opts?: { name?: string }) =>
-      key === "chat.teamHostHover" ? `[${opts?.name ?? ""}] Moderator` : key,
+      key === "chat.teamHostHover" ? `[${opts?.name ?? ""}] 主持人` : key,
   }),
 }));
 
@@ -31,20 +31,20 @@ vi.mock("../../../context/AgentContext", () => ({
   useAgent: () => ({
     activeAgent: {
       agent_id: "bridge:cid:host",
-      name: "Hosting team",
+      name: "主持团队",
       kind: "team",
       icon_name: "bot",
     },
     agents: [
       {
         agent_id: "bridge:cid:host",
-        name: "Hosting team",
+        name: "主持团队",
         kind: "team",
         icon_name: "bot",
       },
       {
         agent_id: "bridge:cid:doctor",
-        name: "Clinical assistant specialist",
+        name: "临床辅助专家",
         icon_name: "sparkles",
       },
     ],
@@ -76,9 +76,9 @@ describe("MessageBubble peer team speaker chrome", () => {
       </ChatAgentProfileProvider>,
     );
     expect(
-      screen.queryByRole("button", { name: "[Hosting team] Moderator" }),
+      screen.queryByRole("button", { name: "[主持团队] 主持人" }),
     ).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Clinical assistant specialist" }));
+    fireEvent.click(screen.getByRole("button", { name: "临床辅助专家" }));
     expect(onOpen).toHaveBeenCalledWith("bridge:cid:doctor");
   });
 });

@@ -29,7 +29,6 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 
 import MigrateMemory from "./MigrateMemory";
-import LastExtractionStatus from "./LastExtractionStatus";
 import {
   memoryDashboardApi,
   type ExtractConfig,
@@ -143,7 +142,7 @@ export default function Overview({
             <p>
               {t(
                 "memory.overview.dashboardSubtitle",
-                "Get to know quickly Agent What is remembered, and whether memory processing is normal.",
+                "快速了解 Agent 记住了什么，以及记忆处理是否正常。",
               )}
             </p>
           </div>
@@ -434,7 +433,7 @@ function PipelineCard({
   const atoms = counts.atoms ?? 0;
   const lastExtract = counts.last_extract_run?.timestamp;
   const lastExtractLabel = lastExtract
-    ? t("memory.pipeline.lastExtract", "Last organized {{time}}", {
+    ? t("memory.pipeline.lastExtract", "上次整理 {{time}}", {
         time: lastExtract.slice(0, 16).replace("T", " "),
       })
     : null;
@@ -442,17 +441,17 @@ function PipelineCard({
     raw === 0
       ? t(
           "memory.pipeline.hintNoRaw",
-          "Once you start a conversation, the system automatically captures the footage and refines the memory.",
+          "开始对话后，系统会自动捕获素材并提炼记忆。",
         )
       : atoms === 0
       ? t(
           "memory.pipeline.hintDistilling",
-          "Captured {{n}} Conversation memories, the first long-term memories usually appear after a few rounds of conversation.",
+          "已捕获 {{n}} 条对话记忆，首批长期记忆通常会在几轮对话后出现。",
           { n: raw },
         )
       : t(
           "memory.pipeline.hintNormal",
-          "Dialogue memories are automatically refined into candidate content, which becomes recallable long-term memory after confirmation.",
+          "对话记忆会自动提炼为候选内容，确认后成为可召回的长期记忆。",
         );
 
   return (
@@ -462,9 +461,11 @@ function PipelineCard({
           <Workflow size={16} />
           {t("memory.pipeline.title", "Memory pipeline")}
         </span>
-        <small>{hint}</small>
+        <small>
+          {hint}
+          {lastExtractLabel ? ` · ${lastExtractLabel}` : ""}
+        </small>
       </div>
-      <LastExtractionStatus run={counts.last_extract_run} />
       <div className={styles.pipelineRow}>
         <PipelineStage
           label={t("memory.pipeline.stageRaw", "Conversation memory")}

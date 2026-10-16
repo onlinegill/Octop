@@ -34,16 +34,11 @@ describe("Login remember-me checkbox", () => {
     );
 
     const checkbox = screen.getByRole("checkbox", {
-      name: /login\.remember|Remember login status|Remember me/,
+      name: /login\.remember|记住登录状态|Remember me/,
     });
     expect(checkbox).toBeChecked();
     expect(
-      screen.getByText(/login\.usernameHint|Username or email|username or email/i),
+      screen.getByText(/login\.usernameHint|用户名或邮箱|username or email/i),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        /login\.usernameHint|可用安装时设置|set during setup/i,
-      ),
-    ).not.toBeInTheDocument();
   });
 });

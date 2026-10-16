@@ -6,14 +6,7 @@ import { connectorsApi } from "../../../api/modules/connectors";
 import { knowledgeBasesApi } from "../../../api/modules/knowledgeBases";
 import { useCurrentUser } from "../../../hooks/useCurrentUser";
 
-interface ExpertComposerDefaultsFieldsProps {
-  /** Bridge shadow id so knowledge / connector pickers tunnel to the peer. */
-  agentId?: string | null;
-}
-
-export default function ExpertComposerDefaultsFields({
-  agentId,
-}: ExpertComposerDefaultsFieldsProps) {
+export default function ExpertComposerDefaultsFields() {
   const { t } = useTranslation();
   const currentUserId = useCurrentUser()?.id ?? null;
   const [knowledgeBases, setKnowledgeBases] = useState<
@@ -29,7 +22,7 @@ export default function ExpertComposerDefaultsFields({
     let cancelled = false;
     setKnowledgeLoading(true);
     knowledgeBasesApi
-      .list(agentId)
+      .list()
       .then((bases) => {
         if (!cancelled) {
           setKnowledgeBases(
@@ -46,13 +39,13 @@ export default function ExpertComposerDefaultsFields({
     return () => {
       cancelled = true;
     };
-  }, [agentId]);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     setConnectorsLoading(true);
     connectorsApi
-      .listInstances(agentId)
+      .listInstances()
       .then((instances) => {
         if (cancelled) return;
         setConnectors(
@@ -80,7 +73,7 @@ export default function ExpertComposerDefaultsFields({
     return () => {
       cancelled = true;
     };
-  }, [agentId, currentUserId]);
+  }, [currentUserId]);
 
   return (
     <>

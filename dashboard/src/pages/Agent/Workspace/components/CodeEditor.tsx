@@ -10,14 +10,28 @@
  * when resizing ends.
  */
 
-import { lazy, Suspense, useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Spin } from "antd";
 import type { OnMount } from "@monaco-editor/react";
-import { useTheme } from "../../../../context/ThemeContext";
 import { getEditorLanguage } from "../utils/editorLanguage";
 import styles from "../index.module.less";
 
 const MonacoEditor = lazy(() => import("@monaco-editor/react"));
+
+function useIsDark(): boolean {
+  const [dark, setDark] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-color-scheme: dark)").matches,
+  );
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => setDark(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+  return dark;
+}
 
 interface CodeEditorProps {
   path: string;
@@ -36,7 +50,7 @@ export default function CodeEditor({
   language,
 }: CodeEditorProps) {
   const resolvedLanguage = language ?? getEditorLanguage(path);
-  const { isDark } = useTheme();
+  const isDark = useIsDark();
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<{
     updateOptions: (opts: { automaticLayout?: boolean }) => void;
