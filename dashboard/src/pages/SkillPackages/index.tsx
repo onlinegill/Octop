@@ -1015,8 +1015,6 @@ export default function SkillPackagesPage() {
         urlPrefixes={SKILL_URL_PREFIXES}
       />
 
-<<<<<<< HEAD
-=======
       <SkillsetFromHubDrawer
         open={skillsetHubOpen}
         onClose={() => setSkillsetHubOpen(false)}
@@ -1038,7 +1036,6 @@ export default function SkillPackagesPage() {
         }}
       />
 
->>>>>>> upstream/main
       <SkillDrawer
         open={drawerOpen}
         editingSkill={

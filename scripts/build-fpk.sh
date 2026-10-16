@@ -10,7 +10,6 @@
 #   bash scripts/build-fpk.sh native      # build the native (non-Docker) variant -> dist/Octop-fnos-native-<ver>.fpk
 #   bash scripts/build-fpk.sh             # build both
 #
-<<<<<<< HEAD
 # Environment variables:
 #   FPK_NAME_PREFIX  output filename prefix, default "octop"
 #                    e.g. FPK_NAME_PREFIX=Octop-fnos produces Octop-fnos-docker-<ver>.fpk / Octop-fnos-native-<ver>.fpk
@@ -20,17 +19,6 @@
 #                    and writes manifest platform=arm64. Empty or any other value keeps the existing x86 package name.
 #                    fnpack only ships linux-amd64, so ARM packages should be built on an amd64 host
 #                    (install site-packages on aarch64 first, then copy it over).
-=======
-# 环境变量：
-#   FPK_NAME_PREFIX  输出文件名前缀，默认 "octop"
-#                    例如 FPK_NAME_PREFIX=Octop-fnos 会生成 Octop-fnos-docker-<ver>.fpk / Octop-fnos-native-<ver>.fpk
-#   FPK_ITER         迭代号，默认空
-#                    例如 FPK_ITER=01 会生成 ...-<ver>-01.fpk（通常不需要，按版本号发布）
-#   FPK_ARCH         本地版架构。arm64 → Octop-fnos-native-arm64-<ver>.fpk，
-#                    并写入 manifest platform=arm（fnpack 只认 x86/arm/all）。空或其它值保持现有 x86 包名。
-#                    fnpack 官方只有 linux-amd64，ARM 包应在 amd64 主机上打包
-#                    （site-packages 先在 aarch64 上装好再拷过来）。
->>>>>>> upstream/main
 #
 # Notes:
 #   - On Linux CI, fnpack is downloaded automatically (version in FNPACK_VERSION, default 1.2.3);
@@ -145,11 +133,7 @@ build_one() {
   # Inject the version into the manifest (the manifest is key=value with no spaces)
   sed -i.bak "s/^version=.*/version=$VER/" "$BUILD/manifest" && rm -f "$BUILD/manifest.bak"
 
-<<<<<<< HEAD
   # Write platform=arm64 for ARM native builds so x86 fnOS does not install aarch64 site-packages by mistake.
-=======
-  # ARM 本地版写入 fnpack 允许的 platform=arm；更细的 aarch64 用 cmd/fpk-arch。
->>>>>>> upstream/main
   if [ "$KIND" = "native" ] && [ "${FPK_ARCH:-}" = "arm64" ]; then
     sed -i.bak "s/^platform=.*/platform=arm/" "$BUILD/manifest" && rm -f "$BUILD/manifest.bak"
     echo "[build-fpk] native manifest platform=arm"

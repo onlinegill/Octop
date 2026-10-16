@@ -13,18 +13,10 @@
 #   OCTOP_DATABASE_DRIVER=postgresql
 #   OCTOP_DATABASE_URL=postgresql://octop:octop@host.docker.internal:5432/octop
 #
-<<<<<<< HEAD
 # Note: docker/.env is only used for Compose interpolation; variables must be listed under environment below
 # to reach the container. You can also write ~/.octop/env inside the data volume.
 # The password must be >=8 chars with both letters and digits (same as the console change-password policy).
 # Future plan: first start may generate a random password and write it to credential.txt.
-=======
-# 注意: docker/.env 仅用于 Compose 插值；变量必须列在下方 environment
-# 才会进入容器。也可写入数据卷内的 ~/.octop/env（宿主机挂载目录下的 env）。
-# 密码须 ≥8 位且同时包含字母与数字（与控制台改密策略一致）。
-# 未设置或未通过策略时不自动建管理员，打开页面走设置向导
-# （向导口令写入 /data/.octop/octop-login.txt）。
->>>>>>> upstream/main
 # =============================================================================
 
 services:

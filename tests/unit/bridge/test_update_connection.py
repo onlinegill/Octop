@@ -290,7 +290,6 @@ def test_inbound_default_display_name_uses_ip_and_keeps_local_edits() -> None:
     assert (
         inbound_default_display_name(
             connection_id="cid1",
-<<<<<<< HEAD
             preferred_name="10.0.0.1",
             peer_username="bob",
         )
@@ -310,12 +309,6 @@ def test_inbound_default_display_name_uses_ip_and_keeps_local_edits() -> None:
             connection_id="cid1",
             preferred_name="new",
             existing_name="my edited name",
-=======
-            client_host="203.0.113.9",
-            advertise_base_url="https://other.example",
-            peer_username="alice",
-            existing_name="我改过的名",
->>>>>>> upstream/main
         )
         == "my edited name"
     )

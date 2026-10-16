@@ -725,13 +725,10 @@ def test_preview_reports_specific_ineligibility_without_starting(tmp_path, monke
                 coordinator.list_agents(locale="zh")
         with pytest.raises(ValueError, match=expected):
             coordinator.preview_chat("a", 1, locale="zh")
-<<<<<<< HEAD
         if reason == "postgres":
             assert "can also accumulate duplicate data or storage bloat" in str(error.value)
             assert "does not yet support PostgreSQL slimming" in str(error.value)
             assert "you can continue chatting" in str(error.value)
-=======
->>>>>>> upstream/main
         assert coordinator.task is None and not registry._history_backfills
         assert not list(tmp_path.glob("*.bak"))
     finally:

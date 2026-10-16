@@ -432,15 +432,12 @@ function PipelineCard({
   const raw = counts.raw_events ?? 0;
   const pending = counts.candidates_pending ?? 0;
   const atoms = counts.atoms ?? 0;
-<<<<<<< HEAD
   const lastExtract = counts.last_extract_run?.timestamp;
   const lastExtractLabel = lastExtract
     ? t("memory.pipeline.lastExtract", "Last organized {{time}}", {
         time: lastExtract.slice(0, 16).replace("T", " "),
       })
     : null;
-=======
->>>>>>> upstream/main
   const hint =
     raw === 0
       ? t(

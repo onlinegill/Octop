@@ -30,129 +30,6 @@ class BrowserOnlyError(Exception):
     """Raised when the active provider must run in the browser."""
 
 
-<<<<<<< HEAD
-=======
-def parse_tencent_credentials(row: VoiceProviderRow) -> tuple[str, str]:
-    extra = row.get_extra()
-    secret_id = extra.get("secret_id") or ""
-    secret_key = extra.get("secret_key") or ""
-    if row.api_key and ":" in row.api_key:
-        sid, _, sk = row.api_key.partition(":")
-        secret_id = secret_id or sid
-        secret_key = secret_key or sk
-    if not secret_id or not secret_key:
-        raise ValueError("Tencent Cloud requires secret_id and secret_key")
-    return str(secret_id), str(secret_key)
-
-
-def _voice_format(mime: str) -> str:
-    """Map an upload MIME type onto a Tencent ASR ``VoiceFormat`` token."""
-    lowered = mime.lower()
-    if "mp3" in lowered or "mpeg" in lowered:
-        return "mp3"
-    if "wav" in lowered:
-        return "wav"
-    if "ogg" in lowered:
-        return "ogg-opus"
-    if "mp4" in lowered or "m4a" in lowered or "aac" in lowered:
-        return "m4a"
-    if "amr" in lowered:
-        return "amr"
-    if "silk" in lowered:
-        return "silk"
-    if "speex" in lowered:
-        return "speex"
-    if "pcm" in lowered:
-        return "pcm"
-    raise OctopError(
-        ErrorCode.VOICE_KIND_UNSUPPORTED,
-        f"unsupported audio format {mime!r}",
-        details={"mime": mime},
-    )
-
-
->>>>>>> upstream/main
-async def transcribe_browser() -> STTResult:
-    raise BrowserOnlyError()
-
-
-async def synthesize_browser(_text: str) -> AsyncIterator[bytes]:
-    raise BrowserOnlyError()
-    yield b""  # pragma: no cover
-
-
-async def _guard_voice_base_url(base_url: str) -> None:
-    """Reject SSRF: the voice provider base_url must be a public https host."""
-    await validate_https_url_resolved(f"{base_url}/v1/audio")
-
-
-async def transcribe_openai(
-    row: VoiceProviderRow, audio: bytes, *, mime: str, language: str
-) -> STTResult:
-    api_key = row.api_key or ""
-    if not api_key:
-        raise ValueError("OpenAI API key is required")
-    base_url = (row.base_url or "https://api.openai.com/v1").rstrip("/")
-    await _guard_voice_base_url(base_url)
-    extra = row.get_extra()
-    model = str(extra.get("model") or "whisper-1")
-    ext = "webm" if "webm" in mime else "wav"
-    files = {"file": (f"audio.{ext}", audio, mime or "audio/webm")}
-    data: dict[str, str] = {"model": model}
-    if language:
-        data["language"] = language.split("-")[0]
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(
-            f"{base_url}/audio/transcriptions",
-            headers={"Authorization": f"Bearer {api_key}"},
-            files=files,
-            data=data,
-        )
-        resp.raise_for_status()
-        body = resp.json()
-    text = str(body.get("text") or "").strip()
-    return STTResult(text=text)
-
-
-async def synthesize_openai(
-    row: VoiceProviderRow,
-    text: str,
-    *,
-    voice_id: str | None,
-    speed: float,
-) -> AsyncIterator[bytes]:
-    api_key = row.api_key or ""
-    if not api_key:
-        raise ValueError("OpenAI API key is required")
-    base_url = (row.base_url or "https://api.openai.com/v1").rstrip("/")
-    await _guard_voice_base_url(base_url)
-    extra = row.get_extra()
-    model = str(extra.get("model") or "tts-1")
-    voice = voice_id or str(extra.get("voice_id") or "alloy")
-    payload = {
-        "model": model,
-        "input": text,
-        "voice": voice,
-        "speed": speed,
-        "response_format": "mp3",
-    }
-    async with (
-        httpx.AsyncClient(timeout=120.0) as client,
-        client.stream(
-            "POST",
-            f"{base_url}/audio/speech",
-            headers={"Authorization": f"Bearer {api_key}"},
-            json=payload,
-        ) as resp,
-    ):
-        resp.raise_for_status()
-        async for chunk in resp.aiter_bytes():
-            if chunk:
-                yield chunk
-
-
-<<<<<<< HEAD
-=======
 async def transcribe_tencent(
     row: VoiceProviderRow,
     audio: bytes,
@@ -246,7 +123,6 @@ async def synthesize_tencent(
     yield base64.b64decode(str(audio_b64))
 
 
->>>>>>> upstream/main
 async def synthesize_edge(
     row: VoiceProviderRow,
     text: str,
@@ -313,9 +189,6 @@ def _probe_tone_wav() -> bytes:
 
 def _missing_credentials(row: VoiceProviderRow, kind: str, *, locale: str = "en") -> str | None:
     """Probe-time credential check; returns an error message when incomplete."""
-<<<<<<< HEAD
-    if kind == "openai" and not row.api_key:
-=======
     if kind == "tencent":
         try:
             parse_tencent_credentials(row)
@@ -323,7 +196,6 @@ def _missing_credentials(row: VoiceProviderRow, kind: str, *, locale: str = "en"
             return voice_credentials_error(kind, locale)
         return None
     if kind in {"openai", "mimo"} and not row.api_key:
->>>>>>> upstream/main
         return voice_credentials_error(kind, locale)
     return None
 

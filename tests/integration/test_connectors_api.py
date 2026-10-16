@@ -100,27 +100,7 @@ async def test_catalog(env):
     }
 
 
-<<<<<<< HEAD
 async def test_create_dify_instance(env):
-=======
-async def test_catalog_localizes_with_accept_language(env):
-    c, _, auth, _ = env
-    r = await c.get("/api/connectors/catalog", headers={**auth, "Accept-Language": "en"})
-    assert r.status_code == 200
-    openalex = next(e for e in r.json() if e["kind"] == "openalex")
-    assert openalex["name"] == "OpenAlex"
-    assert openalex["description"].startswith("Official MCP")
-    assert "system browser" in (openalex["auth_hint"] or "")
-
-    r = await c.get("/api/connectors/catalog", headers={**auth, "Accept-Language": "zh"})
-    assert r.status_code == 200
-    openalex = next(e for e in r.json() if e["kind"] == "openalex")
-    assert openalex["description"].startswith("官方 MCP")
-    assert "系统浏览器" in (openalex["auth_hint"] or "")
-
-
-async def test_create_tencent_instance(env):
->>>>>>> upstream/main
     c, _, auth, _ = env
     r = await c.post(
         "/api/connector-instances",
@@ -361,8 +341,6 @@ async def test_patch_instance_status(env):
     assert r2.json()["status"] == "disabled"
 
 
-<<<<<<< HEAD
-=======
 async def test_catalog_weknora_dify_last(env):
     c, _, auth, _ = env
     r = await c.get("/api/connectors/catalog", headers=auth)
@@ -486,7 +464,6 @@ async def test_cli_status_available_to_non_admin(env, monkeypatch: pytest.Monkey
     assert r.json()["installed"] is False
 
 
->>>>>>> upstream/main
 async def test_patch_custom_mcp_server_default_open_only(env):
     c, _, auth, _ = env
     put = await c.put(

@@ -597,9 +597,6 @@
     "write_env_file": "Write env file",
     "ask_user_question": "Ask the user",
     "generate_image": "Generate image",
-<<<<<<< HEAD
-    "generate_video": "Generate video"
-=======
     "generate_video": "Generate video",
     "bilibili_search_anime": "Search Bilibili anime",
     "search_arxiv": "Search arXiv papers"
@@ -615,7 +612,6 @@
       "paper": "{index}. {title}\nAuthors: {authors}\nAbstract: {summary}\n{url}\nPDF: {pdf_url}",
       "tool_description": "Search arXiv papers without an API key. query accepts English keywords, a paper ID (1706.03762), an arXiv abstract/PDF URL, or arXiv syntax (ti:transformer AND cat:cs.AI, au:Vaswani, submittedDate:[202401010000 TO 202412312359]). Returns titles, authors, full abstracts, categories, publication/update timestamps, and abstract/PDF URLs. limit defaults to 5 (1–20); start is a zero-based result offset for pagination. sort_by: relevance (default), submittedDate (newest papers), lastUpdatedDate. sort_order defaults to descending. Use English search terms for Chinese requests."
     }
->>>>>>> upstream/main
   },
   "skills": {
     "pdf": "PDF",
@@ -797,8 +793,6 @@
       "credentials_missing": "API credentials missing",
       "http_status": "provider returned HTTP {status}",
       "network_error": "network error: {name}"
-<<<<<<< HEAD
-=======
     },
     "realtime": {
       "error_4002": "Realtime speech recognition authentication failed. Check the SecretId and SecretKey.",
@@ -826,7 +820,6 @@
       },
       "UnauthorizedOperation": "This Tencent Cloud account is not authorized for this voice API.",
       "RequestLimitExceeded": "Tencent Cloud rate-limited this request. Retry in a moment."
->>>>>>> upstream/main
     }
   },
   "memory_slim": {

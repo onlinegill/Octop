@@ -513,11 +513,6 @@ class TeamManager:
             return False
         return not is_team_agent(self._agent_manager.get_row(speaker_id))
 
-<<<<<<< HEAD
-        Member answers can finish while the host is still saying "one moment".
-        Two host token streams on the same room socket then interleave.
-        """
-=======
     def _room_agent_id(self, room_thread_id: str) -> str:
         getter = getattr(self._thread_registry, "get_thread", None)
         if not callable(getter) or not room_thread_id:
@@ -526,7 +521,6 @@ class TeamManager:
         return str(getattr(row, "agent_id", "") or "")
 
     def _host_turn_busy(self, host_id: str, room_thread_id: str) -> bool:
->>>>>>> upstream/main
         hub = getattr(self._gateway, "ws_hub", None) if self._gateway is not None else None
         check_turn = getattr(hub, "is_turn_active", None)
         check_host = getattr(self._agent_manager, "is_agent_active", None)

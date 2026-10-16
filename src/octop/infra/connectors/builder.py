@@ -282,8 +282,6 @@ def validate_create_credentials(
         }
 
     if entry.auth_kind == "custom_fields":
-<<<<<<< HEAD
-=======
         if entry.kind == "agently-cli":
             # A caller must never select another instance's CLI credential directory.
             return {"internal_token": new_internal_token(), "cli_config_key": new_ulid()}
@@ -309,7 +307,6 @@ def validate_create_credentials(
             if ids:
                 out["knowledge_base_ids"] = list(dict.fromkeys(ids))
             return out
->>>>>>> upstream/main
         if entry.kind == "dify":
             mcp_url = validate_mcp_http_url(str(credentials.get("mcp_url") or ""))
             if "/mcp/server/" not in mcp_url or not mcp_url.rstrip("/").endswith("/mcp"):

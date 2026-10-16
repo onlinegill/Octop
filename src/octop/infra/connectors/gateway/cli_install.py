@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import os
-<<<<<<< HEAD
-=======
 import re
 import shlex
 import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
->>>>>>> upstream/main
 from pathlib import Path
 
 # On fnOS / containers Octop often runs as a non-root user, where the npm global
@@ -20,75 +17,6 @@ from pathlib import Path
 _NPM_USER_PREFIX_NAME = ".npm-global"
 
 
-<<<<<<< HEAD
-=======
-@dataclass(frozen=True)
-class CliInstallSpec:
-    kind: str
-    binary: str
-    npm_package: str | None
-    doc_url: str
-    guide_url: str | None
-
-    @property
-    def install_command(self) -> str:
-        if not self.npm_package:
-            return ""
-        return f"npm install -g {self.npm_package}"
-
-
-_SPECS: dict[str, CliInstallSpec] = {
-    "agently-cli": CliInstallSpec(
-        kind="agently-cli",
-        binary="agently-cli",
-        npm_package="@tencent-qqmail/agently-cli@1.0.18",
-        doc_url="https://github.com/Tencent/AgentlyMail",
-        guide_url="https://help.agent.qq.com/detail/0/1092",
-    ),
-    "feishu-cli": CliInstallSpec(
-        kind="feishu-cli",
-        binary="lark-cli",
-        npm_package="@larksuite/cli",
-        doc_url="https://github.com/larksuite/cli",
-        guide_url=(
-            "https://open.feishu.cn/document/mcp_open_tools/feishu-cli/"
-            "set-up-lark-cli-for-ai-agents-in-openclaw_hermes.md"
-        ),
-    ),
-    "wecom-cli": CliInstallSpec(
-        kind="wecom-cli",
-        binary="wecom-cli",
-        npm_package="@wecom/cli",
-        doc_url="https://github.com/WecomTeam/wecom-cli",
-        guide_url="https://open.work.weixin.qq.com/help2/pc/21676",
-    ),
-    "obsidian-cli": CliInstallSpec(
-        kind="obsidian-cli",
-        binary="obsidian",
-        npm_package=None,
-        doc_url="https://obsidian.md/cli",
-        guide_url="https://obsidian.md/zh/cli",
-    ),
-}
-
-OBSIDIAN_CLI_MISSING = (
-    "主机上未找到 Obsidian CLI（obsidian）。"
-    "请在本机打开 Obsidian，于设置 → 通用中启用 Command line interface，并按提示注册到 PATH。"
-    "Octop 与 Obsidian 必须在同一台主机。"
-    "禁止建议或执行任何终端命令。"
-)
-OBSIDIAN_NOT_RUNNING = (
-    "Obsidian 未在运行，或 CLI 无法连接桌面应用。"
-    "请在 Octop 所在主机打开 Obsidian，并确认已启用 Command line interface。"
-    "禁止建议或执行任何终端命令。"
-)
-
-
-def get_cli_install_spec(kind: str) -> CliInstallSpec | None:
-    return _SPECS.get(kind)
-
-
->>>>>>> upstream/main
 def _prefix_bin_dir(prefix: str) -> str:
     # npm places global binaries in <prefix>/bin on POSIX and the <prefix> root on Windows.
     return prefix if os.name == "nt" else str(Path(prefix) / "bin")
@@ -100,8 +28,6 @@ def _user_npm_prefix() -> tuple[str, str]:
     return prefix, _prefix_bin_dir(prefix)
 
 
-<<<<<<< HEAD
-=======
 def _manual_install_command(npm_package: str, *, prefix: str | None = None) -> str:
     """Shell command users can paste; include ``--prefix`` when global is not writable."""
     if prefix:
@@ -127,24 +53,15 @@ def _prepend_path(bin_dir: str) -> None:
         os.environ["PATH"] = bin_dir + os.pathsep + current
 
 
->>>>>>> upstream/main
 def ensure_cli_path() -> str:
     """Prepend user-level bin dirs to the in-process PATH.
 
-<<<<<<< HEAD
     Octop often runs as a non-root user on fnOS, where the npm global directory
     under ``/usr/local`` is not writable and installs fall back to a user-level
     directory (~/.npm-global). This ensures that bin directory is present on the
     process PATH so ``shutil.which`` and later CLI subprocess calls can find
     commands. The directory is left untouched when it does not exist; the bin
     directory (possibly an empty string) is returned.
-=======
-    Octop 在 fnOS 上常以非 root 用户运行，``/usr/local`` 下的 npm 全局目录
-    不可写，安装会降级到用户级目录（~/.npm-global）。Obsidian CLI 在系统
-    bin 不可写时同样落到 ``~/.local/bin``。这里确保这些目录进入进程 PATH，
-    使 ``shutil.which`` 与后续 CLI 子进程调用都能找到命令。
-    目录不存在时不做任何修改，返回 npm 用户级 bin 目录（可能为空串）。
->>>>>>> upstream/main
     """
     local_bin = os.path.join(os.path.expanduser("~"), ".local", "bin")
     _prepend_path(local_bin)
@@ -158,8 +75,6 @@ def ensure_cli_path() -> str:
     _, bin_dir = _user_npm_prefix()
     _prepend_path(bin_dir)
     return bin_dir
-<<<<<<< HEAD
-=======
 
 
 def obsidian_bundle_candidates() -> list[str]:
@@ -496,4 +411,3 @@ def _read_version(binary_path: str) -> str | None:
         match = _VERSION_RE.search(text)
         return match.group(1) if match else text.splitlines()[0][:80]
     return None
->>>>>>> upstream/main

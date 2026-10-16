@@ -44,17 +44,10 @@ describe("<MemorySettings />", () => {
     api.getExtractConfig.mockResolvedValue(idleConfig);
     render(<MemorySettings agentId="ZYWZTD" />);
 
-<<<<<<< HEAD
     await screen.findByText("Store memory");
     expect(screen.getByText("Already turned on")).toBeInTheDocument();
     expect(screen.getByText("Conversation refined after free time")).toBeInTheDocument();
     expect(screen.getByRole("spinbutton")).toHaveValue("5");
-=======
-    await screen.findByText("存储记忆");
-    expect(screen.getByText("已开启")).toBeInTheDocument();
-    expect(screen.getByText("对话空闲后提炼")).toBeInTheDocument();
-    expect(screen.getAllByRole("spinbutton")[0]).toHaveValue("5");
->>>>>>> upstream/main
   });
 
   it("explains exactly what happens when memory is disabled", async () => {
@@ -133,15 +126,9 @@ describe("<MemorySettings />", () => {
     const user = userEvent.setup();
     render(<MemorySettings agentId="ZYWZTD" />);
 
-<<<<<<< HEAD
     await screen.findByText("Store memory");
     expect(screen.getByRole("spinbutton")).toHaveValue("1");
     await user.click(screen.getByRole("button", { name: "Save settings" }));
-=======
-    await screen.findByText("存储记忆");
-    expect(screen.getAllByRole("spinbutton")[0]).toHaveValue("1");
-    await user.click(screen.getByRole("button", { name: "保存设置" }));
->>>>>>> upstream/main
     await waitFor(() =>
       expect(api.putExtractConfig).toHaveBeenCalledWith(
         "ZYWZTD",

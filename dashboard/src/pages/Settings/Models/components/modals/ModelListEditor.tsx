@@ -688,12 +688,7 @@ export function ModelListEditor({
                             <div style={{ display: "flex", gap: 12 }}>
                               <Form.Item
                                 name="reasoning_toggle"
-<<<<<<< HEAD
                                 label={t("models.reasoningToggle", "Allow toggle")}
-=======
-                                label={t("models.reasoningToggle", "允许开关")}
-                                extra={t("models.reasoningToggleHint")}
->>>>>>> upstream/main
                                 valuePropName="checked"
                                 initialValue
                                 style={{ flex: 1, marginBottom: 10 }}
@@ -727,7 +722,6 @@ export function ModelListEditor({
                                 />
                               </Form.Item>
                             </div>
-<<<<<<< HEAD
                             <Form.Item
                               name="reasoning_efforts"
                               label={t(
@@ -842,155 +836,6 @@ export function ModelListEditor({
                                 ]}
                               />
                             </Form.Item>
-=======
-                            <Button
-                              type="link"
-                              size="small"
-                              style={{ padding: 0, marginBottom: 8 }}
-                              icon={
-                                showReasoningProtocol ? (
-                                  <ChevronUp size={14} />
-                                ) : (
-                                  <ChevronDown size={14} />
-                                )
-                              }
-                              onClick={() =>
-                                setShowReasoningProtocol((prev) => !prev)
-                              }
-                            >
-                              {showReasoningProtocol
-                                ? t("models.hideCustomReasoning")
-                                : t("models.customReasoning")}
-                            </Button>
-                            {showReasoningProtocol ? (
-                              <>
-                                <Form.Item
-                                  name="reasoning_efforts"
-                                  label={t(
-                                    "models.reasoningEfforts",
-                                    "支持的思考强度",
-                                  )}
-                                  style={{ marginBottom: 10 }}
-                                >
-                                  <Select
-                                    mode="tags"
-                                    tokenSeparators={[","]}
-                                    placeholder="low, medium, high, max, xhigh"
-                                  />
-                                </Form.Item>
-                                <div style={{ display: "flex", gap: 12 }}>
-                                  <Form.Item
-                                    name="reasoning_default_effort"
-                                    label={t(
-                                      "models.reasoningDefaultEffort",
-                                      "默认强度",
-                                    )}
-                                    style={{ flex: 1, marginBottom: 10 }}
-                                  >
-                                    <Input placeholder="high" />
-                                  </Form.Item>
-                                  <Form.Item
-                                    name="reasoning_effort_type"
-                                    label={t(
-                                      "models.reasoningEffortType",
-                                      "强度类型",
-                                    )}
-                                    initialValue="enum"
-                                    style={{ flex: 1, marginBottom: 10 }}
-                                  >
-                                    <Select
-                                      options={[
-                                        {
-                                          value: "enum",
-                                          label: t(
-                                            "models.reasoningEffortEnum",
-                                            "强度档位",
-                                          ),
-                                        },
-                                        {
-                                          value: "token_budget",
-                                          label: t(
-                                            "models.reasoningEffortBudget",
-                                            "Token 预算",
-                                          ),
-                                        },
-                                      ]}
-                                    />
-                                  </Form.Item>
-                                </div>
-                                <Form.Item
-                                  name="reasoning_adapter"
-                                  label={t(
-                                    "models.reasoningAdapter",
-                                    "推理协议",
-                                  )}
-                                  initialValue="thinking"
-                                  style={{ marginBottom: 10 }}
-                                >
-                                  <Select
-                                    options={[
-                                      {
-                                        value: "status_only",
-                                        label: t(
-                                          "models.reasoningAdapterStatusOnly",
-                                          "仅标记（始终推理）",
-                                        ),
-                                      },
-                                      {
-                                        value: "openai_reasoning_effort",
-                                        label: t(
-                                          "models.reasoningAdapterOpenAI",
-                                          "OpenAI / Gemini / Groq",
-                                        ),
-                                      },
-                                      {
-                                        value: "anthropic_adaptive",
-                                        label: t(
-                                          "models.reasoningAdapterAnthropicAdaptive",
-                                          "Anthropic Adaptive",
-                                        ),
-                                      },
-                                      {
-                                        value: "anthropic_budget",
-                                        label: t(
-                                          "models.reasoningAdapterAnthropicBudget",
-                                          "Anthropic Token Budget",
-                                        ),
-                                      },
-                                      {
-                                        value: "thinking",
-                                        label: t(
-                                          "models.reasoningAdapterThinking",
-                                          "DeepSeek / GLM / Kimi",
-                                        ),
-                                      },
-                                      {
-                                        value: "thinking_nested_effort",
-                                        label: t(
-                                          "models.reasoningAdapterNestedEffort",
-                                          "TokenHub 嵌套强度",
-                                        ),
-                                      },
-                                      {
-                                        value: "dashscope",
-                                        label: t(
-                                          "models.reasoningAdapterDashScope",
-                                          "DashScope / 阿里云",
-                                        ),
-                                      },
-                                      {
-                                        value: "openrouter",
-                                        label: t(
-                                          "models.reasoningAdapterOpenRouter",
-                                          "OpenRouter",
-                                        ),
-                                      },
-                                    ]}
-                                  />
-                                </Form.Item>
-                              </>
-                            ) : null}
->>>>>>> upstream/main
                           </>
                         ) : null
                       }

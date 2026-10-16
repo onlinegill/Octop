@@ -865,40 +865,6 @@ def _verify_fpk_upgrade(
     version: str | None = None,
     locale: str = DEFAULT_LOCALE,
 ) -> UpgradeResult:
-<<<<<<< HEAD
-    actual_ver: str | None = None
-    for attempt in range(3):
-        actual_ver = get_version_in_dir(python_exe, site_packages)
-        if actual_ver and actual_ver != local_ver:
-            break
-        if attempt < 2:
-            time.sleep(0.5)
-
-    if actual_ver and is_newer(actual_ver, local_ver):
-        return UpgradeResult(
-            success=True,
-            message=f"Upgraded to {actual_ver}; restart the service to apply (the "
-            "app-center-managed service loads the new version after restart).",
-            installed_version=actual_ver,
-            mirror_errors=mirror_errors,
-        )
-    if actual_ver == local_ver:
-        return UpgradeResult(
-            success=False,
-            error=(
-                f"Install finished but the version is still {actual_ver}; "
-                "confirm the new release has been published, or install the new FPK "
-                "from the fnOS App Center."
-            ),
-            installed_version=actual_ver,
-            mirror_errors=mirror_errors,
-        )
-    return UpgradeResult(
-        success=True,
-        message="upgrade completed",
-        installed_version=actual_ver,
-        mirror_errors=mirror_errors,
-=======
     result = _verify_upgrade(
         local_ver,
         python_exe,
@@ -906,7 +872,6 @@ def _verify_fpk_upgrade(
         version=version,
         locale=locale,
         target=Path(site_packages),
->>>>>>> upstream/main
     )
     if result.success:
         result.message = tr("update.fpk_completed", locale, version=result.installed_version)
@@ -939,11 +904,7 @@ def _run_fpk_upgrade(
     if not os.path.isdir(site_packages):
         return UpgradeResult(
             success=False,
-<<<<<<< HEAD
-            error=f"FPK site-packages directory does not exist: {site_packages}",
-=======
             error=tr("update.fpk_target_missing", locale, path=site_packages),
->>>>>>> upstream/main
         )
     local_ver = get_local_version()
     ordered, mirror_errors = rank_install_indexes(version)
@@ -1015,26 +976,12 @@ def run_upgrade(
     version: str | None = None,
     locale: str = DEFAULT_LOCALE,
 ) -> UpgradeResult:
-<<<<<<< HEAD
     # [FPK] FnOS FPK deployment: the launcher loads octop from the
     # app-center-managed packaged site-packages via PYTHONPATH, so an online
     # install into the system Python is never loaded (restarting has no effect).
     # The launcher exports OCTOP_FPK_SITE_PACKAGES pointing at that packaged
     # directory; the upgrade installs there and asks for a service restart, so
     # the upgrade truly works instead of being disabled.
-=======
-    try:
-        validate_upgrade_target(version, get_local_version())
-    except OctopError as exc:
-        return UpgradeResult(success=False, error=exc.localized_message(locale))
-    # Cache this running updater's locale bundles before installation replaces
-    # its package resources, so result messages use the matching translations.
-    lookup("update.completed", locale)
-    # [FPK] FnOS FPK 部署：launcher 通过 PYTHONPATH 从应用中心托管的打包
-    # site-packages 加载 octop，在线安装到系统 Python 永远不会被加载（重启
-    # 无效）。launcher 导出 OCTOP_FPK_SITE_PACKAGES 指向该打包目录，升级即
-    # 安装到此目录并提示重启服务生效——升级真正可用，而非禁止升级。
->>>>>>> upstream/main
     _fpk_site = os.environ.get("OCTOP_FPK_SITE_PACKAGES", "").strip()
     if _fpk_site:
         return _run_fpk_upgrade(

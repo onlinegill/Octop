@@ -969,13 +969,9 @@ async def auth_info(
     del user
     if get_catalog_entry(kind) is None:
         raise OctopError(ErrorCode.CONNECTOR_KIND_UNSUPPORTED, f"unknown kind {kind!r}")
-<<<<<<< HEAD
-    info = auth_info_for_kind(kind, server.services.settings_repo)
-=======
     info = auth_info_for_kind(
         kind, server.services.settings_repo, locale=resolve_request_locale(request)
     )
->>>>>>> upstream/main
     return info
 
 

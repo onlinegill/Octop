@@ -4,14 +4,8 @@ name: Release
 #   - Sync Main Into Develop
 #   - Build Octop FPK (reuses this Release's wheel; waits for the multi-arch GHCR image from docker-publish)
 #
-<<<<<<< HEAD
 # Runs in parallel with docker-publish.yml / octop-desktop.yml (Auto Tag dispatches them together,
 # or a manual v* tag push triggers them at the same time). The desktop artifacts are attached to the same GitHub Release by Desktop Package.
-=======
-# 与 docker-publish.yml / octop-desktop.yml 并行（由 Auto Tag 同时 dispatch，
-# 或人工 push v* tag 同时触发）。wheel / sdist 只发 PyPI 和 GitHub Release。
-# 桌面安装包与 FnOS FPK 挂到同一 GitHub Release 后，再上传到同一个 COS 版本目录。
->>>>>>> upstream/main
 
 on:
   push:

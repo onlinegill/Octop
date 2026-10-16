@@ -175,31 +175,17 @@ In `CHANGELOG_FILE`, find the `## [Unreleased]` heading and insert the new versi
 
 If the `## [Unreleased]` heading does not exist, insert the new entry after the `# Changelog` heading line (or at the top of the file if there is no heading).
 
-<<<<<<< HEAD
 **4b. Bump the version number (sync all version sources):**
 
 The release version must stay consistent across multiple files. Bump each of the following in order:
-=======
-**4b. 升级版本号（把旧号 X.Y.Z 全部换成当前号 A.B.C）：**
-
-表示「当前发布版本」的钉死号必须一致，**不得只改 `pyproject.toml`**。
-把旧版本 `X.Y.Z` 换成目标版本 `A.B.C`。缺文件则提示并继续（不中止）。
-
-必改清单（按顺序，用 Edit 工具精确替换，勿用会误伤 CHANGELOG 历史条目的全局 replace）：
->>>>>>> upstream/main
 
 1. `VERSION_FILE` (`pyproject.toml`) — the single source of truth for the wheel / PyPI:
    ```bash
    grep -n '^\s*version\s*=\s*"[^"]+"' pyproject.toml
-<<<<<<< HEAD
-   # Replace "X.Y.Z" with "A.B.C" on that line using the Edit tool
-=======
    # "X.Y.Z" → "A.B.C"
->>>>>>> upstream/main
    ```
 2. All READMEs matching `README_GLOB` that contain the shields.io version badge:
    ```bash
-<<<<<<< HEAD
    # Discover the files to upgrade (do not only edit README.md)
    grep -l 'shields.io/badge/version-' README.md README_*.md 2>/dev/null
    # For each file that matches:
@@ -220,64 +206,6 @@ The release version must stay consistent across multiple files. Bump each of the
    # Replace both `version=X.Y.Z` with `version=A.B.C` using the Edit tool
    ```
    Both files must be updated. If a file is missing, show a notice and continue (do not abort).
-=======
-   grep -l 'shields.io/badge/version-' README.md README_*.md 2>/dev/null
-   grep -n 'shields.io/badge/version-' {file}
-   # `version-X.Y.Z-orange` → `version-A.B.C-orange`
-   ```
-   当前仓库至少包括 `README.md` 与 `README_CN.md`。全部未命中则提示并继续。
-3. `INIT_VERSION_FILE`（`src/octop/__init__.py`）— 运行时常量 `__version__`：
-   ```bash
-   grep -n '__version__' src/octop/__init__.py
-   # `__version__ = "X.Y.Z"` → `"A.B.C"`
-   ```
-4. 飞牛 FnOS 两个 manifest 的 `version=`（`scripts/build-fpk.sh` 打包时会再注入，但仓库源文件必须先改）：
-   ```bash
-   grep -n '^version=' fnos/docker/manifest fnos/native/manifest
-   # `version=X.Y.Z` → `version=A.B.C`（两个文件都要改）
-   ```
-5. 飞牛 Docker compose 镜像标签（与本包版本相同，供 FPK 拉取 GHCR）：
-   ```bash
-   grep -n 'ghcr.io/tencentcloud/octop:' fnos/docker/app/docker/docker-compose.yaml
-   # `ghcr.io/tencentcloud/octop:X.Y.Z` → `:A.B.C`
-   # 不得改成 `:latest`（测试禁止 latest）
-   ```
-6. `uv.lock` 里可编辑包 `octop` 的版本（漏改会导致 lock 与 pyproject 不一致）：
-   ```bash
-   grep -n -A2 'name = "octop"' uv.lock | head -5
-   # 将该包的 `version = "X.Y.Z"` 改为 `"A.B.C"`
-   # 或在改完 pyproject.toml 后执行 `uv lock`，只接受 octop 版本行变化
-   ```
-
-**扫尾（必做）：** 全库搜索旧号，把漏网的「当前版本钉死」一并改掉：
-
-```bash
-git grep -n --fixed-strings "X.Y.Z"
-```
-
-对每一处命中：
-
-| 类型 | 处理 |
-|------|------|
-| 当前版本钉死（compose / badge / manifest / lock / `__version__` / 文档里「当前版本」） | 换成 `A.B.C` |
-| 测试里断言「等于当前发布号」的硬编码 | 改成读 `_pyproject_version()`（或同步为 `A.B.C`） |
-| `CHANGELOG.md` 已发布章节（`## [X.Y.Z]` 及正文） | **保留**，不要改历史 |
-| 测试夹具里拿旧号做比较（如 `1.0.2b4` vs `1.0.2b5`、解析示例） | **保留** |
-| workflow / 注释里的示例旧号（如 `0.9.28`） | **保留**（不是当前钉死） |
-
-提交前再扫必改清单，必须已经没有旧号：
-
-```bash
-git grep -n --fixed-strings "X.Y.Z" -- \
-  pyproject.toml src/octop/__init__.py \
-  README.md README_CN.md \
-  fnos/docker/manifest fnos/native/manifest \
-  fnos/docker/app/docker/docker-compose.yaml \
-  uv.lock
-```
-
-任一文件仍命中旧号：**补改后再提交**，不得带着半套版本号推 release。
->>>>>>> upstream/main
 
 **4c. Commit:**
 
@@ -393,7 +321,6 @@ Make sure the user is not left on the release / temporary checkout when the flow
 - Leave the user on the release branch when the flow ends
 - Keep a shipped `release/*` around as a long-lived branch
 
-<<<<<<< HEAD
 **Always:**
 - Cut the release from the latest `{REMOTE}/{INTEGRATION_BRANCH}`
 - Merge into `{TARGET_BRANCH}` first, then let the Action tag on the main tip
@@ -403,14 +330,3 @@ Make sure the user is not left on the release / temporary checkout when the flow
 - Upgrade every README containing the shields.io version badge (`README.md`, etc.), not just one
 - Keep the `version=` fields in `fnos/docker/manifest` and `fnos/native/manifest` in sync, not just `pyproject.toml`
 - After pushing the tag, prompt the user to watch the GitHub Actions release result
-=======
-**始终：**
-- 从最新 `{REMOTE}/{INTEGRATION_BRANCH}` 切 release
-- 先合入 `{TARGET_BRANCH}`，再由 Action 在 main tip 打 tag
-- 发版后删除 `release/*`；`main → develop` 由 `sync-main-to-develop.yml` 自动同步（失败时再手动补）
-- 中止前展示完整错误输出
-- 插入新版本条目后保持 `[Unreleased]` 为空
-- 把旧版本号 `X.Y.Z` 换成 `A.B.C`：`pyproject.toml`、`__version__`、多语言 README 徽标、`fnos/*/manifest`、`fnos/docker/app/docker/docker-compose.yaml` 镜像标签、`uv.lock` 的 octop 包版本；提交前 `git grep` 必改清单确认无旧号
-- 勿改 CHANGELOG 历史章节、测试夹具里的旧版本比较、workflow 示例号
-- 推送 tag 后提示用户关注 GitHub Actions 的发布结果
->>>>>>> upstream/main

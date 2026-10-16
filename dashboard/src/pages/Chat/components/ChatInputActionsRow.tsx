@@ -1176,15 +1176,7 @@ export default function ChatInputActionsRow({
         <Tooltip
           title={
             !_sttAvailable
-<<<<<<< HEAD
               ? t("voice.sttNotAvailable", "Voice input not available on this device (HTTPS required)")
-=======
-              ? t("voice.sttNotAvailable", "此设备不支持语音输入（需要 HTTPS）")
-              : voiceHoldToTalk
-              ? recording
-                ? t("voice.releaseToStop", "松开结束")
-                : t("voice.holdToTalk", "按住说话")
->>>>>>> upstream/main
               : recording
               ? t("voice.stopRecording", "Stop recording")
               : transcribing

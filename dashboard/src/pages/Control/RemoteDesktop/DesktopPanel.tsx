@@ -996,11 +996,7 @@ export default function DesktopPanel({
   const pageTitle = t("nav.remoteDesktop", "Remote Desktop");
   const pageSubtitle = t(
     "pageShell.desktop.subtitle",
-<<<<<<< HEAD
     "View and control Octop Host operating system desktop",
-=======
-    "查看并操控 Octop 主机操作系统桌面，远程完成桌面操作",
->>>>>>> upstream/main
   );
   const setupMascot = <OctopEmptyMascot />;
 

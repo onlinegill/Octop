@@ -8,24 +8,12 @@ name: Docker Publish
 # then they are merged into the :{version} / :latest multi-arch manifest. The FnOS Docker FPK shares one copy,
 # and the NAS pulls the layer matching its own architecture.
 #
-<<<<<<< HEAD
 # Trigger paths:
 #   1. A manual v* tag push → on.push.tags
 #   2. Auto Tag pushing a tag with GITHUB_TOKEN, then an explicit workflow_dispatch (a token push does not trigger the push workflow)
 #
 # Note: under workflow_dispatch, metadata-action's type=semver is unreliable,
 # so the version must be parsed explicitly from GITHUB_REF_NAME.
-=======
-# 触发路径：
-#   1. 人工推送 v* tag → on.push.tags
-#   2. Auto Tag 用 GITHUB_TOKEN 推 tag 后显式 workflow_dispatch（token push 不会触发 push 工作流）
-#   3. 在任意分支 Run workflow，填 tag=vX.Y.Z（用该分支的 workflow 文件，checkout 指定 tag）
-#
-# 注意：workflow_dispatch 下 metadata-action 的 type=semver 不可靠，
-# 必须从 tag / 输入显式解析版本号。
-# 不要把 DOCKERHUB_USERNAME 放进 job outputs：跨 job 传递会被抹成空，
-# 导致只推 GHCR，合并清单时再对空 Hub 名失败。
->>>>>>> upstream/main
 #
 # The FnOS FPK is dispatched automatically after a successful Release, and waits for the :{version} pushed by this workflow.
 #
@@ -51,15 +39,8 @@ jobs:
   prepare:
     name: Resolve version
     runs-on: ubuntu-latest
-<<<<<<< HEAD
     # Refuse to run accidentally on a non-v* ref (for example, clicking "Run workflow" on main in the UI)
     if: startsWith(github.ref, 'refs/tags/v')
-=======
-    # 拒绝在非 v* ref 上误跑（例如 UI 里对 main 点 Run workflow 且未填 tag）
-    if: >-
-      startsWith(github.ref, 'refs/tags/v')
-      || (github.event_name == 'workflow_dispatch' && startsWith(inputs.tag, 'v'))
->>>>>>> upstream/main
     outputs:
       version: ${{ steps.ver.outputs.version }}
       tag: ${{ steps.ver.outputs.tag }}

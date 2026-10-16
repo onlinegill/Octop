@@ -9,7 +9,6 @@ interface MbtiPersonaTagProps {
   onClick?: () => void;
 }
 
-<<<<<<< HEAD
 const MBTI_ZH_NAMES: Record<string, string> = {
   INTJ: "Architect",
   INTP: "Logician",
@@ -48,8 +47,6 @@ const MBTI_EN_NAMES: Record<string, string> = {
   ESFP: "Entertainer",
 };
 
-=======
->>>>>>> upstream/main
 export default function MbtiPersonaTag({
   value,
   showDefault = true,

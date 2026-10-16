@@ -108,22 +108,6 @@ export function useSkillRecordingWorkflow({
         const previewText = previewLines.join("\n");
         const truncationNotice =
           data.skillContent.split("\n").length > 20
-<<<<<<< HEAD
-            ? `\n\n... (Total ${
-                data.skillContent.split("\n").length
-              } OK, the complete content will be saved after confirmation)`
-            : "";
-
-        chatStore.appendPushMessage(
-          `✅ Recording is complete! Generated ${data.steps ?? 0} Playback steps.\n\n` +
-            `📝 **Skill script preview:**\n\n${previewText}${truncationNotice}\n\n` +
-            `Reply"Confirm"You can apply this skill, and then you can replay the same operation process with one click.`,
-        );
-      } else {
-        chatStore.appendPushMessage(
-          `✅ Recording is complete! Generated ${data.steps ?? 0} Playback steps.\n\n` +
-            `⚠️ Skill script generation failed, please try again later or generate manually.`,
-=======
             ? t("skillRecord.previewTruncation", {
                 lines: data.skillContent.split("\n").length,
               })
@@ -139,7 +123,6 @@ export function useSkillRecordingWorkflow({
       } else {
         chatStore.appendPushMessage(
           t("skillRecord.previewNoScript", { steps: data.steps ?? 0 }),
->>>>>>> upstream/main
         );
       }
 
@@ -196,14 +179,9 @@ export function useSkillRecordingWorkflow({
 
       // Push confirmation message to chat
       chatStore.appendPushMessage(
-<<<<<<< HEAD
-        `🎉 Skills **${result.name || pendingSkillName}** Successfully applied!\n\n` +
-          `You can then enter relevant instructions through chat and replay the same browser operation process with one click.`,
-=======
         t("skillRecord.appliedMessage", {
           name: result.name || pendingSkillName,
         }),
->>>>>>> upstream/main
       );
 
       antMessage.success(

@@ -38,13 +38,7 @@ describe("Login remember-me checkbox", () => {
     });
     expect(checkbox).toBeChecked();
     expect(
-<<<<<<< HEAD
       screen.getByText(/login\.usernameHint|Username or email|username or email/i),
-=======
-      screen.getByPlaceholderText(
-        /login\.username|用户名或邮箱|username or email/i,
-      ),
->>>>>>> upstream/main
     ).toBeInTheDocument();
     expect(
       screen.queryByText(

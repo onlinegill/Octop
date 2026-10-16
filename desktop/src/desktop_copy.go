@@ -53,7 +53,6 @@ var desktopCopy = map[Locale]map[string]string{
 		copyHealthNotReady:         "Octop did not become ready within %s (%s). Make sure Octop is running at this address, or check the terminal logs.",
 	},
 	LocaleZH: {
-<<<<<<< HEAD
 		copyStatusConnecting:       "Connecting to Octop…",
 		copyStatusCheckingRuntime:  "Checking the runtime…",
 		copyStatusStartingService:  "Starting the Octop service…",
@@ -73,30 +72,6 @@ var desktopCopy = map[Locale]map[string]string{
 		copyHealthNotReady5xx:      "Octop did not become ready within %s (%s). The service responded but is not ready yet. Try again, or check the terminal logs.",
 		copyHealthNotReadyConnect:  "Octop did not become ready within %s (%s). Could not connect — make sure Octop is running.",
 		copyHealthNotReady:         "Octop did not become ready within %s (%s). Make sure Octop is running at this address, or check the terminal logs.",
-=======
-		copyStatusConnecting:       "正在连接 Octop…",
-		copyStatusCheckingRuntime:  "正在检查运行环境…",
-		copyStatusStartingService:  "正在启动 Octop 服务…",
-		copyStatusReady:            "Octop 已就绪",
-		copyStatusUsingRuntime:     "正在使用已有运行环境…",
-		copyStatusBackupDatabase:   "发现客户端新版 %s，正在备份数据库…",
-		copyStatusInstallingUpdate: "正在安装客户端内置新版…",
-		copyStatusUpdatingRuntime:  "正在更新内置运行环境…",
-		copyStatusFirstExtract:     "首次启动，正在解压内置运行环境…",
-		copyStatusUpdateFailedKeep: "更新内置运行环境失败，继续使用已有运行环境…",
-		copyStatusUsingExisting:    "Octop 已在运行，正在打开…",
-		copyErrorBackupFailed:      "升级前数据库备份失败，已保留当前版本",
-		copyErrorUpgradeFailed:     "客户端运行环境升级失败，已保留当前版本",
-		copyErrorNoFreePort:        "从 %d 到 %d 没有空闲端口，请关闭占用这些端口的程序后再试。",
-		copyErrorCannotBind:        "无法在 %s:%d 上监听（%s）。请检查 config.json 里的 bind_host。",
-		copyWait1Minute:            "1 分钟",
-		copyWaitNMinutes:           "%d 分钟",
-		copyWait1Second:            "1 秒",
-		copyWaitNSeconds:           "%d 秒",
-		copyHealthNotReady5xx:      "Octop 服务未在%s内就绪（%s）。服务已响应但尚未就绪，请稍后再试，或查看终端日志。",
-		copyHealthNotReadyConnect:  "Octop 服务未在%s内就绪（%s）。目前无法连接该地址，请确认 Octop 正在运行。",
-		copyHealthNotReady:         "Octop 服务未在%s内就绪（%s）。请确认本机已启动 Octop，且地址、端口正确；也可查看终端日志。",
->>>>>>> upstream/main
 	},
 }
 

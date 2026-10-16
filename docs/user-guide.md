@@ -119,11 +119,7 @@ docker run -d \
   -p 8088:8088 \
   -v octop-data:/data/.octop \
   -e HOME=/data \
-<<<<<<< HEAD
   -e OCTOP_DEFAULT_PASSWORD="<your own strong password; leave empty to auto-generate a random one>" \
-=======
-  -e OCTOP_DEFAULT_PASSWORD="<自定义强密码，留空则进入设置向导>" \
->>>>>>> upstream/main
   octop:latest
 ```
 
@@ -131,21 +127,12 @@ See [.env.example](../.env.example) for the full set of environment variables:
 
 | Variable | Default | Description |
 |------|--------|------|
-<<<<<<< HEAD
 | `OCTOP_PORT` | `8088` | HTTP listen port |
 | `OCTOP_DEFAULT_PASSWORD` | _(empty)_ | First-run admin password (Docker bootstrap; ≥8 characters with letters + digits; empty auto-generates a random password and writes it to credential.txt) |
 | `OCTOP_ADMIN_USERNAME` | `admin` | First-run admin username |
 | `OCTOP_DATA` | `~/.octop` | Host data directory (compose bind mount) |
 
 > Planned: later Docker first-boot may randomize the admin password and write it only to `credential.txt`.
-=======
-| `OCTOP_PORT` | `8088` | HTTP 监听端口 |
-| `OCTOP_DEFAULT_PASSWORD` | _(空)_ | 首次运行管理员密码（Docker 引导；≥8 位且含字母+数字；合格则建账号；留空或不合格则走设置向导） |
-| `OCTOP_ADMIN_USERNAME` | `admin` | 首次运行管理员用户名 |
-| `OCTOP_DATA` | `~/.octop` | 宿主机数据目录（compose 挂载） |
-
-> 未设置或不合格的 `OCTOP_DEFAULT_PASSWORD` 不会静默换成随机管理员密码；打开页面走设置向导，向导口令在 `/data/.octop/octop-login.txt`。
->>>>>>> upstream/main
 
 ---
 
@@ -298,11 +285,7 @@ If Ollama stores models in a non-default directory (for example on a different d
 
 Open **http://127.0.0.1:8088** and sign in with the account created by the wizard.
 
-<<<<<<< HEAD
 > ⚠️ **Security reminder**: if Docker initialization does not set `OCTOP_DEFAULT_PASSWORD`, it auto-generates a random admin password (written to `/data/.octop/credential.txt`, viewable with `docker exec <container> cat /data/.octop/credential.txt`). Either way, change it promptly under **Personal settings → Change password** to avoid unauthorized access when the service is exposed to the public internet.
-=======
-> ⚠️ **安全提醒**：Docker 若未设置合格的 `OCTOP_DEFAULT_PASSWORD`，首次打开会进入设置向导（向导口令在 `/data/.octop/octop-login.txt`，可用 `docker exec <容器> cat /data/.octop/octop-login.txt` 查看）。无论哪种方式，都请尽快在 **个人设置 → 修改密码** 中更换，避免服务暴露到公网时被未授权访问。
->>>>>>> upstream/main
 
 ![Figure 5.1 — Login page](assets/use-01-login.png)
 
@@ -324,13 +307,8 @@ Open **http://127.0.0.1:8088** and sign in with the account created by the wizar
 
 ### 5.4 Connectors
 
-<<<<<<< HEAD
 - Open the **Connectors** page to configure OAuth apps and MCP gateways.
 - Use connectors to bring in external services (such as Notion, OpenAlex, and Dify) and extend an agent's reach.
-=======
-- 进入 **Connectors** 页面，配置 OAuth 应用与 MCP 网关。
-- 通过连接器接入外部服务（如腾讯文档、Notion、新闻等），扩展 Agent 的资源边界。完整列表见 [内置连接器](connectors.md)。
->>>>>>> upstream/main
 
 ### 5.5 Channels (IM)
 
@@ -398,7 +376,6 @@ On the **Console → Control** page you can use:
 
 | Command | Description |
 |------|------|
-<<<<<<< HEAD
 | `octop run` | Start Octop in the foreground |
 | `octop run --host 0.0.0.0 --port 8088` | Custom listen address and port |
 | `octop service start` | Install and start the system service |
@@ -414,24 +391,6 @@ On the **Console → Control** page you can use:
 | `octop user list` | List users (admin) |
 | `octop backup` | Export / restore backups |
 | `octop update` | Check for and install updates |
-=======
-| `octop run` | 前台启动 Octop |
-| `octop run --host 0.0.0.0 --port 8088` | 自定义监听地址与端口 |
-| `octop service start` | 安装并启动系统服务 |
-| `octop service stop` | 停止系统服务 |
-| `octop agent` | 创建、列出、启停 Agent |
-| `octop channel` | 安装与管理 IM 通道 |
-| `octop bridge` | 添加 / 探测 / 编辑 / 删除远程 Octop 对端 |
-| `octop chats` | REPL 与会话管理 |
-| `octop acp` | 为 IDE 提供 stdio ACP 服务 |
-| `octop cron` | 管理定时任务 |
-| `octop models` | 供应商预设与模型解析 |
-| `octop provider list` | 列出已配置供应商 |
-| `octop skills` | 按 Agent 启用 / 禁用 Skill |
-| `octop user list` | 列出用户（管理员） |
-| `octop backup` | 导出 / 恢复备份 |
-| `octop update` | 检查并安装更新 |
->>>>>>> upstream/main
 
 See [docs/cli.md](cli.md) for the full reference.
 

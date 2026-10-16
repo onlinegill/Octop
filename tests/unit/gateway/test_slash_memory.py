@@ -18,12 +18,7 @@ from octop.infra.gateway.slash.runner import try_handle_slash
 def ctx():
     coordinator = MagicMock()
     coordinator.start_chat.return_value = 2
-<<<<<<< HEAD
     coordinator.preview_chat.return_value = [{"name": "assistant", "agent_id": "mine"}]
-=======
-    coordinator.preview_chat.return_value = [{"name": "助手", "agent_id": "mine"}]
-    coordinator.orphan_directories.return_value = []
->>>>>>> upstream/main
     return SlashCtx(
         agent_id="mine",
         user_id=1,
@@ -52,11 +47,7 @@ async def test_registered_command_starts_owned_job_and_returns_ack(ctx, command,
     assert "Confirmed maintenance for 2 agents" in "\n".join(lines)
     assert not actions
     ctx.agent_manager.memory_slim.start_chat.assert_called_once_with(
-<<<<<<< HEAD
-        "mine", 1, all_agents=all_agents, locale="en"
-=======
         "mine", 1, all_agents=all_agents, locale="zh", remove_directories=False
->>>>>>> upstream/main
     )
 
 
@@ -187,15 +178,8 @@ async def test_existing_agent_manager_context_runs_maintenance_command():
     handled, lines, _ = await try_handle_slash(
         "/memory slim --confirm", dispatcher=build_default_dispatcher(), ctx=ctx
     )
-<<<<<<< HEAD
     assert handled and "Confirmed maintenance for 1 agent" in "\n".join(lines)
     manager.memory_slim.start_chat.assert_called_once_with("mine", 1, all_agents=False, locale="en")
-=======
-    assert handled and "已确认整理 1 个" in "\n".join(lines)
-    manager.memory_slim.start_chat.assert_called_once_with(
-        "mine", 1, all_agents=False, locale="zh", remove_directories=False
-    )
->>>>>>> upstream/main
 
 
 @pytest.mark.asyncio

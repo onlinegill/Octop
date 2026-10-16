@@ -1295,7 +1295,6 @@ export default function RemoteBrowserPage({
   );
 
   const checkAction = {
-<<<<<<< HEAD
     label: (
       <>
         {t("remoteBrowser.checkInstallShort", "Check")}
@@ -1311,9 +1310,6 @@ export default function RemoteBrowserPage({
         ) : null}
       </>
     ),
-=======
-    label: t("remoteBrowser.checkInstallShort", "检查"),
->>>>>>> upstream/main
     onClick: openEnvModal,
     icon:
       envReady && !envLoading ? (
@@ -1620,11 +1616,7 @@ export default function RemoteBrowserPage({
       title={t("pageShell.browser.title", "Browser AI+")}
       subtitle={t(
         "pageShell.browser.subtitle",
-<<<<<<< HEAD
         "Based on Chromium Headless browser session",
-=======
-        "查看并操控远端无头浏览器，实时接管专家的网页操作",
->>>>>>> upstream/main
       )}
       fill
     >

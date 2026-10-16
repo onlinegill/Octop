@@ -231,8 +231,6 @@ async def create_skill_package(
     return _package_payload_with_creator(server, store, row)
 
 
-<<<<<<< HEAD
-=======
 @router.post(
     "/from-skillhub",
     status_code=status.HTTP_201_CREATED,
@@ -263,7 +261,6 @@ async def create_from_skillhub(
     return payload
 
 
->>>>>>> upstream/main
 @router.get("/{package_id}", summary="Get a global skill package and its skills")
 async def get_skill_package(
     package_id: str,

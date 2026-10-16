@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-"""``voice.*`` — probe error copy."""
-=======
 """``voice.*`` — probe, realtime and Tencent provider error copy."""
->>>>>>> upstream/main
 
 from __future__ import annotations
 
@@ -27,9 +23,6 @@ def format_voice_probe_error(exc: BaseException, locale: str | Locale) -> str:
         return tr("voice.probe.http_status", locale, status=exc.response.status_code)
     if isinstance(exc, httpx.HTTPError):
         return tr("voice.probe.network_error", locale, name=type(exc).__name__)
-<<<<<<< HEAD
-    return str(exc).strip() or type(exc).__name__
-=======
     raw = str(exc).strip() or type(exc).__name__
     code, sep, _message = raw.partition(": ")
     if sep and lookup(f"voice.tencent.{code}", locale) is not None:
@@ -58,4 +51,3 @@ def realtime_error_message(tencent_code: int | None, locale: str | Locale) -> st
     """Localized copy for a realtime ASR failure code (``None`` = unknown)."""
     suffix = _ASR_ERROR_KEYS.get(int(tencent_code or 0), "error_unknown")
     return tr(f"voice.realtime.{suffix}", locale)
->>>>>>> upstream/main

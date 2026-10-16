@@ -1,14 +1,7 @@
 services:
   octop:
-<<<<<<< HEAD
-<<<<<<< HEAD
-    image: ghcr.io/onlinegill/octop:1.0.2b5
-=======
     image: ghcr.io/tencentcloud/octop:1.0.2b7
->>>>>>> upstream/main
-=======
     image: ghcr.io/tencentcloud/octop:1.0.2b8
->>>>>>> upstream/main
     container_name: octop
     restart: unless-stopped
     pull_policy: missing

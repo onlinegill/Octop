@@ -27,14 +27,7 @@ ADMIN_USERNAME="${OCTOP_ADMIN_USERNAME:-admin}"
 ADMIN_DISPLAY_NAME="${OCTOP_ADMIN_DISPLAY_NAME:-Admin}"
 PORT="${OCTOP_PORT:-8088}"
 
-<<<<<<< HEAD
 # Generate a random password (first char a letter, last char a digit, avoiding easily confused characters).
-=======
-# 与 src/octop/infra/users/password.py 的 _COMMON_PASSWORDS 保持一致。
-_OCTOP_COMMON_PASSWORDS="password password1 password12 password123 12345678 123456789 qwerty123 admin123 welcome1 letmein1 changeme1 octop123 abc12345 iloveyou1"
-
-# 生成随机口令（首字符字母、末字符数字，避开易混淆字符）。
->>>>>>> upstream/main
 octop_random_password() {
     local letters='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
     local digits='23456789'
@@ -50,7 +43,6 @@ octop_random_password() {
     printf '%s' "$out"
 }
 
-<<<<<<< HEAD
 DEFAULT_PASSWORD="${OCTOP_DEFAULT_PASSWORD:-}"
 
 if [ ! -f "$DB_FILE" ]; then
@@ -86,18 +78,6 @@ if [ ! -f "$DB_FILE" ]; then
             echo "[entrypoint] initialization failed (not a password-policy issue). If the data directory has files but no octop.db, check the volume mount." >&2
             exit 1
         fi
-=======
-# 校验是否满足应用侧密码策略。失败时向 stderr 输出原因，返回非零。
-octop_validate_password() {
-    local pw="$1" lower
-    if [ -z "$pw" ]; then
-        echo "密码为空" >&2
-        return 1
-    fi
-    if [ "${#pw}" -lt 8 ]; then
-        echo "密码长度至少 8 位" >&2
-        return 1
->>>>>>> upstream/main
     fi
     if ! printf '%s' "$pw" | grep -q '[A-Za-z]'; then
         echo "密码必须同时包含字母和数字" >&2
@@ -141,7 +121,6 @@ octop_write_setup_hint() {
     pw="$(tr -d '\n\r' < "$WIZARD_FILE")"
     cat > "$CREDENTIAL_FILE" << EOF
 Octop Setup Required
-====================
 URL:      http://<host>:${PORT}
 
 No admin account has been created yet.
@@ -159,7 +138,6 @@ octop_write_admin_credential() {
     local password="$1"
     cat > "$CREDENTIAL_FILE" << EOF
 Octop Login Credential
-======================
 URL:      http://<host>:${PORT}
 Username: ${ADMIN_USERNAME}
 Password: ${password}
@@ -172,7 +150,6 @@ This file is rewritten whenever the initial password is (re)generated here.
 If you changed the password inside the Web console, that password wins.
 EOF
     chmod 600 "$CREDENTIAL_FILE"
-<<<<<<< HEAD
     echo "[entrypoint] credentials saved to: $CREDENTIAL_FILE"
 fi
 
@@ -183,83 +160,6 @@ fi
 
 if [ "$1" = "octop" ]; then
     echo "[entrypoint] exec: $*"
-=======
-}
-
-octop_start_setup_wizard() {
-    echo "[entrypoint] 将启动设置向导。向导口令已写入: $WIZARD_FILE"
-    echo "[entrypoint] 打开 http://<host>:${PORT} 完成初始设置。"
-    octop_seed_wizard_password
-    octop_write_setup_hint
-}
-
-octop_run_init() {
-    local password="$1" init_log="$2"
-    octop init \
-        --yes \
-        --admin-username "$ADMIN_USERNAME" \
-        --admin-password "$password" \
-        ${ADMIN_DISPLAY_NAME:+--admin-display-name "$ADMIN_DISPLAY_NAME"} \
-        >"$init_log" 2>&1
-}
-
-octop_entrypoint_main() {
-    local default_password="${OCTOP_DEFAULT_PASSWORD:-}"
-    local init_log reason
-
-    if [ ! -f "$DB_FILE" ] && [ ! -f "$INIT_MARKER" ]; then
-        echo "[entrypoint] 首次启动，正在初始化 Octop..."
-        mkdir -p "$OCTOP_HOME"
-
-        if [ -n "$default_password" ] && octop_validate_password "$default_password" 2>/dev/null; then
-            init_log="$(mktemp)"
-            if octop_run_init "$default_password" "$init_log"; then
-                # init 对已有管理员幂等（输出 "already exists, skipping"，见
-                # cli/commands/init.py）。这种情况说明数据库早已完成引导，
-                # 重写凭据文件只会写下一个从未生效的密码，故保持原文件。
-                if grep -q 'already exists, skipping' "$init_log"; then
-                    echo "[entrypoint] 数据库已完成引导（管理员已存在），保留现有凭据文件。"
-                else
-                    octop_write_admin_credential "$default_password"
-                    echo "[entrypoint] 凭据已保存至: $CREDENTIAL_FILE"
-                fi
-                rm -f "$init_log"
-                touch "$INIT_MARKER"
-                echo "[entrypoint] 已写入初始化标记 ${INIT_MARKER}，重启将跳过 octop init。"
-            elif grep -qiE 'password is too common|password too short|password must include' "$init_log"; then
-                cat "$init_log" >&2 || true
-                rm -f "$init_log"
-                echo "[entrypoint] 指定的初始密码被应用拒绝，改为启动设置向导。"
-                octop_start_setup_wizard
-            else
-                cat "$init_log" >&2 || true
-                rm -f "$init_log"
-                echo "[entrypoint] 初始化失败（不是密码策略问题）。若数据目录已有文件但没有 octop.db（或使用外部数据库后端），请检查卷挂载与数据库连接。" >&2
-                exit 1
-            fi
-        else
-            if [ -z "$default_password" ]; then
-                echo "[entrypoint] 未设置 OCTOP_DEFAULT_PASSWORD，不自动创建管理员。"
-            else
-                reason="$(octop_validate_password "$default_password" 2>&1 || true)"
-                echo "[entrypoint] OCTOP_DEFAULT_PASSWORD 未通过密码策略（${reason:-过弱或过于常见}），不自动创建管理员。"
-            fi
-            octop_start_setup_wizard
-        fi
-    fi
-
-    if [ $# -eq 0 ]; then
-        echo "[entrypoint] 正在启动 Octop，端口 $PORT..."
-        exec octop run --host 0.0.0.0 --port "$PORT"
-    fi
-
-    if [ "$1" = "octop" ]; then
-        echo "[entrypoint] 执行命令: $*"
-        exec "$@"
-    fi
-
-    echo "[entrypoint] 执行命令: $*"
->>>>>>> upstream/main
     exec "$@"
 }
 
@@ -268,9 +168,4 @@ if [ "${OCTOP_ENTRYPOINT_LIB:-}" = "1" ]; then
     return 0 2>/dev/null || exit 0
 fi
 
-<<<<<<< HEAD
-echo "[entrypoint] exec: $*"
-exec "$@"
-=======
 octop_entrypoint_main "$@"
->>>>>>> upstream/main

@@ -1,15 +1,8 @@
 name: Octop Desktop Package
 
-<<<<<<< HEAD
 # Official release: after tagging v*, Auto Tag dispatches this together with Release / Docker Publish.
 # Artifacts are upserted to the same GitHub Release. Manual re-packaging: workflow_dispatch + release_tag
 # (does not have to run on a v* ref). attach_from_run only attaches existing artifacts and does not rebuild.
-=======
-# 正式发版：Auto Tag 在打 v* 后与 Release / Docker Publish 一并 dispatch。
-# 产物 upsert 到同一 GitHub Release，再上传到 COS octop/release/<version>/。
-# 手工补包：workflow_dispatch + release_tag（不必跑在 v* ref 上）。
-# attach_from_run 只挂已有 artifact、不重打。
->>>>>>> upstream/main
 
 on:
   push:

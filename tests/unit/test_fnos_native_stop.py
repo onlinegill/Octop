@@ -14,18 +14,10 @@ from pathlib import Path
 import pytest
 
 posix_only = pytest.mark.skipif(os.name != "posix", reason="bash helpers")
-<<<<<<< HEAD
 # octop_fpk_native_run_pids identifies the service via /proc/<pid>/environ, which is
 # Linux-only (fnOS is Linux). macOS has no /proc, so gate this rather than assert.
 procfs_only = pytest.mark.skipif(
     not Path("/proc").exists(), reason="/proc/<pid>/environ is Linux-only (fnOS)"
-=======
-# 飞牛停服务按 Linux 进程树实现。macOS 也是 posix，但没有 /proc，
-# 读子进程和按树杀进程都会落空。
-linux_proc = pytest.mark.skipif(
-    not Path("/proc").is_dir(),
-    reason="FnOS native stop walks /proc",
->>>>>>> upstream/main
 )
 
 REPO = Path(__file__).resolve().parents[2]
@@ -313,7 +305,6 @@ def test_native_main_stop_frees_port_after_wrapper_start(tmp_path: Path) -> None
 
 @posix_only
 def test_native_main_start_term_cleans_unready_child(tmp_path: Path) -> None:
-<<<<<<< HEAD
     """If fnOS kills start before the port is ready, spawned background processes must be reaped."""
     if shutil.which("python3") is None:
         pytest.skip("python3 required")
@@ -331,18 +322,6 @@ def test_native_main_start_term_cleans_unready_child(tmp_path: Path) -> None:
     _copy_ctl(cmd)
     launcher = appdest / "bin" / "octop"
     launcher.write_text(
-=======
-    """飞牛若在端口就绪前杀掉 start，trap 必须退出并收掉未就绪子进程。
-
-    不驱动完整 ``main start``：就绪轮询会调 ``ss`` / ``pgrep -f``，预提交负载下会把套件卡住。
-    生产脚本的 trap 文案由 ``test_native_main_stop_releases_listen_port`` 锁住；这里只回放
-    abort+exit 语义。
-    """
-    pid_file = tmp_path / "octop.pid"
-    ready_file = tmp_path / "ready"
-    wrapper = tmp_path / "abort.sh"
-    wrapper.write_text(
->>>>>>> upstream/main
         "#!/bin/bash\n"
         "set -uo pipefail\n"
         "sleep 120 &\n"

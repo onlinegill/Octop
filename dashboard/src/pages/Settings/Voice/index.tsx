@@ -44,76 +44,6 @@ export function VoiceSettingsPanel() {
   const [loading, setLoading] = useState(true);
   const [configure, setConfigure] = useState<ConfigureState | null>(null);
   const [apiKey, setApiKey] = useState("");
-<<<<<<< HEAD
-=======
-  const [secretId, setSecretId] = useState("");
-  const [secretKey, setSecretKey] = useState("");
-  const [realtimeStt, setRealtimeStt] = useState(false);
-  const [appId, setAppId] = useState("");
-  const [mimoEndpoint, setMimoEndpoint] = useState<"payg" | "tokenplan">(
-    "payg",
-  );
-  const [mimoVoiceId, setMimoVoiceId] = useState("冰糖");
->>>>>>> upstream/main
-  const [saving, setSaving] = useState(false);
-  const [probing, setProbing] = useState(false);
-
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [presetList, rows, activeVoice] = await Promise.all([
-        voiceApi.getPresets(),
-        voiceApi.getProviders(),
-        voiceApi.getActive(),
-      ]);
-      setPresets(presetList);
-      setProviders(rows);
-      setActive(activeVoice);
-    } catch (err) {
-      message.error(t("voice.loadError"));
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    void fetchAll();
-  }, [fetchAll]);
-
-  const sttPresets = useMemo(
-    () =>
-      presets.filter((p) => p.capability === "stt" || p.capability === "both"),
-    [presets],
-  );
-  const ttsPresets = useMemo(
-    () =>
-      presets.filter((p) => p.capability === "tts" || p.capability === "both"),
-    [presets],
-  );
-
-  const findConfigured = (preset: VoicePreset) =>
-    providers.find((p) => p.name === preset.id || p.name === preset.name);
-
-  const setActiveProvider = async (kind: "stt" | "tts", name: string) => {
-    try {
-      const next = await voiceApi.setActive(
-        kind === "stt" ? { stt: name } : { tts: name },
-      );
-      setActive(next);
-      invalidateVoiceConfigCache();
-      message.success(t("voice.activeUpdated"));
-    } catch {
-      message.error(t("voice.activeUpdateFailed"));
-    }
-  };
-
-  const openConfigure = (preset: VoicePreset) => {
-    const existing = findConfigured(preset);
-    setConfigure({ preset, existing });
-    setApiKey(existing?.api_key ?? "");
-<<<<<<< HEAD
-=======
     const extra = existing?.extra ?? {};
     setSecretId(String(extra.secret_id ?? ""));
     setSecretKey(String(extra.secret_key ?? ""));
@@ -121,7 +51,6 @@ export function VoiceSettingsPanel() {
     setAppId(String(extra.app_id ?? ""));
     setMimoEndpoint(extra.endpoint_type === "tokenplan" ? "tokenplan" : "payg");
     setMimoVoiceId(String(extra.voice_id ?? "冰糖"));
->>>>>>> upstream/main
   };
 
   const buildProviderPayload = (): VoiceProviderInput | null => {
@@ -129,10 +58,6 @@ export function VoiceSettingsPanel() {
     const { preset } = configure;
     let extra: Record<string, unknown>;
     let baseUrl: string | null = null;
-<<<<<<< HEAD
-    if (preset.kind === "edge") {
-      extra = { voice_id: "en-US-AriaNeural" };
-=======
     if (preset.kind === "tencent") {
       extra = {
         secret_id: secretId,
@@ -152,7 +77,6 @@ export function VoiceSettingsPanel() {
         endpoint_type: mimoEndpoint,
         voice_id: preset.capability === "tts" ? mimoVoiceId : undefined,
       };
->>>>>>> upstream/main
     } else {
       extra = { model: preset.kind === "openai" ? "whisper-1" : undefined };
     }
@@ -425,8 +349,6 @@ export function VoiceSettingsPanel() {
         }
       >
         <Form layout="vertical">
-<<<<<<< HEAD
-=======
           {configure?.preset.kind === "tencent" && (
             <>
               <div className={styles.drawerHint}>{t("voice.tencentHint")}</div>
@@ -466,7 +388,6 @@ export function VoiceSettingsPanel() {
               )}
             </>
           )}
->>>>>>> upstream/main
           {configure?.preset.kind === "openai" && (
             <>
               <div className={styles.drawerHint}>{t("voice.openaiHint")}</div>

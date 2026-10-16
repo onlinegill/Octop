@@ -6,8 +6,6 @@ import styles from "./index.module.less";
 
 export const MAIL_PROVIDERS = [
   {
-<<<<<<< HEAD
-=======
     id: "qq",
     guideUrl: "https://mail.qq.com/",
     emailPlaceholder: "you@qq.com",
@@ -18,17 +16,13 @@ export const MAIL_PROVIDERS = [
     emailPlaceholder: "you@163.com / you@126.com",
   },
   {
->>>>>>> upstream/main
     id: "gmail",
     guideUrl: "https://mail.google.com/",
     emailPlaceholder: "you@gmail.com",
   },
   {
     id: "custom",
-<<<<<<< HEAD
     label: "Others",
-=======
->>>>>>> upstream/main
     guideUrl: null,
     emailPlaceholder: "you@example.com",
   },
