@@ -1,15 +1,15 @@
 {
   "id": "design",
   "label": {
-    "zh": "设计专家",
+    "zh": "Design Expert",
     "en": "Design Expert"
   },
   "description": {
-    "zh": "设计生产力工作流：设计评审、设计系统管理、UX 文案、无障碍审查、用户研究综合与开发交接。可独立使用，连接设计工具类连接器后体验更佳。",
+    "zh": "Design productivity workflows: critique, design-system management, UX writing, accessibility review, research synthesis, and developer handoff. Works standalone; richer with design-tool connectors.",
     "en": "Design productivity workflows: critique, design-system management, UX writing, accessibility review, research synthesis, and developer handoff. Works standalone; richer with design-tool connectors."
   },
   "welcome_message": {
-    "zh": "发我一张截图或描述你的设计，我来给结构化反馈",
+    "zh": "Share a screenshot or describe your design — I'll give structured feedback",
     "en": "Share a screenshot or describe your design — I'll give structured feedback"
   },
   "icon_name": "palette",
@@ -21,9 +21,9 @@
   ],
   "task_examples": {
     "zh": [
-      "评审这个页面的设计：可用性、视觉层级、一致性与无障碍",
-      "为支付流程的错误提示写一组 UX 文案，给出语气建议和备选方案",
-      "把这份设计整理成开发交接文档：尺寸、tokens、状态、交互与边界情况"
+      "Critique this page design: usability, visual hierarchy, consistency, and accessibility",
+      "Write UX copy for payment-flow error messages, with tone guidance and alternatives",
+      "Turn this design into a developer handoff spec: measurements, tokens, states, interactions, and edge cases"
     ],
     "en": [
       "Critique this page design: usability, visual hierarchy, consistency, and accessibility",
@@ -34,15 +34,15 @@
   "quick_prompts": [
     {
       "title": {
-        "zh": "设计评审",
+        "zh": "Design critique",
         "en": "Design critique"
       },
       "description": {
-        "zh": "可用性、视觉层级、一致性与无障碍",
+        "zh": "Usability, hierarchy, consistency, and accessibility",
         "en": "Usability, hierarchy, consistency, and accessibility"
       },
       "prompt": {
-        "zh": "评审这个页面的设计：可用性、视觉层级、一致性与无障碍",
+        "zh": "Critique this page design: usability, hierarchy, consistency, and accessibility",
         "en": "Critique this page design: usability, hierarchy, consistency, and accessibility"
       },
       "color": "#f3e8ff",
@@ -50,15 +50,15 @@
     },
     {
       "title": {
-        "zh": "UX 文案",
+        "zh": "UX copy",
         "en": "UX copy"
       },
       "description": {
-        "zh": "错误提示、空状态与引导流程",
+        "zh": "Error messages, empty states, and onboarding flows",
         "en": "Error messages, empty states, and onboarding flows"
       },
       "prompt": {
-        "zh": "为支付流程的错误提示写一组 UX 文案，给出语气建议和备选方案",
+        "zh": "Write UX copy for payment-flow error messages, with tone guidance and alternatives",
         "en": "Write UX copy for payment-flow error messages, with tone guidance and alternatives"
       },
       "color": "#f3e8ff",
@@ -66,15 +66,15 @@
     },
     {
       "title": {
-        "zh": "开发交接",
+        "zh": "Dev handoff",
         "en": "Dev handoff"
       },
       "description": {
-        "zh": "尺寸、tokens、状态与边界情况",
+        "zh": "Measurements, tokens, states, and edge cases",
         "en": "Measurements, tokens, states, and edge cases"
       },
       "prompt": {
-        "zh": "把这份设计整理成开发交接文档：尺寸、tokens、状态、交互与边界情况",
+        "zh": "Turn this design into a developer handoff spec: measurements, tokens, states, and edge cases",
         "en": "Turn this design into a developer handoff spec: measurements, tokens, states, and edge cases"
       },
       "color": "#f3e8ff",
