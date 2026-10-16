@@ -2,34 +2,17 @@
 # =============================================================================
 # Octop container entrypoint
 #
-<<<<<<< HEAD
 # Environment variables:
 #   HOME                      — must be /data so ~/.octop maps to the data volume
-#   OCTOP_DEFAULT_PASSWORD    — initial admin password (>=8 chars with letters and digits;
-#                               if unset a random password is generated and the credentials are written to
-#                               /data/.octop/credential.txt)
+#   OCTOP_DEFAULT_PASSWORD    — initial admin password (>=8 chars with letters and digits).
+#                               If set and valid, octop init creates the account.
+#                               If unset, completes first-time setup via Web Wizard.
 #   OCTOP_ADMIN_USERNAME      — initial admin username (default: admin)
 #   OCTOP_ADMIN_DISPLAY_NAME  — optional display name
 #   OCTOP_PORT                — service port (default: 8088)
 #
-# Password fallback (fixes issue #502): the app-side policy has a common weak-password blocklist (including
-# Octop123); the old default password made octop init exit with "password is too common"
-# and the container restart repeatedly. Now: when no password is set a strong random one is generated; a supplied
-# one rejected by the policy also falls back to a random retry, so the container always completes first-time init.
-=======
-# 环境变量:
-#   HOME                      — 必须为 /data，使 ~/.octop 映射到数据卷
-#   OCTOP_DEFAULT_PASSWORD    — 首次管理员密码（须 ≥8 位且含字母和数字）。
-#                               合格则 octop init 建账号；未设置或未通过
-#                               策略则不建管理员，启动后走 Web 设置向导。
-#   OCTOP_ADMIN_USERNAME      — 首次管理员用户名（默认: admin）
-#   OCTOP_ADMIN_DISPLAY_NAME  — 可选显示名
-#   OCTOP_PORT                — 服务端口（默认: 8088）
-#
-# 首次引导（issue #502）：容器不得因弱默认密码重启循环。未设置或不合格
-# 的 OCTOP_DEFAULT_PASSWORD 不再静默换成随机管理员密码，而是把向导口令
-# 写到数据卷（/data/.octop/octop-login.txt），打开页面走设置向导。
->>>>>>> upstream/main
+# Init Marker (issue #1866): External databases (PostgreSQL) don't store octop.db on volume.
+# When octop init completes, /data/.octop/.initialized is written to avoid re-init loops.
 # =============================================================================
 set -euo pipefail
 
@@ -37,6 +20,7 @@ export HOME="${HOME:-/data}"
 OCTOP_HOME="${OCTOP_HOME:-${HOME}/.octop}"
 export OCTOP_HOME
 DB_FILE="${OCTOP_HOME}/octop.db"
+INIT_MARKER="${OCTOP_HOME}/.initialized"
 CREDENTIAL_FILE="${OCTOP_HOME}/credential.txt"
 WIZARD_FILE="${OCTOP_HOME}/octop-login.txt"
 ADMIN_USERNAME="${OCTOP_ADMIN_USERNAME:-admin}"
@@ -223,16 +207,25 @@ octop_entrypoint_main() {
     local default_password="${OCTOP_DEFAULT_PASSWORD:-}"
     local init_log reason
 
-    if [ ! -f "$DB_FILE" ]; then
+    if [ ! -f "$DB_FILE" ] && [ ! -f "$INIT_MARKER" ]; then
         echo "[entrypoint] 首次启动，正在初始化 Octop..."
         mkdir -p "$OCTOP_HOME"
 
         if [ -n "$default_password" ] && octop_validate_password "$default_password" 2>/dev/null; then
             init_log="$(mktemp)"
             if octop_run_init "$default_password" "$init_log"; then
+                # init 对已有管理员幂等（输出 "already exists, skipping"，见
+                # cli/commands/init.py）。这种情况说明数据库早已完成引导，
+                # 重写凭据文件只会写下一个从未生效的密码，故保持原文件。
+                if grep -q 'already exists, skipping' "$init_log"; then
+                    echo "[entrypoint] 数据库已完成引导（管理员已存在），保留现有凭据文件。"
+                else
+                    octop_write_admin_credential "$default_password"
+                    echo "[entrypoint] 凭据已保存至: $CREDENTIAL_FILE"
+                fi
                 rm -f "$init_log"
-                octop_write_admin_credential "$default_password"
-                echo "[entrypoint] 凭据已保存至: $CREDENTIAL_FILE"
+                touch "$INIT_MARKER"
+                echo "[entrypoint] 已写入初始化标记 ${INIT_MARKER}，重启将跳过 octop init。"
             elif grep -qiE 'password is too common|password too short|password must include' "$init_log"; then
                 cat "$init_log" >&2 || true
                 rm -f "$init_log"
@@ -241,7 +234,7 @@ octop_entrypoint_main() {
             else
                 cat "$init_log" >&2 || true
                 rm -f "$init_log"
-                echo "[entrypoint] 初始化失败（不是密码策略问题）。若数据目录已有文件但没有 octop.db，请检查卷挂载。" >&2
+                echo "[entrypoint] 初始化失败（不是密码策略问题）。若数据目录已有文件但没有 octop.db（或使用外部数据库后端），请检查卷挂载与数据库连接。" >&2
                 exit 1
             fi
         else
